@@ -24,6 +24,7 @@
 #include "ecma-jobqueue.h"
 #include "jerryscript-port.h"
 #include "jmem.h"
+#include "jmem-config.h"
 #include "re-bytecode.h"
 #include "vm-defines.h"
 #include "jerryscript.h"
@@ -162,6 +163,7 @@ typedef struct
 {
   jmem_heap_free_t first; /**< first node in free region list */
   uint8_t area[]; /**< heap area */
+  /* REDC: segmented heap allocator is not applied in this case. */
 } jmem_heap_t;
 
 /**
@@ -243,6 +245,7 @@ typedef struct
   /* JS heap area on heap area (dynamically allocated) */
   uint8_t *area[JMEM_SEGMENT];
   jmem_segment_t segments[JMEM_SEGMENT];
+  uint32_t segments_count;
 #else  /* JMEM_SEGMENTED_HEAP */
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */
 #endif /* !JMEM_SEGMENTED_HEAP */

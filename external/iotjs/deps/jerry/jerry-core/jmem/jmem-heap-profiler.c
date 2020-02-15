@@ -49,7 +49,7 @@ inline void __attr_always_inline___ profile_print_total_size(void) {
   profile_get_curr_time(&curr_time);
   uint32_t segments_in_bytes = 0;
 #ifdef JMEM_SEGMENTED_HEAP
-  segments_in_bytes = (uint32_t)g_segments_count * JMEM_SEGMENT_SIZE;
+  segments_in_bytes = (uint32_t)JERRY_HEAP_CONTEXT(segments_count) * JMEM_SEGMENT_SIZE;
 #endif
   printf("%lu.%06lu\t%lu\t%lu\n", curr_time.tv_sec, curr_time.tv_usec,
          (uint32_t)JERRY_HEAP_CONTEXT(jmem_heap_allocated_size), segments_in_bytes);

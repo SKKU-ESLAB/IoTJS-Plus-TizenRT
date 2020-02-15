@@ -31,7 +31,6 @@
 
 /* global variables for segmented heap */
 static uint32_t g_last_seg_idx = 0;
-uint32_t g_segments_count = 0; /* extern access allowed */
 
 #ifdef JMEM_SEGMENT_RB_LOOKUP
 rb_root g_segment_rb_root;
@@ -51,7 +50,7 @@ void jmem_segmented_init_segments(void) {
   JERRY_HEAP_CONTEXT(area[0]) =
       (uint8_t *)jmem_segment_alloc_init((&JERRY_HEAP_CONTEXT(segments[0]))) -
       JMEM_ALIGNMENT;
-  g_segments_count++;
+  JERRY_HEAP_CONTEXT(segments_count)++;
   {
     uint32_t segment_idx;
     for (segment_idx = 1; segment_idx < JMEM_SEGMENT; segment_idx++) {
@@ -179,10 +178,10 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   if (g_last_seg_idx < segment_idx)
     g_last_seg_idx = segment_idx;
   if (unlikely(is_two_segs)) {
-    g_segments_count++;
+    JERRY_HEAP_CONTEXT(segments_count)++;
     is_two_segs = 0;
   }
-  g_segments_count++;
+  JERRY_HEAP_CONTEXT(segments_count)++;
 
   return (void *)allocated_segment;
 }
@@ -221,7 +220,7 @@ void free_empty_segments(void) {
       if (unlikely(segment_to_free->size > JMEM_SEGMENT_SIZE)) {
         jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter + 1]));
         JERRY_HEAP_CONTEXT(area[seg_iter + 1]) = NULL;
-        g_segments_count--;
+        JERRY_HEAP_CONTEXT(segments_count)--;
 
         if (seg_iter + 1 == g_last_seg_idx)
           g_last_seg_idx = max_seg_iter;
@@ -229,7 +228,7 @@ void free_empty_segments(void) {
       jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter]));
       JERRY_HEAP_CONTEXT(area[seg_iter]) = NULL;
 
-      g_segments_count--;
+      JERRY_HEAP_CONTEXT(segments_count)--;
       if (seg_iter == g_last_seg_idx)
         g_last_seg_idx = max_seg_iter;
     }
