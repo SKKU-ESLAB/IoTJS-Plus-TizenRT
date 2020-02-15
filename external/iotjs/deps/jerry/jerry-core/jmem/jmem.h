@@ -17,6 +17,59 @@
 #define JMEM_H
 
 #include "jrt.h"
+#include "jmem-config.h"
+
+/* Segmented heap allocator */
+#ifdef JMEM_SEGMENTED_HEAP
+#define JMEM_SEGMENT_SIZE 8192
+#define JMEM_SEGMENT_SHIFT 13
+#define JMEM_SEGMENT (JMEM_HEAP_SIZE / JMEM_SEGMENT_SIZE)
+
+/**
+ * Segment information
+ */
+typedef struct {
+  /**
+   * Flag Structure
+   |-Reserved-|tree bit|
+   |  7bit    |  1 bit |
+   ex) flag = 0x01:area[i] points to merge tree
+       flag = 0x00:area[i] points to heap segment or nothing
+   */
+  uint8_t flag;
+  size_t allocated_size;
+} jmem_segment_t;
+#endif /* defined(JMEM_SEGMENTED_HEAP) */
+
+#ifdef JMEM_SEGMENTED_HEAP
+/* jmem-heap-segmented.c */
+extern uint32_t g_segments_count;
+#endif /* defined(JMEM_SEGMENTED_HEAP) */
+
+/* Modification for unifying segmented heap allocator */
+/**
+ * End of list marker.
+ */
+#define JMEM_HEAP_END_OF_LIST ((uint32_t) 0xffffffff)
+#define JMEM_HEAP_END_OF_LIST_UINT32 ((uint32_t) 0xffffffff)
+
+#ifdef ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY
+/* In this case we simply store the pointer, since it fits anyway. */
+/* REDC: do not consider this case */
+#define JMEM_HEAP_GET_OFFSET_FROM_ADDR(p) ((uint32_t) (p))
+#define JMEM_HEAP_GET_ADDR_FROM_OFFSET(u) ((jmem_heap_free_t *) (u))
+#else /* defined(ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) */
+extern uint32_t jmem_heap_get_offset_from_addr_segmented(uint8_t *p); /* jmem-heap-segmented.c */
+extern jmem_heap_free_t *jmem_heap_get_addr_from_offset_segmented(uint32_t u); /* jmem-heap-segmented.c */
+#ifdef JMEM_SEGMENTED_HEAP
+#define JMEM_HEAP_GET_OFFSET_FROM_ADDR(p) jmem_heap_get_offset_from_addr_segmented(p)
+#define JMEM_HEAP_GET_ADDR_FROM_OFFSET(u) jmem_heap_get_addr_from_offset_segmented(u)
+#else
+#define JMEM_HEAP_GET_OFFSET_FROM_ADDR(p) ((uint32_t) ((uint8_t *) (p) - JERRY_HEAP_CONTEXT (area)))
+#define JMEM_HEAP_GET_ADDR_FROM_OFFSET(u) ((jmem_heap_free_t *) (JERRY_HEAP_CONTEXT (area) + (u)))
+#endif
+#endif /* !defined(ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) */
+/*******************************************************/
 
 /** \addtogroup mem Memory allocation
  * @{

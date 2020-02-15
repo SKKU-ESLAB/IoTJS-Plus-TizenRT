@@ -145,7 +145,7 @@ typedef struct
 #endif /* !CONFIG_ECMA_LCACHE_DISABLE */
 
 #ifdef JERRY_ENABLE_EXTERNAL_CONTEXT
-
+/* REDC: Allowment of external context case // I will not consider this case. */
 #ifndef JERRY_GET_CURRENT_INSTANCE
 
 /**
@@ -239,7 +239,13 @@ jerry_context_get_current_lcache (void)
 typedef struct
 {
   jmem_heap_free_t first; /**< first node in free region list */
+#ifdef JMEM_SEGMENTED_HEAP
+  /* JS heap area on heap area (dynamically allocated) */
+  uint8_t *area[JMEM_SEGMENT];
+  jmem_segment_t segments[JMEM_SEGMENT];
+#else  /* JMEM_SEGMENTED_HEAP */
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */
+#endif /* !JMEM_SEGMENTED_HEAP */
 } jmem_heap_t;
 
 /**
