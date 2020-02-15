@@ -59,6 +59,8 @@ jmem_finalize (void)
 inline jmem_cpointer_t __attr_pure___ __attr_always_inline___
 jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 {
+  profile_compression_start(); /* Time profiling */
+
   JERRY_ASSERT (pointer_p != NULL);
   JERRY_ASSERT (jmem_is_heap_pointer (pointer_p));
 
@@ -69,9 +71,14 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 #if defined (ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) && defined (JERRY_CPOINTER_32_BIT)
   JERRY_ASSERT (((jmem_cpointer_t) uint_ptr) == uint_ptr);
 #else /* !ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY || !JERRY_CPOINTER_32_BIT */
-  const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
 
+#ifdef JMEM_SEGMENTED_HEAP
+  uint_ptr = (uintptr_t)JMEM_HEAP_GET_OFFSET_FROM_ADDR(pointer_p);
+#else /* JMEM_SEGMENTED_HEAP */
+  const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
   uint_ptr -= heap_start;
+#endif /* !JMEM_SEGMENTED_HEAP */
+
   uint_ptr >>= JMEM_ALIGNMENT_LOG;
 
 #ifdef JERRY_CPOINTER_32_BIT
@@ -81,6 +88,8 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 #endif /* JERRY_CPOINTER_32_BIT */
   JERRY_ASSERT (uint_ptr != JMEM_CP_NULL);
 #endif /* ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY && JERRY_CPOINTER_32_BIT */
+
+  profile_compression_end(); /* Time profiling */
 
   return (jmem_cpointer_t) uint_ptr;
 } /* jmem_compress_pointer */
@@ -93,6 +102,8 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 inline void * __attr_pure___ __attr_always_inline___
 jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompress */
 {
+  profile_decompression_start(); /* Time profiling */
+
   JERRY_ASSERT (compressed_pointer != JMEM_CP_NULL);
 
   uintptr_t uint_ptr = compressed_pointer;
@@ -102,13 +113,20 @@ jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompres
 #if defined (ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) && defined (JERRY_CPOINTER_32_BIT)
   JERRY_ASSERT (uint_ptr % JMEM_ALIGNMENT == 0);
 #else /* !ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY || !JERRY_CPOINTER_32_BIT */
-  const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
 
+#ifdef JMEM_SEGMENTED_HEAP
+  uint_ptr <<= JMEM_ALIGNMENT_LOG;
+  uint_ptr = (uintptr_t)JMEM_HEAP_GET_ADDR_FROM_OFFSET(uint_ptr);
+#else /* JMEM_SEGMENTED_HEAP */
+  const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
   uint_ptr <<= JMEM_ALIGNMENT_LOG;
   uint_ptr += heap_start;
+#endif /* !JMEM_SEGMENTED_HEAP */
 
   JERRY_ASSERT (jmem_is_heap_pointer ((void *) uint_ptr));
 #endif /* ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY && JERRY_CPOINTER_32_BIT */
+
+  profile_decompression_end(); /* Time profiling */
 
   return (void *) uint_ptr;
 } /* jmem_decompress_pointer */
@@ -149,6 +167,10 @@ jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t severi
   }
 
   jmem_pools_collect_empty ();
+
+#ifdef JMEM_SEGMENTED_HEAP
+  free_empty_segments ();
+#endif /* JMEM_SEGMENTED_HEAP */
 } /* jmem_run_free_unused_memory_callbacks */
 
 #ifdef JMEM_STATS

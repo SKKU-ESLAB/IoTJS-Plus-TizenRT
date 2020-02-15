@@ -433,8 +433,34 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
   if (likely (data_space_p != NULL))
   {
     VALGRIND_FREYA_MALLOCLIKE_SPACE (data_space_p, size);
+
+    profile_print_total_size(); /* Total size profiling */
+
+    profile_gc_set_object_birth_time(
+      jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
+
     return data_space_p;
   }
+
+  // Segment Allocation before GC
+#ifdef JMEM_SEGMENTED_HEAP
+#ifdef SEG_ALLOC_BEFORE_GC
+  {
+    bool is_two_segs = false;
+    if (size > JMEM_SEGMENT_SIZE) {
+      is_two_segs = true;
+    }
+    if (jmem_heap_add_segment(is_two_segs) != NULL) {
+      data_space_p = jmem_heap_alloc_block_internal(size);
+
+      JERRY_ASSERT(data_space_p != NULL);
+      profile_gc_set_object_birth_count(
+        jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
+    }
+    return data_space_p;
+  }
+#endif /* SEG_ALLOC_BEFORE_GC */
+#endif /* JMEM_SEGMENTED_HEAP */
 
   for (jmem_free_unused_memory_severity_t severity = JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
        severity <= JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH;
@@ -447,9 +473,29 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
     if (likely (data_space_p != NULL))
     {
       VALGRIND_FREYA_MALLOCLIKE_SPACE (data_space_p, size);
+
+      profile_print_total_size(); /* Total size profiling */
+      profile_gc_set_object_birth_time(
+        jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
+
       return data_space_p;
     }
   }
+
+  // Segment allocation after GC
+#ifdef JMEM_SEGMENTED_HEAP
+  {
+    bool is_two_segs = false;
+    if (jmem_heap_add_segment(is_two_segs) != NULL) {
+      data_space_p = jmem_heap_alloc_block_internal(size);
+
+      JERRY_ASSERT(data_space_p != NULL);
+      profile_gc_set_object_birth_count(
+        jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
+    }
+    return data_space_p;
+  }
+#endif /* JMEM_SEGMENTED_HEAP */
 
   JERRY_ASSERT (data_space_p == NULL);
 
@@ -503,6 +549,8 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 #ifndef JERRY_SYSTEM_ALLOCATOR
   VALGRIND_FREYA_CHECK_MEMPOOL_REQUEST;
 
+  profile_free_start(); /* Time profiling */
+
   /* checking that ptr points to the heap */
   JERRY_ASSERT (jmem_is_heap_pointer (ptr));
   JERRY_ASSERT (size > 0);
@@ -518,7 +566,14 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 
   VALGRIND_DEFINED_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
 
-  if (block_p > JERRY_CONTEXT (jmem_heap_list_skip_p))
+#ifdef JMEM_SEGMENTED_HEAP
+  uint32_t boffset = JMEM_HEAP_GET_OFFSET_FROM_ADDR(block_p);
+  uint32_t skip_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR(JERRY_CONTEXT(jmem_heap_list_skip_p));
+  bool is_skip_ok = boffset > skip_offset;
+#else /* JMEM_SEGMENTED_HEAP */
+  bool is_skip_ok = block_p > JERRY_CONTEXT (jmem_heap_list_skip_p)
+#endif /* !JMEM_SEGMENTED_HEAP */
+  if (is_skip_ok)
   {
     prev_p = JERRY_CONTEXT (jmem_heap_list_skip_p);
     JMEM_HEAP_STAT_SKIP ();
@@ -530,7 +585,11 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   }
 
   JERRY_ASSERT (jmem_is_heap_pointer (block_p));
+#ifdef JMEM_SEGMENTED_HEAP
+  const uint32_t block_offset = boffset;
+#else /* JMEM_SEGMENTED_HEAP */
   const uint32_t block_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR (block_p);
+#endif /* !JMEM_SEGMENTED_HEAP */
 
   VALGRIND_DEFINED_SPACE (prev_p, sizeof (jmem_heap_free_t));
   /* Find position of region in the list. */
@@ -583,6 +642,12 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 
   JERRY_CONTEXT (jmem_heap_list_skip_p) = prev_p;
 
+#ifdef JMEM_SEGMENTED_HEAP
+  uint32_t seg_iter = block_offset / JMEM_SEGMENT_SIZE;
+  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[seg_iter]).allocated_size > 0);
+  JERRY_HEAP_CONTEXT(segments[seg_iter]).allocated_size -= aligned_size;
+#endif
+
   VALGRIND_NOACCESS_SPACE (prev_p, sizeof (jmem_heap_free_t));
   VALGRIND_NOACCESS_SPACE (block_p, size);
   VALGRIND_NOACCESS_SPACE (next_p, sizeof (jmem_heap_free_t));
@@ -598,6 +663,13 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   VALGRIND_NOACCESS_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
   JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_limit) >= JERRY_CONTEXT (jmem_heap_allocated_size));
   JMEM_HEAP_STAT_FREE (size);
+
+  profile_print_total_size(); /* Total size profiling */
+
+  profile_gc_print_object_lifespan(
+    jmem_compress_pointer(ptr)); /* Object lifespan profiling */
+  profile_free_end();                    /* Time profiling */
+
 #else /* JERRY_SYSTEM_ALLOCATOR */
   JERRY_UNUSED (size);
   free (ptr);
@@ -618,8 +690,13 @@ bool
 jmem_is_heap_pointer (const void *pointer) /**< pointer */
 {
 #ifndef JERRY_SYSTEM_ALLOCATOR
+#ifdef JMEM_SEGMENTED_HEAP
+  /* Not yet implemented */
+  return pointer != NULL;
+#else /* JMEM_SEGMENTED_HEAP */
   return ((uint8_t *) pointer >= JERRY_HEAP_CONTEXT (area)
           && (uint8_t *) pointer <= (JERRY_HEAP_CONTEXT (area) + JMEM_HEAP_AREA_SIZE));
+#endif /* !JMEM_SEGMENTED_HEAP */
 #else /* JERRY_SYSTEM_ALLOCATOR */
   JERRY_UNUSED (pointer);
   return true;

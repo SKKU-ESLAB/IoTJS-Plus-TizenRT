@@ -703,6 +703,9 @@ ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
 void
 ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
 {
+  profile_gc_inc_total_count(); /* Object lifespan profiling */
+  profile_gc_start(); /* Time profiling */
+
   JERRY_CONTEXT (ecma_gc_new_objects) = 0;
 
   JERRY_ASSERT (JERRY_CONTEXT (ecma_gc_objects_lists) [ECMA_GC_COLOR_BLACK] == NULL);
@@ -811,6 +814,8 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
   /* Free RegExp bytecodes stored in cache */
   re_cache_gc_run ();
 #endif /* !CONFIG_DISABLE_REGEXP_BUILTIN */
+
+  profile_gc_end(); /* Time profiling */
 } /* ecma_gc_run */
 
 /**
