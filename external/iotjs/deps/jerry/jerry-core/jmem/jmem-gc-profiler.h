@@ -22,7 +22,7 @@
 #include "jrt.h"
 
 /* Object lifespan profiling */
-extern void profile_gc_inc_total_count();
+extern void profile_gc_inc_total_count(void);
 extern void profile_gc_set_object_birth_time(uintptr_t compressed_pointer);
 extern void profile_gc_set_object_birth_count(uintptr_t compressed_pointer);
 extern void profile_gc_print_object_lifespan(uintptr_t compressed_pointer);

@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-#include "jmem-allocator-internal.h"
 #include "jmem.h"
 #include "jrt.h"
+
+#define JMEM_ALLOCATOR_INTERNAL
+#include "jmem-allocator-internal.h"
 
 #include <stdlib.h>
 #define MALLOC(size) ((void *)malloc(size))
@@ -69,7 +71,7 @@ void jmem_segmented_init_segments(void) {
 }
 
 inline uint32_t __attribute__((hot))
-jmem_heap_get_offset_from_addr_segmented(uint8_t *p) {
+jmem_heap_get_offset_from_addr_segmented(jmem_heap_free_t *p) {
   uint32_t segment_idx;
   uint8_t *segment_addr;
 
@@ -81,7 +83,7 @@ jmem_heap_get_offset_from_addr_segmented(uint8_t *p) {
   if (p == (uint8_t *)&JERRY_HEAP_CONTEXT(first))
     return 0;
 
-  segment_idx = jmem_segment_lookup(&segment_addr, p);
+  segment_idx = jmem_segment_lookup(&segment_addr, (uint8_t *)p);
 
   return (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(p, segment_addr) +
                     (uint32_t)JMEM_SEGMENT_SIZE * segment_idx);

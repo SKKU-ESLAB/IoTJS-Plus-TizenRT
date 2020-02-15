@@ -38,6 +38,9 @@
 #include "ecma-promise-object.h"
 #endif
 
+#include "jmem-heap-profiler.h"
+#include "jmem-gc-profiler.h"
+
 /* TODO: Extract GC to a separate component */
 
 /** \addtogroup ecma ECMA

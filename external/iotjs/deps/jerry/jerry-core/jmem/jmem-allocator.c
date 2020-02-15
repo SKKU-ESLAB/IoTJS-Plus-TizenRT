@@ -23,6 +23,8 @@
 
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
+#include "jmem-heap-profiler.h"
+#include "jmem-heap-segmented.h"
 
 /**
  * Initialize memory allocators.
@@ -116,7 +118,7 @@ jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompres
 
 #ifdef JMEM_SEGMENTED_HEAP
   uint_ptr <<= JMEM_ALIGNMENT_LOG;
-  uint_ptr = (uintptr_t)JMEM_HEAP_GET_ADDR_FROM_OFFSET(uint_ptr);
+  uint_ptr = (uintptr_t)JMEM_HEAP_GET_ADDR_FROM_OFFSET((uint32_t)uint_ptr);
 #else /* JMEM_SEGMENTED_HEAP */
   const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
   uint_ptr <<= JMEM_ALIGNMENT_LOG;

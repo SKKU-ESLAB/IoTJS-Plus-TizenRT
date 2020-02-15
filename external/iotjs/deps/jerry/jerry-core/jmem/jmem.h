@@ -153,7 +153,7 @@ void jmem_heap_free_block (void *ptr, const size_t size);
 #define JMEM_HEAP_GET_ADDR_FROM_OFFSET(u) ((jmem_heap_free_t *) (u))
 
 #else /* defined(ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) */
-extern uint32_t jmem_heap_get_offset_from_addr_segmented(uint8_t *p); /* jmem-heap-segmented.c */
+extern uint32_t jmem_heap_get_offset_from_addr_segmented(jmem_heap_free_t *p); /* jmem-heap-segmented.c */
 extern jmem_heap_free_t *jmem_heap_get_addr_from_offset_segmented(uint32_t u); /* jmem-heap-segmented.c */
 #ifdef JMEM_SEGMENTED_HEAP
 #define JMEM_HEAP_GET_OFFSET_FROM_ADDR(p) jmem_heap_get_offset_from_addr_segmented(p)

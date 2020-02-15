@@ -31,7 +31,7 @@ static unsigned g_gc_obj_birth[65536] = {
 static long g_gc_obj_birth_time[65536][2];
 #endif
 
-inline void __attr_always_inline___ profile_gc_inc_total_count() {
+inline void __attr_always_inline___ profile_gc_inc_total_count(void) {
 #ifdef JMEM_PROFILE_OBJECT_LIFESPAN
   g_gc_total_count++;
 #endif

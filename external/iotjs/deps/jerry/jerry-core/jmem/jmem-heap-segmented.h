@@ -29,12 +29,6 @@ extern void *jmem_segmented_alloc_a_segment(const size_t size, bool is_alloc_bef
 
 extern void *jmem_heap_add_segment(bool is_two_segs);
 extern void free_empty_segments(void);
-
-typedef struct {
-  // If Heap DMUX is ON, this points to the heap segment, otherwise NULL
-  uint8_t *heap_segment;
-  // jmem_tree_node_t *root;
-} jmem_merge_tree_t;
 #endif /* JMEM_SEGMENTED_HEAP */
 
 #endif /* !defined(JMEM_HEAP_SEGMENTED_H) */

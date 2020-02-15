@@ -22,8 +22,11 @@
 #include "jrt-bit-fields.h"
 #include "jrt-libc-includes.h"
 
+#include "jmem-heap-segmented.h"
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
+#include "jmem-heap-profiler.h"
+#include "jmem-gc-profiler.h"
 
 /** \addtogroup mem Memory allocation
  * @{
