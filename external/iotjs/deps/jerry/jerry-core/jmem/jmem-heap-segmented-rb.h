@@ -20,24 +20,13 @@
 
 #include "jmem-config.h"
 #include "jrt.h"
+#include "jmem-heap-segmented-rb-node.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
 #ifdef JMEM_SEGMENT_RB_LOOKUP
 
 #define container_of(ptr, type, member)                                        \
   ((type *)(((char *)(ptr)) - ((char *)(&((type *)0)->member))))
-
-typedef struct _rb_node {
-  unsigned long rb_parent_color;
-#define RB_RED 0
-#define RB_BLACK 1
-  struct _rb_node *rb_right;
-  struct _rb_node *rb_left;
-} rb_node;
-
-typedef struct {
-  rb_node *rb_node;
-} rb_root;
 
 typedef struct _seg_node {
   rb_node node;

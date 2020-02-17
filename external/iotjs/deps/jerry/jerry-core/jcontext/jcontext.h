@@ -29,6 +29,9 @@
 #include "vm-defines.h"
 #include "jerryscript.h"
 
+#include "jmem-heap-segmented-rb-node.h"
+#include <sys/time.h> /* Profiling */
+
 /** \addtogroup context Context
  * @{
  */
@@ -133,6 +136,28 @@ typedef struct
   uint8_t valgrind_freya_mempool_request; /**< Tells whether a pool manager
                                            *   allocator request is in progress */
 #endif /* JERRY_VALGRIND_FREYA */
+
+  /* Total size profiling */
+  struct timeval timeval_init;
+
+  /* Time profiling */
+  struct timeval timeval_alloc;
+  struct timeval timeval_free;
+  struct timeval timeval_compression;
+  struct timeval timeval_decompression;
+  struct timeval timeval_gc;
+
+  struct timeval alloc_time;
+  struct timeval free_time;
+  struct timeval compression_time;
+  struct timeval decompression_time;
+  struct timeval gc_time;
+
+  unsigned int alloc_count;
+  unsigned int free_count;
+  unsigned int compression_count;
+  unsigned int decompression_count;
+  unsigned int gc_count;
 } jerry_context_t;
 
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
@@ -245,7 +270,20 @@ typedef struct
   /* JS heap area on heap area (dynamically allocated) */
   uint8_t *area[JMEM_SEGMENT];
   jmem_segment_t segments[JMEM_SEGMENT];
+
   uint32_t segments_count;
+  uint32_t last_seg_idx;
+#ifdef JMEM_SEGMENT_RB_LOOKUP
+  rb_root segment_rb_root;
+#endif /* JMEM_SEGMENT_RB_LOOKUP */
+
+#ifdef JMEM_PROFILE_OBJECT_LIFESPAN
+static unsigned gc_total_count = 0;
+static unsigned gc_obj_birth[65536] = {
+    0,
+};
+static long gc_obj_birth_time[65536][2];
+#endif /* JMEM_PROFILE_OBJECT_LIFESPAN */
 #else  /* JMEM_SEGMENTED_HEAP */
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */
 #endif /* !JMEM_SEGMENTED_HEAP */

@@ -23,17 +23,10 @@
 #define UNUSED(x) (void)(x)
 
 /* Object lifespan profiling */
-#ifdef JMEM_PROFILE_OBJECT_LIFESPAN
-static unsigned g_gc_total_count = 0;
-static unsigned g_gc_obj_birth[65536] = {
-    0,
-};
-static long g_gc_obj_birth_time[65536][2];
-#endif
 
 inline void __attr_always_inline___ profile_gc_inc_total_count(void) {
 #ifdef JMEM_PROFILE_OBJECT_LIFESPAN
-  g_gc_total_count++;
+  JERRY_HEAP_CONTEXT(gc_total_count)++;
 #endif
 }
 
@@ -42,9 +35,9 @@ profile_gc_set_object_birth_time(uintptr_t compressed_pointer) {
 #ifdef JMEM_PROFILE_OBJECT_LIFESPAN
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  g_gc_obj_birth[compressed_pointer] = g_gc_total_count;
-  g_gc_obj_birth_time[compressed_pointer][0] = tv.tv_sec;
-  g_gc_obj_birth_time[compressed_pointer][1] = tv.tv_usec;
+  JERRY_HEAP_CONTEXT(gc_obj_birth)[compressed_pointer] = JERRY_HEAP_CONTEXT(gc_total_count);
+  JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][0] = tv.tv_sec;
+  JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][1] = tv.tv_usec;
 #else
   UNUSED(compressed_pointer);
 #endif
@@ -53,7 +46,7 @@ profile_gc_set_object_birth_time(uintptr_t compressed_pointer) {
 inline void __attr_always_inline___
 profile_gc_set_object_birth_count(uintptr_t compressed_pointer) {
 #ifdef JMEM_PROFILE_OBJECT_LIFESPAN
-  g_gc_obj_birth[compressed_pointer] = g_gc_total_count;
+  JERRY_HEAP_CONTEXT(gc_obj_birth)[compressed_pointer] = JERRY_HEAP_CONTEXT(gc_total_count);
 #else
   UNUSED(compressed_pointer);
 #endif
@@ -63,10 +56,10 @@ inline void __attr_always_inline___
 profile_gc_print_object_lifespan(uintptr_t compressed_pointer) {
 #ifdef JMEM_PROFILE_OBJECT_LIFESPAN
   printf("%u\t%u\t%lu.%lu\n", compressed_pointer,
-         g_gc_total_count - g_gc_obj_birth[compressed_pointer],
-         g_gc_obj_birth_time[compressed_pointer][0],
-         g_gc_obj_birth_time[compressed_pointer)][1]);
-  g_gc_obj_birth[compressed_pointer] = 0;
+         JERRY_HEAP_CONTEXT(gc_total_count) - JERRY_HEAP_CONTEXT(gc_obj_birth)[compressed_pointer],
+         JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][0],
+         JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer)][1]);
+  JERRY_HEAP_CONTEXT(gc_obj_birth)[compressed_pointer] = 0;
 #else
   UNUSED(compressed_pointer);
 #endif

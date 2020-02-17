@@ -138,6 +138,7 @@ static void jmem_heap_stat_free_iter (void);
 void
 jmem_heap_init (void)
 {
+  // printf("jmem_heap_init start\n");
   /* Print allocator type */
 #ifdef JMEM_SEGMENTED_HEAP
   printf("Segmented allocation // Segment size: %dB * %d\n", JMEM_SEGMENT_SIZE,
@@ -188,6 +189,8 @@ jmem_heap_init (void)
   profile_init_times();    /* Time profiling */
 
   JMEM_HEAP_STAT_INIT ();
+
+  // printf("jmem_heap_init end\n");
 } /* jmem_heap_init */
 
 /**
@@ -196,12 +199,14 @@ jmem_heap_init (void)
 void
 jmem_heap_finalize (void)
 {
+  // printf("jmem_heap_finalize start\n");
   profile_print_times(); /* Time profiling */
 
   JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_allocated_size) == 0);
 #ifndef JERRY_SYSTEM_ALLOCATOR
   VALGRIND_NOACCESS_SPACE (&JERRY_HEAP_CONTEXT (first), JMEM_HEAP_SIZE);
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
+  // printf("jmem_heap_finalize end\n");
 } /* jmem_heap_finalize */
 
 /**
@@ -216,6 +221,7 @@ jmem_heap_finalize (void)
 static __attr_hot___ void *
 jmem_heap_alloc_block_internal (const size_t size)
 {
+  // printf("jmem_heap_alloc_block_internal start\n");
   profile_alloc_start(); /* Time profiling */
 
 #ifndef JERRY_SYSTEM_ALLOCATOR
@@ -383,6 +389,7 @@ jmem_heap_alloc_block_internal (const size_t size)
   if (unlikely (!data_space_p))
   {
     profile_alloc_end(); /* Time profiling */
+    // printf("jmem_heap_alloc_block_internal end\n");
     return NULL;
   }
 
@@ -393,6 +400,7 @@ jmem_heap_alloc_block_internal (const size_t size)
   JMEM_HEAP_STAT_ALLOC (size);
 
   profile_alloc_end(); /* Time profiling */
+  // printf("jmem_heap_alloc_block_internal end\n");
   return (void *) data_space_p;
 #else /* JERRY_SYSTEM_ALLOCATOR */
   return malloc (size);
@@ -415,8 +423,10 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
                               bool ret_null_on_error) /**< indicates whether return null or terminate
                                                            with ERR_OUT_OF_MEMORY on out of memory */
 {
+  // printf("jmem_heap_gc_and_alloc_block start\n");
   if (unlikely (size == 0))
   {
+    // printf("jmem_heap_gc_and_alloc_block end\n");
     return NULL;
   }
 
@@ -425,14 +435,14 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   jmem_run_free_unused_memory_callbacks (JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
-
+  // printf("jmem_heap_gc_and_alloc_block 1\n");
   if (JERRY_CONTEXT (jmem_heap_allocated_size) + size >= JERRY_CONTEXT (jmem_heap_limit))
   {
     jmem_run_free_unused_memory_callbacks (JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
   }
-
+  // printf("jmem_heap_gc_and_alloc_block 2\n");
   void *data_space_p = jmem_heap_alloc_block_internal (size);
-
+  // printf("jmem_heap_gc_and_alloc_block 3\n");
   if (likely (data_space_p != NULL))
   {
     VALGRIND_FREYA_MALLOCLIKE_SPACE (data_space_p, size);
@@ -441,10 +451,10 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
 
     profile_gc_set_object_birth_time(
       jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
-
+    // printf("jmem_heap_gc_and_alloc_block end\n");
     return data_space_p;
   }
-
+  // printf("jmem_heap_gc_and_alloc_block 4\n");
   // Segment Allocation before GC
 #ifdef JMEM_SEGMENTED_HEAP
 #ifdef SEG_ALLOC_BEFORE_GC
@@ -460,11 +470,12 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
       profile_gc_set_object_birth_count(
         jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
     }
+    // printf("jmem_heap_gc_and_alloc_block end\n");
     return data_space_p;
   }
 #endif /* SEG_ALLOC_BEFORE_GC */
 #endif /* JMEM_SEGMENTED_HEAP */
-
+  // printf("jmem_heap_gc_and_alloc_block 5\n");
   for (jmem_free_unused_memory_severity_t severity = JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
        severity <= JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH;
        severity = (jmem_free_unused_memory_severity_t) (severity + 1))
@@ -481,10 +492,11 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
       profile_gc_set_object_birth_time(
         jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
 
+      // printf("jmem_heap_gc_and_alloc_block end\n");
       return data_space_p;
     }
   }
-
+  // printf("jmem_heap_gc_and_alloc_block 6\n");
   // Segment allocation after GC
 #ifdef JMEM_SEGMENTED_HEAP
   {
@@ -496,17 +508,18 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
       profile_gc_set_object_birth_count(
         jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
     }
+    // printf("jmem_heap_gc_and_alloc_block end\n");
     return data_space_p;
   }
 #endif /* JMEM_SEGMENTED_HEAP */
-
+  // printf("jmem_heap_gc_and_alloc_block 7\n");
   JERRY_ASSERT (data_space_p == NULL);
 
   if (!ret_null_on_error)
   {
     jerry_fatal (ERR_OUT_OF_MEMORY);
   }
-
+  // printf("jmem_heap_gc_and_alloc_block end\n");
   return data_space_p;
 } /* jmem_heap_gc_and_alloc_block */
 
@@ -549,6 +562,7 @@ void __attr_hot___
 jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the block */
                       const size_t size) /**< size of allocated region */
 {
+  // printf("jmem_heap_free_block start\n");
 #ifndef JERRY_SYSTEM_ALLOCATOR
   VALGRIND_FREYA_CHECK_MEMPOOL_REQUEST;
 
@@ -574,7 +588,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   uint32_t skip_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR(JERRY_CONTEXT(jmem_heap_list_skip_p));
   bool is_skip_ok = boffset > skip_offset;
 #else /* JMEM_SEGMENTED_HEAP */
-  bool is_skip_ok = block_p > JERRY_CONTEXT (jmem_heap_list_skip_p)
+  bool is_skip_ok = block_p > JERRY_CONTEXT (jmem_heap_list_skip_p);
 #endif /* !JMEM_SEGMENTED_HEAP */
   if (is_skip_ok)
   {
@@ -672,6 +686,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   profile_gc_print_object_lifespan(
     jmem_compress_pointer(ptr)); /* Object lifespan profiling */
   profile_free_end();                    /* Time profiling */
+  // printf("jmem_heap_free_block end\n");
 
 #else /* JERRY_SYSTEM_ALLOCATOR */
   JERRY_UNUSED (size);
@@ -692,18 +707,20 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 bool
 jmem_is_heap_pointer (const void *pointer) /**< pointer */
 {
+  bool is_heap_pointer;
 #ifndef JERRY_SYSTEM_ALLOCATOR
 #ifdef JMEM_SEGMENTED_HEAP
   /* Not yet implemented */
-  return pointer != NULL;
+  is_heap_pointer = pointer != NULL;
 #else /* JMEM_SEGMENTED_HEAP */
-  return ((uint8_t *) pointer >= JERRY_HEAP_CONTEXT (area)
+  is_heap_pointer = ((uint8_t *) pointer >= JERRY_HEAP_CONTEXT (area)
           && (uint8_t *) pointer <= (JERRY_HEAP_CONTEXT (area) + JMEM_HEAP_AREA_SIZE));
 #endif /* !JMEM_SEGMENTED_HEAP */
 #else /* JERRY_SYSTEM_ALLOCATOR */
   JERRY_UNUSED (pointer);
-  return true;
+  is_heap_pointer = true;
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
+  return is_heap_pointer;
 } /* jmem_is_heap_pointer */
 #endif /* !JERRY_NDEBUG */
 
