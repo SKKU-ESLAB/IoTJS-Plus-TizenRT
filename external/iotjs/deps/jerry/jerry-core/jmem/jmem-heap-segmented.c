@@ -151,8 +151,6 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   while (current_p != JMEM_HEAP_END_OF_LIST &&
          curr_offset < allocated_segment_first_offset) {
     prev_p = current_p;
-    // printf("get addr from offset %d->%d(%p)\n", curr_offset,
-    // current_p->next_offset, current_p);
     curr_offset = current_p->next_offset;
     current_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET(curr_offset);
   }
@@ -190,21 +188,15 @@ void *jmem_heap_add_segment(bool is_two_segs) {
 void free_empty_segments(void) {
   if (unlikely(JERRY_HEAP_CONTEXT(last_seg_idx) == 0))
     return;
-  printf("free_empty_segments start\n");
-
-  printf("last_seg_idx = %lu \n", JERRY_HEAP_CONTEXT(last_seg_idx));
 
   // Alert: this line makes a freeze due to WAITSEM!
   JERRY_ASSERT(JERRY_HEAP_CONTEXT(area[JERRY_HEAP_CONTEXT(last_seg_idx)]) !=
                NULL);
 
-  printf("JERRY_HEAP_CONTEXT(area) end\n");
-
   uint32_t seg_iter = 0;
   uint32_t max_seg_iter = 0;
   uint32_t curr_last_seg_idx = JERRY_HEAP_CONTEXT(last_seg_idx);
   while (seg_iter <= curr_last_seg_idx) {
-    printf("%lu <= %lu\n", seg_iter, curr_last_seg_idx);
     jmem_heap_free_t *segment_to_free =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[seg_iter]);
     if (segment_to_free != NULL &&
@@ -244,7 +236,6 @@ void free_empty_segments(void) {
     max_seg_iter = (segment_to_free == NULL) ? max_seg_iter : seg_iter;
     seg_iter++;
   }
-  printf("free_empty_segments end\n");
 }
 
 /* Internal functions */
