@@ -197,6 +197,8 @@ void
 jmem_heap_finalize (void)
 {
   profile_print_times(); /* Time profiling */
+  
+  /* TODO: It requires segment finalization */
 
   JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_allocated_size) == 0);
 #ifndef JERRY_SYSTEM_ALLOCATOR
@@ -240,7 +242,7 @@ jmem_heap_alloc_block_internal (const size_t size)
 #ifdef JMEM_SEGMENTED_HEAP
     JERRY_CONTEXT(jmem_heap_allocated_size) += JMEM_ALIGNMENT;
     JERRY_HEAP_CONTEXT(segments[JERRY_HEAP_CONTEXT(first).next_offset / JMEM_SEGMENT_SIZE])
-        .allocated_size += JMEM_ALIGNMENT;
+        .occupied_size += JMEM_ALIGNMENT;
 #else
     JERRY_CONTEXT (jmem_heap_allocated_size) += JMEM_ALIGNMENT;
 #endif
@@ -310,7 +312,7 @@ jmem_heap_alloc_block_internal (const size_t size)
         data_space_p = current_p;
         JERRY_CONTEXT (jmem_heap_allocated_size) += required_size;
 #ifdef JMEM_SEGMENTED_HEAP
-        JERRY_HEAP_CONTEXT(segments[current_offset / JMEM_SEGMENT_SIZE]).allocated_size +=
+        JERRY_HEAP_CONTEXT(segments[current_offset / JMEM_SEGMENT_SIZE]).occupied_size +=
             required_size;
 #endif
 
@@ -415,6 +417,13 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
                               bool ret_null_on_error) /**< indicates whether return null or terminate
                                                            with ERR_OUT_OF_MEMORY on out of memory */
 {
+  // Disallow too large block bigger than two segments
+  if(size >= JMEM_SEGMENT_SIZE * 2) {
+    printf("Requested size: %lu, but allowed maximum allocation size is: %lu\n",
+      size, JMEM_SEGMENT_SIZE * 2);
+  }
+  JERRY_ASSERT(size < JMEM_SEGMENT_SIZE * 2);
+
   if (unlikely (size == 0))
   {
     return NULL;
@@ -542,6 +551,44 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 {
 #ifndef JERRY_SYSTEM_ALLOCATOR
   VALGRIND_FREYA_CHECK_MEMPOOL_REQUEST;
+  // Free segment profiling 2
+  // {
+  //   jmem_heap_free_t *free_heap = &(JERRY_HEAP_CONTEXT(first));
+  //   while(free_heap != NULL && free_heap != JMEM_HEAP_END_OF_LIST) {
+  //     printf("%lu ", free_heap->size);
+  //     free_heap = JMEM_HEAP_GET_ADDR_FROM_OFFSET(free_heap->next_offset);
+  //   }
+  //   printf("\n");
+  // }
+  // {
+  //   jmem_heap_free_t *free_heap = &(JERRY_HEAP_CONTEXT(first));
+  //   while(free_heap != NULL && free_heap != JMEM_HEAP_END_OF_LIST) {
+  //     printf("%lu ", free_heap->next_offset);
+  //     free_heap = JMEM_HEAP_GET_ADDR_FROM_OFFSET(free_heap->next_offset);
+  //   }
+  //   printf("\n");
+  // }
+
+  // Free segment profiling
+  // {
+  //   jmem_heap_free_t *skip_free_heap = JERRY_CONTEXT(jmem_heap_list_skip_p);
+  //   printf("%lu /// ", skip_free_heap->size);
+  //   for(uint32_t seg_idx = 0; seg_idx < JMEM_SEGMENT; seg_idx++) {
+  //     jmem_heap_free_t *free_heap =
+  //       (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[seg_idx]);
+  //     if(free_heap == NULL) {
+  //       printf("_ ");
+  //     } else {
+  //       printf("%lu ", free_heap->size);
+  //     }
+  //     if(seg_idx != 0 && seg_idx % 10 == 0) {
+  //       printf("// ");
+  //     } else if(seg_idx != 0 && seg_idx % 5 == 0) {
+  //       printf("/ ");
+  //     }
+  //   }
+  //   printf("\n");
+  // }
 
   profile_free_start(); /* Time profiling */
 
@@ -625,6 +672,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   /* Update next. */
   if (jmem_heap_get_region_end (block_p) == next_p)
   {
+    // printf("****** Merge!: %lu -> %lu ******\n", block_p->size, block_p->size + next_p->size);
     /* Can be merged. */
     block_p->size += next_p->size;
     block_p->next_offset = next_p->next_offset;
@@ -638,8 +686,8 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 
 #ifdef JMEM_SEGMENTED_HEAP
   uint32_t seg_iter = block_offset / JMEM_SEGMENT_SIZE;
-  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[seg_iter]).allocated_size > 0);
-  JERRY_HEAP_CONTEXT(segments[seg_iter]).allocated_size -= aligned_size;
+  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[seg_iter]).occupied_size > 0);
+  JERRY_HEAP_CONTEXT(segments[seg_iter]).occupied_size -= aligned_size;
 #endif
 
   VALGRIND_NOACCESS_SPACE (prev_p, sizeof (jmem_heap_free_t));

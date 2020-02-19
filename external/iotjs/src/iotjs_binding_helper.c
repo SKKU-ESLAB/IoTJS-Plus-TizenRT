@@ -115,6 +115,11 @@ void iotjs_make_callback(const iotjs_jval_t* jfunction,
 iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
                                              const iotjs_jval_t* jthis,
                                              const iotjs_jargs_t* jargs) {
+  // Merge PR 1496 (iotjs) to resolve Issue 106 (libtuv)
+  // If the environment is already exiting just return an undefined value.
+  if (iotjs_environment_is_exiting(iotjs_environment_get())) {
+    return *iotjs_jval_get_undefined();
+  }
   // Calls back the function.
   bool throws;
   iotjs_jval_t jres = iotjs_jhelper_call(jfunction, jthis, jargs, &throws);

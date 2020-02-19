@@ -19,29 +19,6 @@
 #include "jrt.h"
 #include "jmem-config.h"
 
-/* Segmented heap allocator */
-#ifdef JMEM_SEGMENTED_HEAP
-#define JMEM_SEGMENT_SIZE 8192
-#define JMEM_SEGMENT_SHIFT 13
-#define JMEM_SEGMENT (JMEM_HEAP_SIZE / JMEM_SEGMENT_SIZE)
-
-/**
- * Segment information
- */
-typedef struct {
-  /**
-   * Flag Structure
-   |-Reserved-|tree bit|
-   |  7bit    |  1 bit |
-   ex) flag = 0x01:area[i] points to merge tree
-       flag = 0x00:area[i] points to heap segment or nothing
-   */
-  uint8_t flag;
-  size_t allocated_size;
-} jmem_segment_t;
-#endif /* defined(JMEM_SEGMENTED_HEAP) */
-/*******************************************************/
-
 /** \addtogroup mem Memory allocation
  * @{
  *
@@ -55,6 +32,22 @@ typedef struct {
  */
 #define JMEM_HEAP_SIZE ((size_t) (CONFIG_MEM_HEAP_AREA_SIZE))
 #endif /* !JERRY_ENABLE_EXTERNAL_CONTEXT */
+
+/* Segmented heap allocator */
+#ifdef JMEM_SEGMENTED_HEAP
+#define JMEM_SEGMENT_SIZE 8192
+#define JMEM_SEGMENT_SHIFT 13
+#define JMEM_SEGMENT (JMEM_HEAP_SIZE / JMEM_SEGMENT_SIZE)
+
+/**
+ * Segment information
+ */
+typedef struct {
+  size_t total_size;
+  size_t occupied_size;
+} jmem_segment_t;
+#endif /* defined(JMEM_SEGMENTED_HEAP) */
+/*******************************************************/
 
 /**
  * Logarithm of required alignment for allocated units/blocks
