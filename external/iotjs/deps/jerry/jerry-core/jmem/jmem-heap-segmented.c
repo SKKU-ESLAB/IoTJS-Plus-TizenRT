@@ -50,6 +50,8 @@ void jmem_segmented_init_segments(void) {
     uint32_t segment_idx;
     for (segment_idx = 1; segment_idx < JMEM_SEGMENT; segment_idx++) {
       JERRY_HEAP_CONTEXT(area[segment_idx]) = (uint8_t *)NULL;
+      JERRY_HEAP_CONTEXT(segments[segment_idx]).occupied_size = 0;
+      JERRY_HEAP_CONTEXT(segments[segment_idx]).total_size = 0;
     }
   }
 

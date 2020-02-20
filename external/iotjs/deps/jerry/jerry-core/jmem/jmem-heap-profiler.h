@@ -24,9 +24,14 @@
 
 #include <sys/time.h>
 
-/* Total size profiling */
+/* Initialize the profiling start time */
 extern void profile_set_init_time(void);
+
+/* Total size profiling */
 extern void profile_print_total_size(void);
+
+/* Segment utilization profiling */
+extern void profile_print_segment_utilization(void);
 
 /* Time profiling */
 extern void profile_init_times(void);

@@ -24,8 +24,19 @@
 #define JMEM_SEGMENT_RB_LOOKUP
 
 /* Profiler configs */
-//#define JMEM_PROFILE_TOTAL_SIZE
+#define JMEM_PROFILE
+#define JMEM_PROFILE_TOTAL_SIZE
+#define JMEM_PROFILE_SEGMENT_UTILIZATION
 //#define JMEM_PROFILE_TIME
 //#define JMEM_PROFILE_OBJECT_LIFESPAN
+
+/* Profiler output configs */
+/* If config is defined, output is stored to the specified file.
+ * Otherwise, output is printed to stdout.
+ */
+#define JMEM_PROFILE_TOTAL_SIZE_FILENAME "total_size.log"
+#define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
+#define JMEM_PROFILE_TIME_FILENAME "time.log"
+#define JMEM_PROFILE_OBJECT_LIFESPAN_FILENAME "object_lifespan.log"
 
 #endif /* !JMEM_CONFIG_H */

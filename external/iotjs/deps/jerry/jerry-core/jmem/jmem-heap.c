@@ -444,6 +444,7 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
     VALGRIND_FREYA_MALLOCLIKE_SPACE (data_space_p, size);
 
     profile_print_total_size(); /* Total size profiling */
+    profile_print_segment_utilization(); /* Segment utilization profiling */
 
     profile_gc_set_object_birth_time(
       jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
@@ -481,6 +482,7 @@ jmem_heap_gc_and_alloc_block (const size_t size,      /**< required memory size 
       VALGRIND_FREYA_MALLOCLIKE_SPACE (data_space_p, size);
 
       profile_print_total_size(); /* Total size profiling */
+      profile_print_segment_utilization(); /* Segment utilization profiling */
       profile_gc_set_object_birth_time(
         jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
 
@@ -551,44 +553,6 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 {
 #ifndef JERRY_SYSTEM_ALLOCATOR
   VALGRIND_FREYA_CHECK_MEMPOOL_REQUEST;
-  // Free segment profiling 2
-  // {
-  //   jmem_heap_free_t *free_heap = &(JERRY_HEAP_CONTEXT(first));
-  //   while(free_heap != NULL && free_heap != JMEM_HEAP_END_OF_LIST) {
-  //     printf("%lu ", free_heap->size);
-  //     free_heap = JMEM_HEAP_GET_ADDR_FROM_OFFSET(free_heap->next_offset);
-  //   }
-  //   printf("\n");
-  // }
-  // {
-  //   jmem_heap_free_t *free_heap = &(JERRY_HEAP_CONTEXT(first));
-  //   while(free_heap != NULL && free_heap != JMEM_HEAP_END_OF_LIST) {
-  //     printf("%lu ", free_heap->next_offset);
-  //     free_heap = JMEM_HEAP_GET_ADDR_FROM_OFFSET(free_heap->next_offset);
-  //   }
-  //   printf("\n");
-  // }
-
-  // Free segment profiling
-  // {
-  //   jmem_heap_free_t *skip_free_heap = JERRY_CONTEXT(jmem_heap_list_skip_p);
-  //   printf("%lu /// ", skip_free_heap->size);
-  //   for(uint32_t seg_idx = 0; seg_idx < JMEM_SEGMENT; seg_idx++) {
-  //     jmem_heap_free_t *free_heap =
-  //       (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[seg_idx]);
-  //     if(free_heap == NULL) {
-  //       printf("_ ");
-  //     } else {
-  //       printf("%lu ", free_heap->size);
-  //     }
-  //     if(seg_idx != 0 && seg_idx % 10 == 0) {
-  //       printf("// ");
-  //     } else if(seg_idx != 0 && seg_idx % 5 == 0) {
-  //       printf("/ ");
-  //     }
-  //   }
-  //   printf("\n");
-  // }
 
   profile_free_start(); /* Time profiling */
 
@@ -707,6 +671,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   JMEM_HEAP_STAT_FREE (size);
 
   profile_print_total_size(); /* Total size profiling */
+  profile_print_segment_utilization(); /* Segment utilization profiling */
 
   profile_gc_print_object_lifespan(
     jmem_compress_pointer(ptr)); /* Object lifespan profiling */
