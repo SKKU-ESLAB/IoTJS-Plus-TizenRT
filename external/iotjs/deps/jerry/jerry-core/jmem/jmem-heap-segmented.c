@@ -200,6 +200,7 @@ void free_empty_segments(void) {
       if (segment->occupied_size > 0) {
         continue;
       }
+      printf("free segment: %lu\n", seg_iter);
     } else if (segment->total_size == JMEM_SEGMENT_SIZE * 2) {
       // Head segment in double segments
       jmem_segment_t *following_segment =
@@ -207,6 +208,7 @@ void free_empty_segments(void) {
       if (segment->occupied_size > 0 || following_segment->occupied_size > 0) {
         continue;
       }
+      printf("free segment: %lu, %lu\n", seg_iter, seg_iter + 1);
     } else {
       // Following segment in double segments
       continue;
@@ -237,7 +239,6 @@ void free_empty_segments(void) {
     }
     jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter]));
     JERRY_HEAP_CONTEXT(area[seg_iter]) = NULL;
-
     JERRY_HEAP_CONTEXT(segments_count)--;
   }
 }

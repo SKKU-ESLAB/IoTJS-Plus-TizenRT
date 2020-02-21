@@ -234,8 +234,26 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
         data_space_p = current_p;
         JERRY_CONTEXT(jmem_heap_allocated_size) += required_size;
 #ifdef JMEM_SEGMENTED_HEAP
-        JERRY_HEAP_CONTEXT(segments[current_offset / JMEM_SEGMENT_SIZE])
-            .occupied_size += required_size;
+        uint32_t start_segment = current_offset / JMEM_SEGMENT_SIZE;
+        uint32_t end_segment =
+            (current_offset + (uint32_t)required_size - JMEM_ALIGNMENT) /
+            JMEM_SEGMENT_SIZE;
+        if (start_segment == end_segment) {
+          // Update metadata of single segment
+          JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size +=
+              required_size;
+        } else {
+          // Update metadata of double segment
+          JERRY_ASSERT(start_segment + 1 == end_segment);
+          uint32_t first_size =
+              JMEM_SEGMENT_SIZE - current_offset % JMEM_SEGMENT_SIZE;
+          JERRY_ASSERT(required_size > first_size);
+          uint32_t following_size = (uint32_t)required_size - first_size;
+          JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size +=
+              first_size;
+          JERRY_HEAP_CONTEXT(segments[end_segment]).occupied_size +=
+              following_size;
+        }
 #endif
 
         /* Region was larger than necessary. */
@@ -516,9 +534,24 @@ void __attr_hot___ jmem_heap_free_block(
   JERRY_CONTEXT(jmem_heap_list_skip_p) = prev_p;
 
 #ifdef JMEM_SEGMENTED_HEAP
-  uint32_t seg_iter = block_offset / JMEM_SEGMENT_SIZE;
-  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[seg_iter]).occupied_size > 0);
-  JERRY_HEAP_CONTEXT(segments[seg_iter]).occupied_size -= aligned_size;
+  uint32_t start_segment = block_offset / JMEM_SEGMENT_SIZE;
+  uint32_t end_segment =
+      (block_offset + (uint32_t)aligned_size - JMEM_ALIGNMENT) /
+      JMEM_SEGMENT_SIZE;
+  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size > 0);
+  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[end_segment]).occupied_size > 0);
+  if (start_segment == end_segment) {
+    // Update metadata of single segment
+    JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size -= aligned_size;
+  } else {
+    // Update metadata of double segment
+    JERRY_ASSERT(start_segment + 1 == end_segment);
+    uint32_t first_size = JMEM_SEGMENT_SIZE - block_offset % JMEM_SEGMENT_SIZE;
+    JERRY_ASSERT(aligned_size > first_size);
+    uint32_t following_size = (uint32_t)aligned_size - first_size;
+    JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size -= first_size;
+    JERRY_HEAP_CONTEXT(segments[end_segment]).occupied_size -= following_size;
+  }
 #endif
 
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) > 0);
