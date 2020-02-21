@@ -348,18 +348,18 @@ static void *jmem_heap_gc_and_alloc_block(
 #ifdef JMEM_SEGMENTED_HEAP
 #ifdef SEG_ALLOC_BEFORE_GC
   {
+    /* Try one or two segments -> try to alloc a block */
     bool is_two_segs = false;
     if (size > JMEM_SEGMENT_SIZE) {
       is_two_segs = true;
     }
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
       data_space_p = jmem_heap_alloc_block_internal(size);
-
       JERRY_ASSERT(data_space_p != NULL);
       profile_gc_set_object_birth_count(
           jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
+      return data_space_p;
     }
-    return data_space_p;
   }
 #endif /* SEG_ALLOC_BEFORE_GC */
 #endif /* JMEM_SEGMENTED_HEAP */
@@ -367,16 +367,14 @@ static void *jmem_heap_gc_and_alloc_block(
            JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
        severity <= JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH;
        severity = (jmem_free_unused_memory_severity_t)(severity + 1)) {
+    /* Garbage collection -> try to alloc a block */
     jmem_run_free_unused_memory_callbacks(severity);
-
     data_space_p = jmem_heap_alloc_block_internal(size);
-
     if (likely(data_space_p != NULL)) {
       profile_print_total_size();          /* Total size profiling */
       profile_print_segment_utilization(); /* Segment utilization profiling */
       profile_gc_set_object_birth_time(
           jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
-
       return data_space_p;
     }
   }
@@ -386,7 +384,6 @@ static void *jmem_heap_gc_and_alloc_block(
     bool is_two_segs = false;
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
       data_space_p = jmem_heap_alloc_block_internal(size);
-
       JERRY_ASSERT(data_space_p != NULL);
       profile_gc_set_object_birth_count(
           jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
