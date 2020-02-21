@@ -66,7 +66,6 @@
     { "name": "test_net_headers.js" },
     { "name": "test_net_http_get.js" },
     { "name": "test_net_http_response_twice.js" },
-    { "name": "test_net_http_request_response.js", "skip": ["nuttx", "tizenrt"], "reason": "not implemented for nuttx/TizenRT" },
     { "name": "test_net_http_status_codes.js", "skip": ["all"], "reason": "[linux]: flaky on Travis, [nuttx/tizenrt]: not implemented" },
     { "name": "test_net_httpclient_error.js", "skip": ["nuttx", "tizenrt"], "reason": "not implemented for nuttx/TizenRT" },
     { "name": "test_net_httpclient_parse_error.js" },

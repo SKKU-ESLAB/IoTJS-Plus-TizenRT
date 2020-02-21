@@ -168,10 +168,10 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
   /* Align size. */
   const size_t required_size =
       ((size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT) * JMEM_ALIGNMENT;
-  jmem_heap_free_t *data_space_p = NULL;
 
   /* Fast path for 8 byte chunks, first region is guaranteed to be sufficient.
    */
+  jmem_heap_free_t *data_space_p = NULL;
   if (required_size == JMEM_ALIGNMENT &&
       likely(JERRY_HEAP_CONTEXT(first).next_offset != JMEM_HEAP_END_OF_LIST)) {
     data_space_p =
@@ -192,16 +192,12 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
       JERRY_HEAP_CONTEXT(first).next_offset = data_space_p->next_offset;
     } else {
       JERRY_ASSERT(data_space_p->size > JMEM_ALIGNMENT);
-
       jmem_heap_free_t *remaining_p;
       remaining_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET(
                         JERRY_HEAP_CONTEXT(first).next_offset) +
                     1;
       remaining_p->size = data_space_p->size - JMEM_ALIGNMENT;
       remaining_p->next_offset = data_space_p->next_offset;
-
-      // JERRY_HEAP_CONTEXT(first)next_offset += JMEM_ALIGNMENT; // ifndef
-      // JMEM_SEGMENTED_HEAP
       JERRY_HEAP_CONTEXT(first).next_offset =
           JMEM_HEAP_GET_OFFSET_FROM_ADDR(remaining_p);
     }
