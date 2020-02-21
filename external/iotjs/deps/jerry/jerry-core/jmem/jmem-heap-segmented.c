@@ -43,8 +43,7 @@ static void jmem_segment_free(void *seg_ptr);
 void jmem_segmented_init_segments(void) {
   /* Initialize first segment */
   JERRY_HEAP_CONTEXT(area[0]) =
-      (uint8_t *)jmem_segment_alloc_init((&JERRY_HEAP_CONTEXT(segments[0]))) -
-      JMEM_ALIGNMENT;
+      (uint8_t *)jmem_segment_alloc_init(&JERRY_HEAP_CONTEXT(segments[0]));
   JERRY_HEAP_CONTEXT(segments_count)++;
 
   /* Initialize other segments' metadata */
