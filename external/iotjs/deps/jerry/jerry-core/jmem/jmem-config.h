@@ -21,7 +21,7 @@
 /* Segmented heap allocator configs */
 #define JMEM_SEGMENTED_HEAP
 #define SEG_ALLOC_BEFORE_GC
-#define JMEM_SEGMENT_RB_LOOKUP
+#define JMEM_SEGMENT_RMAP_RBTREE
 
 /* Profiler configs */
 #define JMEM_PROFILE

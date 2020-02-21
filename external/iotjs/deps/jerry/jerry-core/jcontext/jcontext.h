@@ -29,7 +29,7 @@
 #include "vm-defines.h"
 #include "jerryscript.h"
 
-#include "jmem-heap-segmented-rb-node.h"
+#include "jmem-heap-segmented-rmap-rb-node.h"
 #include <sys/time.h> /* Profiling */
 
 /** \addtogroup context Context
@@ -273,9 +273,9 @@ typedef struct
 
   uint32_t segments_count;
   uint32_t last_seg_idx;
-#ifdef JMEM_SEGMENT_RB_LOOKUP
-  rb_root segment_rb_root;
-#endif /* JMEM_SEGMENT_RB_LOOKUP */
+#ifdef JMEM_SEGMENT_RMAP_RBTREE
+  rb_root segment_rmap_rb_root;
+#endif /* JMEM_SEGMENT_RMAP_RBTREE */
 
 #ifdef JMEM_PROFILE_OBJECT_LIFESPAN
 static unsigned gc_total_count = 0;

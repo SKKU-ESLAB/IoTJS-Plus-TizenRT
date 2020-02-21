@@ -23,15 +23,15 @@
 #define MALLOC(size) ((void *)malloc(size))
 #define FREE(ptr) (free(ptr))
 
-#include "jmem-heap-segmented-rb.h"
+#include "jmem-heap-segmented-rmap-rb.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef JMEM_SEGMENT_RB_LOOKUP
-seg_node_t *segment_node_lookup(rb_root *root, uint8_t *addr) {
+#ifdef JMEM_SEGMENT_RMAP_RBTREE
+seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
   rb_node *node = root->rb_node;
 
   while (node) {
-    seg_node_t *curr_node = container_of(node, seg_node_t, node);
+    seg_rmap_node_t *curr_node = container_of(node, seg_rmap_node_t, node);
     uint8_t *curr_addr = curr_node->base_addr;
     intptr_t result = (intptr_t)addr - (intptr_t)curr_addr;
 
@@ -42,18 +42,18 @@ seg_node_t *segment_node_lookup(rb_root *root, uint8_t *addr) {
     } else if (result < 0) {
       node = node->rb_left;
     } else {
-      return (seg_node_t *)node;
+      return (seg_rmap_node_t *)node;
     }
   }
 
-  return (seg_node_t *)NULL;
+  return (seg_rmap_node_t *)NULL;
 }
 
-int segment_node_insert(rb_root *root, seg_node_t *node_to_insert) {
+int segment_rmap_insert(rb_root *root, seg_rmap_node_t *node_to_insert) {
   rb_node **_new = &(root->rb_node), *parent = NULL;
 
   while (*_new) {
-    seg_node_t *node = container_of(*_new, seg_node_t, node);
+    seg_rmap_node_t *node = container_of(*_new, seg_rmap_node_t, node);
     intptr_t result =
         (intptr_t)node_to_insert->base_addr - (intptr_t)node->base_addr;
 
@@ -72,8 +72,8 @@ int segment_node_insert(rb_root *root, seg_node_t *node_to_insert) {
   return 1;
 }
 
-void segment_node_remove(rb_root *root, uint8_t *addr) {
-  seg_node_t *node_to_free = segment_node_lookup(root, addr);
+void segment_rmap_remove(rb_root *root, uint8_t *addr) {
+  seg_rmap_node_t *node_to_free = segment_rmap_lookup(root, addr);
 
   if (node_to_free)
     rb_erase(&(node_to_free->node), root);
@@ -400,5 +400,5 @@ rb_node *rb_next(const rb_node *node) {
 
   return parent;
 }
-#endif /* JMEM_SEGMENT_RB_LOOKUP */
+#endif /* JMEM_SEGMENT_RMAP_RBTREE */
 #endif /* JMEM_SEGMENTED_HEAP */

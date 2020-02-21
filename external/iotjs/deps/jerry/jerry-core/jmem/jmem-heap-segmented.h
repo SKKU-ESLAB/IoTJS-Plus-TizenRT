@@ -20,7 +20,7 @@
 
 #include "jcontext.h"
 #include "jmem-config.h"
-#include "jmem-heap-segmented-rb.h"
+#include "jmem-heap-segmented-rmap-rb.h"
 #include "jrt.h"
 
 #ifdef JMEM_SEGMENTED_HEAP

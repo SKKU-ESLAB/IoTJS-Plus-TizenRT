@@ -20,10 +20,10 @@
 
 #include "jmem-config.h"
 #include "jrt.h"
-#include "jmem-heap-segmented-rb-node.h"
+#include "jmem-heap-segmented-rmap-rb-node.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef JMEM_SEGMENT_RB_LOOKUP
+#ifdef JMEM_SEGMENT_RMAP_RBTREE
 
 #define container_of(ptr, type, member)                                        \
   ((type *)(((char *)(ptr)) - ((char *)(&((type *)0)->member))))
@@ -32,11 +32,11 @@ typedef struct _seg_node {
   rb_node node;
   uint8_t *base_addr;
   uint32_t seg_idx;
-} seg_node_t;
+} seg_rmap_node_t;
 
-extern seg_node_t *segment_node_lookup(rb_root *root, uint8_t *addr);
-extern int segment_node_insert(rb_root *root, seg_node_t *node);
-extern void segment_node_remove(rb_root *root, uint8_t *base_addr);
+extern seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr);
+extern int segment_rmap_insert(rb_root *root, seg_rmap_node_t *node);
+extern void segment_rmap_remove(rb_root *root, uint8_t *base_addr);
 
 extern void rb_init_node(rb_node *rb);
 extern void rb_set_parent(rb_node *rb, rb_node *p);
@@ -75,7 +75,7 @@ extern rb_node *rb_next(const rb_node *node);
     (r)->rb_parent_color |= (unsigned long)1;                                  \
   } while (0)
 
-#endif /* JMEM_SEGMENT_RB_LOOKUP */
+#endif /* JMEM_SEGMENT_RMAP_RBTREE */
 #endif /* JMEM_SEGMENTED_HEAP */
 
 #endif /* !defined(JMEM_HEAP_SEGMENTED_RB_H) */

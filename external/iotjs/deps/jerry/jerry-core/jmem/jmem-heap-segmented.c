@@ -41,11 +41,13 @@ static void jmem_segment_free(void *seg_ptr);
 
 /* External functions */
 void jmem_segmented_init_segments(void) {
-  /* Initialize segmented heap */
+  /* Initialize first segment */
   JERRY_HEAP_CONTEXT(area[0]) =
       (uint8_t *)jmem_segment_alloc_init((&JERRY_HEAP_CONTEXT(segments[0]))) -
       JMEM_ALIGNMENT;
   JERRY_HEAP_CONTEXT(segments_count)++;
+
+  /* Initialize other segments' metadata */
   {
     uint32_t segment_idx;
     for (segment_idx = 1; segment_idx < JMEM_SEGMENT; segment_idx++) {
@@ -55,14 +57,14 @@ void jmem_segmented_init_segments(void) {
     }
   }
 
-  /* Initialzie RB tree of segmented heap */
-#ifdef JMEM_SEGMENT_RB_LOOKUP
-  JERRY_HEAP_CONTEXT(segment_rb_root).rb_node = NULL;
-  seg_node_t *node = (seg_node_t *)MALLOC(sizeof(seg_node_t));
+  /* Initialize segment reverse map */
+#ifdef JMEM_SEGMENT_RMAP_RBTREE
+  JERRY_HEAP_CONTEXT(segment_rmap_rb_root).rb_node = NULL;
+  seg_rmap_node_t *node = (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
   node->seg_idx = 0;
   node->base_addr = JERRY_HEAP_CONTEXT(area[0]);
-  segment_node_insert(&JERRY_HEAP_CONTEXT(segment_rb_root), node);
-#endif /* JMEM_SEGMENT_RB_LOOKUP */
+  segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), node);
+#endif /* JMEM_SEGMENT_RMAP_RBTREE */
 }
 
 inline uint32_t __attribute__((hot))
@@ -164,21 +166,21 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   allocated_segment->next_offset = prev_p->next_offset;
   prev_p->next_offset = allocated_segment_first_offset;
 
-#ifdef JMEM_SEGMENT_RB_LOOKUP
-  seg_node_t *node_to_insert = (seg_node_t *)MALLOC(sizeof(seg_node_t));
+#ifdef JMEM_SEGMENT_RMAP_RBTREE
+  seg_rmap_node_t *node_to_insert = (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
   node_to_insert->base_addr = (uint8_t *)allocated_segment;
   node_to_insert->seg_idx = segment_idx;
 
-  segment_node_insert(&JERRY_HEAP_CONTEXT(segment_rb_root), node_to_insert);
+  segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), node_to_insert);
 
   if (unlikely(is_two_segs)) {
-    node_to_insert = (seg_node_t *)MALLOC(sizeof(seg_node_t));
+    node_to_insert = (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
     node_to_insert->base_addr = JERRY_HEAP_CONTEXT(area[segment_idx + 1]);
     node_to_insert->seg_idx = segment_idx + 1;
-    segment_node_insert(&JERRY_HEAP_CONTEXT(segment_rb_root), node_to_insert);
+    segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), node_to_insert);
   }
 
-#endif /* JMEM_SEGMENT_RB_LOOKUP */
+#endif /* JMEM_SEGMENT_RMAP_RBTREE */
 
   if (unlikely(is_two_segs)) {
     JERRY_HEAP_CONTEXT(segments_count)++;
@@ -261,19 +263,19 @@ jmem_segment_lookup(uint8_t **seg_addr, uint8_t *p) {
   uint8_t *segment_addr = NULL;
   uint32_t segment_idx;
 
-#ifndef JMEM_SEGMENT_RB_LOOKUP
+#ifndef JMEM_SEGMENT_RMAP_RBTREE
   for (segment_idx = 0; segment_idx < JMEM_SEGMENT; segment_idx++) {
     segment_addr = JERRY_HEAP_CONTEXT(area[segment_idx]);
     if (segment_addr != NULL &&
         (uint32_t)(p - segment_addr) < (uint32_t)JMEM_SEGMENT_SIZE)
       break;
   }
-#else  /* JMEM_SEGMENT_RB_LOOKUP */
-  seg_node_t *node =
-      segment_node_lookup(&JERRY_HEAP_CONTEXT(segment_rb_root), p);
+#else  /* JMEM_SEGMENT_RMAP_RBTREE */
+  seg_rmap_node_t *node =
+      segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), p);
   segment_idx = node->seg_idx;
   segment_addr = node->base_addr;
-#endif /* !JMEM_SEGMENT_RB_LOOKUP */
+#endif /* !JMEM_SEGMENT_RMAP_RBTREE */
 
   *seg_addr = segment_addr;
 
@@ -315,8 +317,8 @@ static void jmem_segment_free(void *seg_ptr) {
 
   FREE(seg_ptr);
 
-#ifdef JMEM_SEGMENT_RB_LOOKUP
-  segment_node_remove(&JERRY_HEAP_CONTEXT(segment_rb_root), (uint8_t *)seg_ptr);
-#endif /* JMEM_SEGMENT_RB_LOOKUP */
+#ifdef JMEM_SEGMENT_RMAP_RBTREE
+  segment_rmap_remove(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), (uint8_t *)seg_ptr);
+#endif /* JMEM_SEGMENT_RMAP_RBTREE */
 }
 #endif /* JMEM_SEGMENTED_HEAP */
