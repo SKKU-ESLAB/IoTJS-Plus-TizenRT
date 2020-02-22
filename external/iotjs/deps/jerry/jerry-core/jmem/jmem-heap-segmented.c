@@ -37,7 +37,7 @@ static uint32_t jmem_segment_lookup(uint8_t **seg_addr, uint8_t *p);
 static void *jmem_segment_alloc(void);
 static void jmem_segment_init(void *seg_ptr, jmem_segment_t *seg_info);
 static void *jmem_segment_alloc_init(jmem_segment_t *seg_info);
-static void jmem_segment_free(void *seg_ptr);
+static void jmem_segment_free(void *seg_ptr, bool is_following_node);
 
 /* External functions */
 void jmem_segmented_init_segments(void) {
@@ -121,6 +121,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
         &JERRY_HEAP_CONTEXT(segments[segment_idx]));
     allocated_segment =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[segment_idx]);
+    printf("alloc segment: %x\n", allocated_segment);
   } else {
     // Double segments
     JERRY_HEAP_CONTEXT(area[segment_idx]) =
@@ -139,8 +140,10 @@ void *jmem_heap_add_segment(bool is_two_segs) {
         JMEM_SEGMENT_SIZE * 2;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).occupied_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).total_size = 0;
-    ;
     allocated_segment = region_p;
+    printf("alloc segment: %x\n", allocated_segment);
+    printf("alloc following segment: %x\n",
+           allocated_segment + JMEM_SEGMENT_SIZE);
   }
 
   // If malloc failed or all segments are full, return NULL
@@ -200,7 +203,6 @@ void free_empty_segments(void) {
       if (segment->occupied_size > 0) {
         continue;
       }
-      printf("free segment: %lu\n", seg_iter);
     } else if (segment->total_size == JMEM_SEGMENT_SIZE * 2) {
       // Head segment in double segments
       jmem_segment_t *following_segment =
@@ -208,7 +210,6 @@ void free_empty_segments(void) {
       if (segment->occupied_size > 0 || following_segment->occupied_size > 0) {
         continue;
       }
-      printf("free segment: %lu, %lu\n", seg_iter, seg_iter + 1);
     } else {
       // Following segment in double segments
       continue;
@@ -230,14 +231,15 @@ void free_empty_segments(void) {
     }
     JERRY_ASSERT(curr_offset == allocated_segment_first_offset);
     prev_p->next_offset = current_p->next_offset;
-    // printf("free segment: %lu (size:%lu>%lu?)\n", seg_iter,
-    // segment_to_free->size, JMEM_SEGMENT_SIZE);
     if (unlikely(segment_to_free->size > JMEM_SEGMENT_SIZE)) {
-      jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter + 1]));
+      printf("free following segment: %x\n",
+             segment_to_free + JMEM_SEGMENT_SIZE);
+      jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter + 1]), true);
       JERRY_HEAP_CONTEXT(area[seg_iter + 1]) = NULL;
       JERRY_HEAP_CONTEXT(segments_count)--;
     }
-    jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter]));
+    printf("free segment: %x\n", segment_to_free);
+    jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter]), false);
     JERRY_HEAP_CONTEXT(area[seg_iter]) = NULL;
     JERRY_HEAP_CONTEXT(segments_count)--;
   }
@@ -303,10 +305,12 @@ static void *jmem_segment_alloc_init(jmem_segment_t *seg_info) {
   return seg_ptr;
 }
 
-static void jmem_segment_free(void *seg_ptr) {
+static void jmem_segment_free(void *seg_ptr, bool is_following_node) {
   JERRY_ASSERT(seg_ptr != NULL);
 
-  FREE(seg_ptr);
+  if (!is_following_node) {
+    FREE(seg_ptr);
+  }
 
 #ifdef JMEM_SEGMENT_RMAP_RBTREE
   segment_rmap_remove(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root),
