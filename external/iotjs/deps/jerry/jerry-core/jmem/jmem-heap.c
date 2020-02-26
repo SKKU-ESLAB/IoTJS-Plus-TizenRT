@@ -337,7 +337,7 @@ static void *jmem_heap_gc_and_alloc_block(
   // Disallow too large block bigger than two segments
   if (size >= JMEM_SEGMENT_SIZE * 2) {
     printf("Requested size: %lu, but allowed maximum allocation size is: %lu\n",
-           size, JMEM_SEGMENT_SIZE * 2);
+           (uint32_t)size, (uint32_t)JMEM_SEGMENT_SIZE * 2);
   }
   JERRY_ASSERT(size < JMEM_SEGMENT_SIZE * 2);
 
