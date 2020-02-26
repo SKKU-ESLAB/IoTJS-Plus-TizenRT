@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#include "jmem.h"
 #include "jmem-config.h"
+#include "jmem.h"
 #include "jrt.h"
 
 #include <stdlib.h>
@@ -37,7 +37,7 @@ seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
 
     // curr_addr     < ------ >      addr
     //                result
-    if (result > (intptr_t)JMEM_SEGMENT_SIZE) {
+    if (result >= (intptr_t)JMEM_SEGMENT_SIZE) {
       node = node->rb_right;
     } else if (result < 0) {
       node = node->rb_left;
@@ -51,13 +51,11 @@ seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
 
 int segment_rmap_insert(rb_root *root, seg_rmap_node_t *node_to_insert) {
   rb_node **_new = &(root->rb_node), *parent = NULL;
-  printf("rb insert: %x\n", node_to_insert->base_addr);
 
   while (*_new) {
     seg_rmap_node_t *node = container_of(*_new, seg_rmap_node_t, node);
     intptr_t result =
         (intptr_t)node_to_insert->base_addr - (intptr_t)node->base_addr;
-    printf(">> rb insert lookup: %x\n", node->base_addr);
 
     parent = *_new;
     if (result < 0)
@@ -75,8 +73,7 @@ int segment_rmap_insert(rb_root *root, seg_rmap_node_t *node_to_insert) {
 }
 
 void segment_rmap_remove(rb_root *root, uint8_t *addr) {
-  seg_rmap_node_t *node_to_free = s(root, addr);
-  printf("rb remove: %x / found: %x\n", addr, node_to_free->base_addr);
+  seg_rmap_node_t *node_to_free = segment_rmap_lookup(root, addr);
   JERRY_ASSERT(addr == node_to_free->base_addr);
 
   if (node_to_free)

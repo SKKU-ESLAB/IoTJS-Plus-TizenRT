@@ -522,8 +522,6 @@ void __attr_hot___ jmem_heap_free_block(
 
   /* Update next. */
   if (jmem_heap_get_region_end(block_p) == next_p) {
-    // printf("****** Merge!: %lu -> %lu ******\n", block_p->size, block_p->size
-    // + next_p->size);
     /* Can be merged. */
     block_p->size += next_p->size;
     block_p->next_offset = next_p->next_offset;

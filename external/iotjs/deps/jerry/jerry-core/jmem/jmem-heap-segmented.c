@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#include "jcontext.h"
 #include "jmem.h"
 #include "jrt.h"
 
@@ -121,29 +122,24 @@ void *jmem_heap_add_segment(bool is_two_segs) {
         &JERRY_HEAP_CONTEXT(segments[segment_idx]));
     allocated_segment =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[segment_idx]);
-    printf("alloc segment: %x\n", allocated_segment);
   } else {
     // Double segments
     JERRY_HEAP_CONTEXT(area[segment_idx]) =
         (uint8_t *)MALLOC(JMEM_SEGMENT_SIZE * 2);
     JERRY_HEAP_CONTEXT(area[segment_idx + 1]) =
-        (uint8_t *)((uintptr_t)JERRY_HEAP_CONTEXT(area[segment_idx]) +
-                    JMEM_SEGMENT_SIZE);
+        ((uint8_t *)JERRY_HEAP_CONTEXT(area[segment_idx])) + JMEM_SEGMENT_SIZE;
 
     jmem_heap_free_t *const region_p =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[segment_idx]);
     region_p->size = (size_t)JMEM_SEGMENT_SIZE * 2;
     region_p->next_offset =
         JMEM_HEAP_GET_OFFSET_FROM_ADDR(JMEM_HEAP_END_OF_LIST);
-    JERRY_HEAP_CONTEXT(segments[segment_idx]).occupied_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx]).total_size =
         JMEM_SEGMENT_SIZE * 2;
-    JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).occupied_size = 0;
+    JERRY_HEAP_CONTEXT(segments[segment_idx]).occupied_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).total_size = 0;
+    JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).occupied_size = 0;
     allocated_segment = region_p;
-    printf("alloc segment: %x\n", allocated_segment);
-    printf("alloc following segment: %x\n",
-           allocated_segment + JMEM_SEGMENT_SIZE);
   }
 
   // If malloc failed or all segments are full, return NULL
@@ -175,7 +171,8 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), new_rmap_node);
   if (unlikely(is_two_segs)) {
     new_rmap_node = (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
-    new_rmap_node->base_addr = JERRY_HEAP_CONTEXT(area[segment_idx + 1]);
+    new_rmap_node->base_addr =
+        ((uint8_t *)allocated_segment) + JMEM_SEGMENT_SIZE;
     new_rmap_node->seg_idx = segment_idx + 1;
     segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root),
                         new_rmap_node);
@@ -232,13 +229,10 @@ void free_empty_segments(void) {
     JERRY_ASSERT(curr_offset == allocated_segment_first_offset);
     prev_p->next_offset = current_p->next_offset;
     if (unlikely(segment_to_free->size > JMEM_SEGMENT_SIZE)) {
-      printf("free following segment: %x\n",
-             segment_to_free + JMEM_SEGMENT_SIZE);
       jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter + 1]), true);
       JERRY_HEAP_CONTEXT(area[seg_iter + 1]) = NULL;
       JERRY_HEAP_CONTEXT(segments_count)--;
     }
-    printf("free segment: %x\n", segment_to_free);
     jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter]), false);
     JERRY_HEAP_CONTEXT(area[seg_iter]) = NULL;
     JERRY_HEAP_CONTEXT(segments_count)--;
