@@ -29,6 +29,7 @@ extern void *jmem_segmented_alloc_a_segment(const size_t size, bool is_alloc_bef
 
 extern void *jmem_heap_add_segment(bool is_two_segs);
 extern void free_empty_segments(void);
+extern void free_first_empty_segment(void);
 #endif /* JMEM_SEGMENTED_HEAP */
 
 #endif /* !defined(JMEM_HEAP_SEGMENTED_H) */

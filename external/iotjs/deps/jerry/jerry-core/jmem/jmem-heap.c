@@ -147,8 +147,10 @@ void jmem_heap_init(void) {
 void jmem_heap_finalize(void) {
   profile_print_times(); /* Time profiling */
 
-  /* TODO: It requires segment finalization */
+  free_empty_segments();
+  free_first_empty_segment();
 
+  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments_count) == 0);
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) == 0);
 } /* jmem_heap_finalize */
 

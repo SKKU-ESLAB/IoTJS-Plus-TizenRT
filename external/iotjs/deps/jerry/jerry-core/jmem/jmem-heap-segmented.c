@@ -188,7 +188,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
 }
 
 void free_empty_segments(void) {
-  for (uint32_t seg_iter = 0; seg_iter < JMEM_SEGMENT; seg_iter++) {
+  for (uint32_t seg_iter = 1; seg_iter < JMEM_SEGMENT; seg_iter++) {
     jmem_heap_free_t *segment_to_free =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[seg_iter]);
     if (segment_to_free == NULL)
@@ -212,14 +212,17 @@ void free_empty_segments(void) {
       continue;
     }
 
+    JERRY_ASSERT(segment_to_free->size != 0);
     JERRY_ASSERT((segment_to_free->size % JMEM_SEGMENT_SIZE) == 0);
-    uint32_t allocated_segment_first_offset =
-        (uint32_t)seg_iter * (uint32_t)JMEM_SEGMENT_SIZE;
 
     uint32_t curr_offset = JERRY_HEAP_CONTEXT(first).next_offset;
     jmem_heap_free_t *current_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET(curr_offset);
     jmem_heap_free_t *prev_p = &JERRY_HEAP_CONTEXT(first);
-
+    uint32_t allocated_segment_first_offset =
+        (uint32_t)seg_iter * (uint32_t)JMEM_SEGMENT_SIZE;
+    // if(allocated_segment_first_offset == 0) {
+    //   allocated_segment_first_offset = JMEM_ALIGNMENT;
+    // }
     while (current_p != JMEM_HEAP_END_OF_LIST &&
            curr_offset < allocated_segment_first_offset) {
       prev_p = current_p;
@@ -270,6 +273,11 @@ jmem_segment_lookup(uint8_t **seg_addr, uint8_t *p) {
   *seg_addr = segment_addr;
 
   return segment_idx;
+}
+
+void free_first_empty_segment(void) {
+  jmem_segment_free(JERRY_HEAP_CONTEXT(area[0]), false);
+  JERRY_HEAP_CONTEXT(segments_count)--;
 }
 
 /**
