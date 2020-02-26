@@ -79,9 +79,13 @@ inline void __attr_always_inline___ profile_print_segment_utilization(void) {
 
   for (uint32_t segment_idx = 0; segment_idx < JMEM_SEGMENT; segment_idx++) {
     jmem_segment_t *segment = &(JERRY_HEAP_CONTEXT(segments[segment_idx]));
+#ifdef JMEM_PROFILE_SEGMENT_UTILIZATION_ABSOLUTE
+    fprintf(fp, ", %5d/%5d", segment->occupied_size, segment->total_size);
+#else
     float utilization =
         (float)segment->occupied_size / (float)segment->total_size * 100.0f;
     fprintf(fp, ", %2.02f", utilization);
+#endif
   }
   fprintf(fp, "\n");
 #endif

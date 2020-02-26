@@ -94,20 +94,26 @@ jmem_heap_get_addr_from_offset_segmented(uint32_t u) {
                               (uintptr_t)(u % JMEM_SEGMENT_SIZE));
 }
 
+static uint32_t __find_proper_segment_entry(bool is_two_segs) {
+  for (uint32_t segment_idx = 0; segment_idx < JMEM_SEGMENT; segment_idx++) {
+    if (is_two_segs) {
+      if (JERRY_HEAP_CONTEXT(area[segment_idx] == NULL) &&
+          JERRY_HEAP_CONTEXT(area[segment_idx + 1] == NULL)) {
+        return segment_idx;
+      }
+    } else {
+      if (JERRY_HEAP_CONTEXT(area[segment_idx] == NULL)) {
+        return segment_idx;
+      }
+    }
+  }
+  return JMEM_SEGMENT;
+}
+
 void *jmem_heap_add_segment(bool is_two_segs) {
   // Find empty entry or double empty entries in segment translation table
-  uint32_t segment_idx = 0;
-  do {
-    while (segment_idx < JMEM_SEGMENT &&
-           JERRY_HEAP_CONTEXT(area[segment_idx]) != NULL)
-      segment_idx++;
-  } while (unlikely(is_two_segs) &&
-           JERRY_HEAP_CONTEXT(area[segment_idx + 1]) != NULL);
-  /**
-   * If segment address points to NULL, we add a new segment
-   * to expand the heap
-   */
-  if (segment_idx == JMEM_SEGMENT) {
+  uint32_t segment_idx = __find_proper_segment_entry(is_two_segs);
+  if (segment_idx >= JMEM_SEGMENT) {
     return NULL;
   }
 
@@ -234,10 +240,14 @@ void free_empty_segments(void) {
     if (unlikely(segment_to_free->size > JMEM_SEGMENT_SIZE)) {
       jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter + 1]), true);
       JERRY_HEAP_CONTEXT(area[seg_iter + 1]) = NULL;
+      JERRY_HEAP_CONTEXT(segments[seg_iter + 1]).total_size = 0;
+      JERRY_HEAP_CONTEXT(segments[seg_iter + 1]).occupied_size = 0;
       JERRY_HEAP_CONTEXT(segments_count)--;
     }
     jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter]), false);
     JERRY_HEAP_CONTEXT(area[seg_iter]) = NULL;
+    JERRY_HEAP_CONTEXT(segments[seg_iter]).total_size = 0;
+    JERRY_HEAP_CONTEXT(segments[seg_iter]).occupied_size = 0;
     JERRY_HEAP_CONTEXT(segments_count)--;
   }
 }
