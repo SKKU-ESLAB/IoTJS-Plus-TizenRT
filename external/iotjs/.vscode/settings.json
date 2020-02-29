@@ -21,6 +21,7 @@
     "unordered_set": "c",
     "vector": "c",
     "utility": "c",
-    "jmem-allocator-internal.h": "c"
+    "jmem-allocator-internal.h": "c",
+    "jmem-time-profiler.h": "c"
   }
 }

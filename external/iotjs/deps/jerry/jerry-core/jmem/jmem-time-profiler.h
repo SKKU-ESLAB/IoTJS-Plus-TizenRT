@@ -15,22 +15,27 @@
  * limitations under the License.
  */
 
-#ifndef JMEM_HEAP_PROFILER_H
-#define JMEM_HEAP_PROFILER_H
+#ifndef JMEM_TIME_PROFILER_H
+#define JMEM_TIME_PROFILER_H
 
 #include "jcontext.h"
 #include "jmem-config.h"
 #include "jrt.h"
 
 #include <sys/time.h>
+/* Time profiling */
+extern void profile_init_times(void);
+extern void profile_print_times(void);
 
-/* Initialize the profiling start time */
-extern void profile_set_init_time(void);
+extern void profile_alloc_start(void);
+extern void profile_alloc_end(void);
+extern void profile_free_start(void);
+extern void profile_free_end(void);
+extern void profile_compression_start(void);
+extern void profile_compression_end(void);
+extern void profile_decompression_start(void);
+extern void profile_decompression_end(void);
+extern void profile_gc_start(void);
+extern void profile_gc_end(void);
 
-/* Total size profiling */
-extern void profile_print_total_size(void);
-
-/* Segment utilization profiling */
-extern void profile_print_segment_utilization(void);
-
-#endif /* !defined(JMEM_HEAP_PROFILER_H) */
+#endif /* !defined(JMEM_TIME_PROFILER_H) */

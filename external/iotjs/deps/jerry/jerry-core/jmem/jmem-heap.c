@@ -26,6 +26,7 @@
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
 #include "jmem-gc-profiler.h"
+#include "jmem-time-profiler.h"
 #include "jmem-heap-profiler.h"
 
 /** \addtogroup mem Memory allocation
