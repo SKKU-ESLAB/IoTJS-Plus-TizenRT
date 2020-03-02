@@ -88,11 +88,11 @@ inline void __attr_always_inline___ profile_print_segment_utilization(void) {
 #endif
   }
   fprintf(fp, "\n");
-#endif
 
 #ifdef JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME
   fflush(fp);
   fclose(fp);
+#endif
 #endif
 #endif
 }

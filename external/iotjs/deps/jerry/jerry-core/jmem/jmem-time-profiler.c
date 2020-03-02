@@ -25,8 +25,22 @@
 /* Time profiling */
 void profile_init_times(void) {
 #if defined(JMEM_SEGMENTED_HEAP) && defined(JMEM_PROFILE_TIME)
+  gettimeofday(&JERRY_CONTEXT(timeval_start), NULL);
+  JERRY_CONTEXT(alloc_time).tv_sec = 0;
+  JERRY_CONTEXT(alloc_time).tv_usec = 0;
+  JERRY_CONTEXT(free_time).tv_sec = 0;
+  JERRY_CONTEXT(free_time).tv_usec = 0;
   JERRY_CONTEXT(compression_time).tv_sec = 0;
   JERRY_CONTEXT(compression_time).tv_usec = 0;
+  JERRY_CONTEXT(decompression_time).tv_sec = 0;
+  JERRY_CONTEXT(decompression_time).tv_usec = 0;
+  JERRY_CONTEXT(gc_time).tv_sec = 0;
+  JERRY_CONTEXT(gc_time).tv_usec = 0;
+  JERRY_CONTEXT(alloc_count) = 0;
+  JERRY_CONTEXT(free_count) = 0;
+  JERRY_CONTEXT(compression_count) = 0;
+  JERRY_CONTEXT(decompression_count) = 0;
+  JERRY_CONTEXT(gc_count) = 0;
 #endif
 }
 
@@ -37,11 +51,22 @@ void profile_print_times(void) {
   fp = fopen(JMEM_PROFILE_TIME_FILENAME, "a");
 #endif
 
-  fprintf(fp, "Category, Alloc, Free, Compression, Decompression, GC\n");
-  fprintf(fp, "Count, %u, %u, %u, %u, %u\n", JERRY_CONTEXT(alloc_count),
+  struct timeval timeval_end;
+  gettimeofday(&timeval_end, NULL);
+  long long startUsec =
+      (long long)JERRY_CONTEXT(timeval_start).tv_sec * 1000000 +
+      (long long)JERRY_CONTEXT(timeval_start).tv_usec;
+  long long endUsec =
+      (long long)timeval_end.tv_sec * 1000000 + (long long)timeval_end.tv_usec;
+  long long totalUsec = endUsec - startUsec;
+
+  fprintf(fp, "Category, Total, Alloc, Free, Compression, Decompression, GC\n");
+  fprintf(fp, "Count, 0, %u, %u, %u, %u, %u\n", JERRY_CONTEXT(alloc_count),
           JERRY_CONTEXT(free_count), JERRY_CONTEXT(compression_count),
           JERRY_CONTEXT(decompression_count), JERRY_CONTEXT(gc_count));
-  fprintf(fp, "Time(Sec), %ld.ld, %ld.ld, %ld.ld, %ld.ld, %ld.ld\n",
+  fprintf(fp,
+          "Time(Sec), %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld\n",
+          (long)(totalUsec / 1000000), (long)(totalUsec % 1000000),
           JERRY_CONTEXT(alloc_time).tv_sec, JERRY_CONTEXT(alloc_time).tv_usec,
           JERRY_CONTEXT(free_time).tv_sec, JERRY_CONTEXT(free_time).tv_usec,
           JERRY_CONTEXT(compression_time).tv_sec,
@@ -88,59 +113,61 @@ void _stop_watch(struct timeval *timer, struct timeval *t) {
 void __attr_always_inline___ profile_alloc_start(void) {
 #if defined(JMEM_SEGMENTED_HEAP) && defined(JMEM_PROFILE_TIME)
   JERRY_CONTEXT(alloc_count)++;
-  _check_watch(&g_timeval_alloc);
+  _check_watch(&JERRY_CONTEXT(timeval_alloc));
 #endif
 }
 void __attr_always_inline___ profile_alloc_end(void) {
 #if defined(JMEM_SEGMENTED_HEAP) && defined(JMEM_PROFILE_TIME)
-  _stop_watch(&g_timeval_alloc, &JERRY_CONTEXT(alloc_time));
+  _stop_watch(&JERRY_CONTEXT(timeval_alloc), &JERRY_CONTEXT(alloc_time));
 #endif
 }
 
 void __attr_always_inline___ profile_free_start(void) {
 #if defined(JMEM_SEGMENTED_HEAP) && defined(JMEM_PROFILE_TIME)
   JERRY_CONTEXT(free_count)++;
-  _check_watch(&g_timeval_free);
+  _check_watch(&JERRY_CONTEXT(timeval_free));
 #endif
 }
 void __attr_always_inline___ profile_free_end(void) {
 #ifdef JMEM_PROFILE_TIME
-  _stop_watch(&g_timeval_free, &JERRY_CONTEXT(free_time));
+  _stop_watch(&JERRY_CONTEXT(timeval_free), &JERRY_CONTEXT(free_time));
 #endif
 }
 
 void __attr_always_inline___ profile_compression_start(void) {
 #ifdef JMEM_PROFILE_TIME
   JERRY_CONTEXT(compression_count)++;
-  _check_watch(&g_timeval_compression);
+  _check_watch(&JERRY_CONTEXT(timeval_compression));
 #endif
 }
 inline void __attr_always_inline___ profile_compression_end(void) {
 #ifdef JMEM_PROFILE_TIME
-  _stop_watch(&g_timeval_compression, &JERRY_CONTEXT(compression_time));
+  _stop_watch(&JERRY_CONTEXT(timeval_compression),
+              &JERRY_CONTEXT(compression_time));
 #endif
 }
 
 inline void __attr_always_inline___ profile_decompression_start(void) {
 #ifdef JMEM_PROFILE_TIME
   JERRY_CONTEXT(decompression_count)++;
-  _check_watch(&g_timeval_decompression);
+  _check_watch(&JERRY_CONTEXT(timeval_decompression));
 #endif
 }
 inline void __attr_always_inline___ profile_decompression_end(void) {
 #ifdef JMEM_PROFILE_TIME
-  _stop_watch(&g_timeval_decompression, &JERRY_CONTEXT(decompression_time));
+  _stop_watch(&JERRY_CONTEXT(timeval_decompression),
+              &JERRY_CONTEXT(decompression_time));
 #endif
 }
 
 inline void __attr_always_inline___ profile_gc_start(void) {
 #ifdef JMEM_PROFILE_TIME
   JERRY_CONTEXT(gc_count)++;
-  _check_watch(&g_timeval_gc);
+  _check_watch(&JERRY_CONTEXT(timeval_gc));
 #endif
 }
 inline void __attr_always_inline___ profile_gc_end(void) {
 #ifdef JMEM_PROFILE_TIME
-  _stop_watch(&g_timeval_gc, &JERRY_CONTEXT(gc_time));
+  _stop_watch(&JERRY_CONTEXT(timeval_gc), &JERRY_CONTEXT(gc_time));
 #endif
 }

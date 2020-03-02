@@ -26,8 +26,8 @@
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
 #include "jmem-gc-profiler.h"
-#include "jmem-time-profiler.h"
 #include "jmem-heap-profiler.h"
+#include "jmem-time-profiler.h"
 
 /** \addtogroup mem Memory allocation
  * @{
@@ -349,11 +349,10 @@ static void *jmem_heap_gc_and_alloc_block(
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
-  if (JERRY_CONTEXT(jmem_heap_allocated_size) + size >=
-      JERRY_CONTEXT(jmem_heap_limit)) {
+  if (JERRY_CONTEXT(jmem_heap_allocated_size) + size > JMEM_HEAP_SIZE) {
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
   }
-  void *data_space_p = jmem_heap_alloc_block_internal(size);
+  void *data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
   if (likely(data_space_p != NULL)) {
     profile_print_total_size();          /* Total size profiling */
     profile_print_segment_utilization(); /* Segment utilization profiling */
@@ -371,7 +370,7 @@ static void *jmem_heap_gc_and_alloc_block(
       is_two_segs = true;
     }
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
-      data_space_p = jmem_heap_alloc_block_internal(size);
+      data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
       JERRY_ASSERT(data_space_p != NULL);
       profile_gc_set_object_birth_count(
           jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
@@ -386,7 +385,7 @@ static void *jmem_heap_gc_and_alloc_block(
        severity = (jmem_free_unused_memory_severity_t)(severity + 1)) {
     /* Garbage collection -> try to alloc a block */
     jmem_run_free_unused_memory_callbacks(severity);
-    data_space_p = jmem_heap_alloc_block_internal(size);
+    data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
     if (likely(data_space_p != NULL)) {
       profile_print_total_size();          /* Total size profiling */
       profile_print_segment_utilization(); /* Segment utilization profiling */
@@ -400,7 +399,7 @@ static void *jmem_heap_gc_and_alloc_block(
   {
     bool is_two_segs = false;
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
-      data_space_p = jmem_heap_alloc_block_internal(size);
+      data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
       JERRY_ASSERT(data_space_p != NULL);
       profile_gc_set_object_birth_count(
           jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */

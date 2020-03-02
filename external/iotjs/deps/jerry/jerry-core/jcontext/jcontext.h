@@ -141,6 +141,7 @@ typedef struct
   struct timeval timeval_init;
 
   /* Time profiling */
+  struct timeval timeval_start;
   struct timeval timeval_alloc;
   struct timeval timeval_free;
   struct timeval timeval_compression;
