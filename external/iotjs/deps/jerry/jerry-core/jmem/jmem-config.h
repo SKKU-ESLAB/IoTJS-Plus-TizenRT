@@ -40,7 +40,7 @@
 #ifdef JMEM_PROFILE_TIZENRT
 // #define JMEM_PROFILE_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
 // #define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
-// #define JMEM_PROFILE_TIME_FILENAME "/mnt/time.log"
+#define JMEM_PROFILE_TIME_FILENAME "/mnt/time.log"
 // #define JMEM_PROFILE_OBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
 #else
 #define JMEM_PROFILE_TOTAL_SIZE_FILENAME "total_size.log"

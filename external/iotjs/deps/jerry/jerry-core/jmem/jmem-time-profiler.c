@@ -65,7 +65,8 @@ void profile_print_times(void) {
           JERRY_CONTEXT(free_count), JERRY_CONTEXT(compression_count),
           JERRY_CONTEXT(decompression_count), JERRY_CONTEXT(gc_count));
   fprintf(fp,
-          "Time(Sec), %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld\n",
+          "Time(Sec), %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, "
+          "%ld.%06ld\n",
           (long)(totalUsec / 1000000), (long)(totalUsec % 1000000),
           JERRY_CONTEXT(alloc_time).tv_sec, JERRY_CONTEXT(alloc_time).tv_usec,
           JERRY_CONTEXT(free_time).tv_sec, JERRY_CONTEXT(free_time).tv_usec,
