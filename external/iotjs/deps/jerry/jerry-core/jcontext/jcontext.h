@@ -138,7 +138,8 @@ typedef struct
 #endif /* JERRY_VALGRIND_FREYA */
 
   /* Total size profiling */
-  struct timeval timeval_init;
+  struct timeval timeval_js_start;
+  struct timeval jsuptime_recent_segutil_print;
 
   /* Time profiling */
   struct timeval timeval_start;

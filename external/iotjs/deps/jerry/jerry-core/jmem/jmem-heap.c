@@ -136,7 +136,7 @@ void jmem_heap_init(void) {
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
 
   /* Initialize profiling */
-  profile_set_init_time(); /* Total size profiling */
+  profile_set_js_start_time(); /* Total size profiling */
   profile_init_times();    /* Time profiling */
 
   JMEM_HEAP_STAT_INIT();
@@ -146,7 +146,10 @@ void jmem_heap_init(void) {
  * Finalize heap
  */
 void jmem_heap_finalize(void) {
-  profile_print_times(); /* Time profiling */
+  profile_print_times();                       /* Time profiling */
+  profile_print_total_size_finally();          /* Total size profiling */
+  profile_print_segment_utilization_finally(); /* Segment utilization profiling
+                                                */
 
   free_empty_segments();
   free_first_empty_segment();
@@ -354,8 +357,9 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   void *data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
   if (likely(data_space_p != NULL)) {
-    profile_print_total_size();          /* Total size profiling */
-    profile_print_segment_utilization(); /* Segment utilization profiling */
+    profile_print_total_size_each_time();          /* Total size profiling */
+    profile_print_segment_utilization_each_time(); /* Segment utilization
+                                                      profiling */
     profile_gc_set_object_birth_time(
         jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
     return data_space_p;
@@ -387,8 +391,9 @@ static void *jmem_heap_gc_and_alloc_block(
     jmem_run_free_unused_memory_callbacks(severity);
     data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
     if (likely(data_space_p != NULL)) {
-      profile_print_total_size();          /* Total size profiling */
-      profile_print_segment_utilization(); /* Segment utilization profiling */
+      profile_print_total_size_each_time();          /* Total size profiling */
+      profile_print_segment_utilization_each_time(); /* Segment utilization
+                                                        profiling */
       profile_gc_set_object_birth_time(
           jmem_compress_pointer(data_space_p)); /* Object lifespan profiling */
       return data_space_p;
@@ -567,8 +572,9 @@ void __attr_hot___ jmem_heap_free_block(
                JERRY_CONTEXT(jmem_heap_allocated_size));
   JMEM_HEAP_STAT_FREE(size);
 
-  profile_print_total_size();          /* Total size profiling */
-  profile_print_segment_utilization(); /* Segment utilization profiling */
+  profile_print_total_size_each_time();          /* Total size profiling */
+  profile_print_segment_utilization_each_time(); /* Segment utilization
+                                                    profiling */
 
   profile_gc_print_object_lifespan(
       jmem_compress_pointer(ptr)); /* Object lifespan profiling */

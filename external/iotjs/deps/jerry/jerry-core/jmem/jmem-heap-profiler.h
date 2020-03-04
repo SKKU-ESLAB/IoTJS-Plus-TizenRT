@@ -25,12 +25,14 @@
 #include <sys/time.h>
 
 /* Initialize the profiling start time */
-extern void profile_set_init_time(void);
+extern void profile_set_js_start_time(void);
 
-/* Total size profiling */
-extern void profile_print_total_size(void);
+/* Total size profiling: configurable each_time */
+extern void profile_print_total_size_each_time(void);
+extern void profile_print_total_size_finally(void);
 
 /* Segment utilization profiling */
-extern void profile_print_segment_utilization(void);
+extern void profile_print_segment_utilization_each_time(void);
+extern void profile_print_segment_utilization_finally(void);
 
 #endif /* !defined(JMEM_HEAP_PROFILER_H) */

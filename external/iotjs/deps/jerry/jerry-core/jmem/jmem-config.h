@@ -26,8 +26,9 @@
 /* Profiler configs */
 #define JMEM_PROFILE
 // #define JMEM_PROFILE_TOTAL_SIZE
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION_ABSOLUTE
+#define JMEM_PROFILE_SEGMENT_UTILIZATION
+#define JMEM_PROFILE_SEGMENT_UTILIZATION__ABSOLUTE
+#define JMEM_PROFILE_SEGMENT_UTILIZATION__PERIOD_USEC (100 * 1000)
 #define JMEM_PROFILE_TIME
 //#define JMEM_PROFILE_OBJECT_LIFESPAN
 
@@ -35,13 +36,13 @@
 /* If config is defined, output is stored to the specified file.
  * Otherwise, output is printed to stdout.
  */
-#define JMEM_PROFILE_TIZENRT
+#define JMEM_PROFILE_MODE_TIZENRT
 
-#ifdef JMEM_PROFILE_TIZENRT
-// #define JMEM_PROFILE_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
+#ifdef JMEM_PROFILE_MODE_TIZENRT
+#define JMEM_PROFILE_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
+#define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
 #define JMEM_PROFILE_TIME_FILENAME "/mnt/time.log"
-// #define JMEM_PROFILE_OBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
+#define JMEM_PROFILE_OBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
 #else
 #define JMEM_PROFILE_TOTAL_SIZE_FILENAME "total_size.log"
 #define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
