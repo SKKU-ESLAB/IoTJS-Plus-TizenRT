@@ -39,7 +39,7 @@
 #endif
 
 #include "jmem-time-profiler.h"
-#include "jmem-gc-profiler.h"
+#include "jmem-jsobject-profiler.h"
 
 /* TODO: Extract GC to a separate component */
 
@@ -706,7 +706,7 @@ ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
 void
 ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
 {
-  profile_gc_inc_total_count(); /* Object lifespan profiling */
+  profile_jsobject_inc_total_count(); /* JS object lifespan profiling */
   profile_gc_start(); /* Time profiling */
 
   JERRY_CONTEXT (ecma_gc_new_objects) = 0;

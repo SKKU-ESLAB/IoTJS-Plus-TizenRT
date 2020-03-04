@@ -137,6 +137,7 @@ typedef struct
                                            *   allocator request is in progress */
 #endif /* JERRY_VALGRIND_FREYA */
 
+#ifdef JMEM_PROFILE
   /* Total size profiling */
   struct timeval timeval_js_start;
   struct timeval jsuptime_recent_segutil_print;
@@ -160,6 +161,12 @@ typedef struct
   unsigned int compression_count;
   unsigned int decompression_count;
   unsigned int gc_count;
+
+#ifdef JMEM_PROFILE_JSOBJECT_ALLOCATION
+  unsigned int js_object_count[JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE
+                                / JMEM_ALIGNMENT];
+#endif
+#endif
 } jerry_context_t;
 
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
@@ -279,13 +286,13 @@ typedef struct
   rb_root segment_rmap_rb_root;
 #endif /* JMEM_SEGMENT_RMAP_RBTREE */
 
-#ifdef JMEM_PROFILE_OBJECT_LIFESPAN
+#ifdef JMEM_PROFILE_JSOBJECT_LIFESPAN
 static unsigned gc_total_count = 0;
 static unsigned gc_obj_birth[65536] = {
     0,
 };
 static long gc_obj_birth_time[65536][2];
-#endif /* JMEM_PROFILE_OBJECT_LIFESPAN */
+#endif /* JMEM_PROFILE_JSOBJECT_LIFESPAN */
 #else  /* JMEM_SEGMENTED_HEAP */
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */
 #endif /* !JMEM_SEGMENTED_HEAP */

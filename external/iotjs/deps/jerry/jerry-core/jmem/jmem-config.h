@@ -25,28 +25,41 @@
 
 /* Profiler configs */
 #define JMEM_PROFILE
+
+/* jmem-heap-profiler.c */
 // #define JMEM_PROFILE_TOTAL_SIZE
 #define JMEM_PROFILE_SEGMENT_UTILIZATION
 #define JMEM_PROFILE_SEGMENT_UTILIZATION__ABSOLUTE
+// #define JMEM_PROFILE_SEGMENT_UTILIZATION__ON_FREE_BLOCK
+#define JMEM_PROFILE_SEGMENT_UTILIZATION__ON_GC
 #define JMEM_PROFILE_SEGMENT_UTILIZATION__PERIOD_USEC (100 * 1000)
+
+/* jmem-time-profiler.c */
 #define JMEM_PROFILE_TIME
-//#define JMEM_PROFILE_OBJECT_LIFESPAN
+
+/* jmem-jsobject-profiler.c */
+//#define JMEM_PROFILE_JSOBJECT_LIFESPAN
+#define JMEM_PROFILE_JSOBJECT_ALLOCATION
+#define JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE 1024 // 8B ~ 1024B
 
 /* Profiler output configs */
 /* If config is defined, output is stored to the specified file.
  * Otherwise, output is printed to stdout.
  */
+#define JMEM_PROFILE_MODE_ARTIK053
 
-#ifdef CONFIG_ARCH_BOARD_ARTIK053
+#ifdef JMEM_PROFILE_MODE_ARTIK053
 #define JMEM_PROFILE_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
 #define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
 #define JMEM_PROFILE_TIME_FILENAME "/mnt/time.log"
-#define JMEM_PROFILE_OBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
+#define JMEM_PROFILE_JSOBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
+#define JMEM_PROFILE_JSOBJECT_ALLOCATION_FILENAME "/mnt/object_allocation.log"
 #else
 #define JMEM_PROFILE_TOTAL_SIZE_FILENAME "total_size.log"
 #define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
 #define JMEM_PROFILE_TIME_FILENAME "time.log"
-#define JMEM_PROFILE_OBJECT_LIFESPAN_FILENAME "object_lifespan.log"
+#define JMEM_PROFILE_JSOBJECT_LIFESPAN_FILENAME "object_lifespan.log"
+#define JMEM_PROFILE_JSOBJECT_ALLOCATION_FILENAME "object_allocation.log"
 #endif
 
 #endif /* !JMEM_CONFIG_H */

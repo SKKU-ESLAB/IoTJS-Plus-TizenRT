@@ -21,10 +21,14 @@
 #include "jmem-config.h"
 #include "jrt.h"
 
-/* Object lifespan profiling */
-extern void profile_gc_inc_total_count(void);
-extern void profile_gc_set_object_birth_time(uintptr_t compressed_pointer);
-extern void profile_gc_set_object_birth_count(uintptr_t compressed_pointer);
-extern void profile_gc_print_object_lifespan(uintptr_t compressed_pointer);
+/* JS object lifespan profiling */
+extern void profile_jsobject_inc_total_count(void);
+extern void profile_jsobject_set_object_birth_time(uintptr_t compressed_pointer);
+extern void profile_jsobject_set_object_birth_count(uintptr_t compressed_pointer);
+extern void profile_jsobject_print_object_lifespan(uintptr_t compressed_pointer);
+
+/* JS object allocation profiling */
+extern void profile_jsobject_inc_allocation(size_t jsobject_size);
+extern void profile_jsobject_print_allocation(void);
 
 #endif /* !defined(JMEM_GC_PROFILER_H) */
