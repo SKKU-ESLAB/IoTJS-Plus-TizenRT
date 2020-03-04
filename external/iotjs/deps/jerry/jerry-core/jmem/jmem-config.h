@@ -36,9 +36,8 @@
 /* If config is defined, output is stored to the specified file.
  * Otherwise, output is printed to stdout.
  */
-#define JMEM_PROFILE_MODE_TIZENRT
 
-#ifdef JMEM_PROFILE_MODE_TIZENRT
+#ifdef CONFIG_ARCH_BOARD_ARTIK053
 #define JMEM_PROFILE_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
 #define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
 #define JMEM_PROFILE_TIME_FILENAME "/mnt/time.log"
