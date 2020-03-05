@@ -163,7 +163,7 @@ typedef struct
   unsigned int gc_count;
 
 #ifdef JMEM_PROFILE_JSOBJECT_ALLOCATION
-  unsigned int js_object_count[JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE
+  unsigned int jsobject_count[JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE
                                 / JMEM_ALIGNMENT];
 #endif
 #endif

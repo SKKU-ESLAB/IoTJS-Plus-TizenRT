@@ -90,7 +90,7 @@ profile_jsobject_inc_allocation(size_t jsobject_size) {
     index = JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT - 1;
     printf("Large JS object allocation: %lu\n", (uint32_t)aligned_size);
   }
-  JERRY_CONTEXT(js_object_count[index])++;
+  JERRY_CONTEXT(jsobject_count[index])++;
 #else
   UNUSED(jsobject_size);
 #endif
@@ -107,7 +107,7 @@ inline void __attr_always_inline___ profile_jsobject_print_allocation(void) {
        index < JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT;
        index++) {
     fprintf(fp, "OA, %lu, %lu\n", (unsigned long)((index + 1) * JMEM_ALIGNMENT),
-            (unsigned long)(JERRY_CONTEXT(js_object_count[index])));
+            (unsigned long)(JERRY_CONTEXT(jsobject_count[index])));
   }
 
 #ifdef JMEM_PROFILE_JSOBJECT_ALLOCATION_FILENAME
