@@ -106,7 +106,7 @@ inline void __attr_always_inline___ profile_jsobject_print_allocation(void) {
   for (uint32_t index = 0;
        index < JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT;
        index++) {
-    fprintf(fp, "OA, %lu, %lu\n", (unsigned long)(index * JMEM_ALIGNMENT),
+    fprintf(fp, "OA, %lu, %lu\n", (unsigned long)((index + 1) * JMEM_ALIGNMENT),
             (unsigned long)(JERRY_CONTEXT(js_object_count[index])));
   }
 
