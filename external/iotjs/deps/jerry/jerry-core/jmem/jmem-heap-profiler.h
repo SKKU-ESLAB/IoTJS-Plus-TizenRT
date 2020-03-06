@@ -32,8 +32,10 @@ extern void profile_print_total_size_each_time(void);
 extern void profile_print_total_size_finally(void);
 
 /* Segment utilization profiling */
-extern void profile_print_segment_utilization_on_free_block(void);
-extern void profile_print_segment_utilization_on_gc(void);
+extern void profile_print_segment_utilization_after_free_block(size_t jsobject_size);
+extern void profile_print_segment_utilization_before_add_segment(size_t jsobject_size);
+extern void profile_print_segment_utilization_before_gc(size_t jsobject_size);
+extern void profile_print_segment_utilization_after_gc(size_t jsobject_size);
 extern void profile_print_segment_utilization_finally(void);
 
 #endif /* !defined(JMEM_HEAP_PROFILER_H) */

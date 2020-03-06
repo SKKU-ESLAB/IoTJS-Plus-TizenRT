@@ -354,9 +354,11 @@ static void *jmem_heap_gc_and_alloc_block(
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
   if (JERRY_CONTEXT(jmem_heap_allocated_size) + size > JMEM_HEAP_SIZE) {
+    profile_print_segment_utilization_before_gc(
+        size); /* Segment utilization profiling */
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
-    profile_print_segment_utilization_on_gc(); /* Segment utilization profiling
-                                                */
+    profile_print_segment_utilization_after_gc(
+        size); /* Segment utilization profiling */
   }
   void *data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
   if (likely(data_space_p != NULL)) {
@@ -390,10 +392,12 @@ static void *jmem_heap_gc_and_alloc_block(
        severity <= JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH;
        severity = (jmem_free_unused_memory_severity_t)(severity + 1)) {
     /* Garbage collection -> try to alloc a block */
+    profile_print_segment_utilization_before_gc(
+        size); /* Segment utilization profiling */
     jmem_run_free_unused_memory_callbacks(severity);
+    profile_print_segment_utilization_after_gc(
+        size); /* Segment utilization profiling */
     data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
-    profile_print_segment_utilization_on_gc(); /* Segment utilization profiling
-                                                */
     if (likely(data_space_p != NULL)) {
       profile_print_total_size_each_time(); /* Total size profiling */
       profile_jsobject_set_object_birth_time(jmem_compress_pointer(
@@ -576,9 +580,9 @@ void __attr_hot___ jmem_heap_free_block(
                JERRY_CONTEXT(jmem_heap_allocated_size));
   JMEM_HEAP_STAT_FREE(size);
 
-  profile_print_total_size_each_time();              /* Total size profiling */
-  profile_print_segment_utilization_on_free_block(); /* Segment utilization
-                                                    profiling */
+  profile_print_total_size_each_time(); /* Total size profiling */
+  profile_print_segment_utilization_after_free_block(size); /* Segment
+                                                    utilization profiling */
 
   profile_jsobject_print_object_lifespan(
       jmem_compress_pointer(ptr)); /* JS object lifespan profiling */
