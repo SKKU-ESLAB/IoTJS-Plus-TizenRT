@@ -173,6 +173,7 @@ __profile_print_segment_utilization(const char *header, size_t jsobject_size) {
   fclose(fp);
 #endif
 #else
+  UNUSED(header);
   UNUSED(jsobject_size);
 #endif /* defined(JMEM_SEGMENTED_HEAP) &&defined(JMEM_PROFILE) && \
         * defined(JMEM_PROFILE_SEGMENT_UTILIZATION)               \

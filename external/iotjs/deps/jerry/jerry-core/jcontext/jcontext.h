@@ -142,6 +142,7 @@ typedef struct
   struct timeval timeval_js_start;
   struct timeval jsuptime_recent_segutil_print;
 
+#ifdef JMEM_PROFILE_TIME
   /* Time profiling */
   struct timeval timeval_start;
   struct timeval timeval_alloc;
@@ -161,6 +162,7 @@ typedef struct
   unsigned int compression_count;
   unsigned int decompression_count;
   unsigned int gc_count;
+#endif
 
 #ifdef JMEM_PROFILE_JSOBJECT_ALLOCATION
   unsigned int jsobject_count[JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE

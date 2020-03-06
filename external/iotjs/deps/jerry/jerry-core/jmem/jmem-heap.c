@@ -152,10 +152,12 @@ void jmem_heap_finalize(void) {
                                                 */
   profile_jsobject_print_allocation(); /* JS object allocation profiling */
 
+#ifdef JMEM_SEGMENTED_HEAP
   free_empty_segments();
   free_first_empty_segment();
 
   JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments_count) == 0);
+#endif
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) == 0);
 } /* jmem_heap_finalize */
 
@@ -339,12 +341,14 @@ static void *jmem_heap_gc_and_alloc_block(
     bool ret_null_on_error) /**< indicates whether return null or terminate
                                  with ERR_OUT_OF_MEMORY on out of memory */
 {
+#ifdef JMEM_SEGMENTED_HEAP
   // Disallow too large block bigger than two segments
   if (size >= JMEM_SEGMENT_SIZE * 2) {
     printf("Requested size: %lu, but allowed maximum allocation size is: %lu\n",
            (uint32_t)size, (uint32_t)JMEM_SEGMENT_SIZE * 2);
   }
   JERRY_ASSERT(size < JMEM_SEGMENT_SIZE * 2);
+#endif
 
   if (unlikely(size == 0)) {
     return NULL;
@@ -377,6 +381,8 @@ static void *jmem_heap_gc_and_alloc_block(
     if (size > JMEM_SEGMENT_SIZE) {
       is_two_segs = true;
     }
+    /* Segment utilization profiling */
+    profile_print_segment_utilization_before_add_segment(size);
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
       data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
       JERRY_ASSERT(data_space_p != NULL);
@@ -411,6 +417,8 @@ static void *jmem_heap_gc_and_alloc_block(
 #ifdef JMEM_SEGMENTED_HEAP
   {
     bool is_two_segs = false;
+    /* Segment utilization profiling */
+    profile_print_segment_utilization_before_add_segment(size);
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
       data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
       JERRY_ASSERT(data_space_p != NULL);
