@@ -32,6 +32,14 @@ static void __profile_print_segment_utilization(const char *type,
 inline void __attr_always_inline___ profile_set_js_start_time(void) {
 #if defined(JMEM_PROFILE)
   gettimeofday(&JERRY_CONTEXT(timeval_js_start), NULL);
+#if defined(JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC)
+  JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_sec = 0;
+  JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_usec = 0;
+#endif
+#if defined(JMEM_PROFILE_SEGMENT_UTILIZATION__PERIOD_USEC)
+  JERRY_CONTEXT(jsuptime_recent_segutil_print).tv_sec = 0;
+  JERRY_CONTEXT(jsuptime_recent_segutil_print).tv_usec = 0;
+#endif
 #endif
 }
 
@@ -57,7 +65,19 @@ inline void __attr_always_inline___ __get_js_uptime(struct timeval *js_uptime) {
 
 
 inline void __attr_always_inline___ profile_print_total_size_each_time(void) {
+#if defined(JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC)
+  struct timeval js_uptime;
+  __get_js_uptime(&js_uptime);
+  long timeval_diff_in_usec =
+      __get_timeval_diff_usec(&JERRY_CONTEXT(jsuptime_recent_total_size_print),
+                              &js_uptime);
+  if (timeval_diff_in_usec > JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC) {
+    JERRY_CONTEXT(jsuptime_recent_total_size_print) = js_uptime;
+    __profile_print_total_size();
+  }
+#else
   __profile_print_total_size();
+#endif /* defined(JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC) */
 }
 
 inline void __attr_always_inline___ profile_print_total_size_finally(void) {

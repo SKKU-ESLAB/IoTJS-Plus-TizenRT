@@ -357,7 +357,12 @@ static void *jmem_heap_gc_and_alloc_block(
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
+#ifdef JMEM_GC_BEFORE_SEG_ALLOC
+  if (JERRY_CONTEXT(jmem_heap_allocated_size) + size >
+      JERRY_CONTEXT(jmem_heap_limit)) {
+#else
   if (JERRY_CONTEXT(jmem_heap_allocated_size) + size > JMEM_HEAP_SIZE) {
+#endif
     profile_print_segment_utilization_before_gc(
         size); /* Segment utilization profiling */
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
@@ -374,7 +379,7 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   // Segment Allocation before GC
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef SEG_ALLOC_BEFORE_GC
+#ifdef JMEM_SEG_ALLOC_BEFORE_GC
   {
     /* Try one or two segments -> try to alloc a block */
     bool is_two_segs = false;
@@ -391,7 +396,7 @@ static void *jmem_heap_gc_and_alloc_block(
       return data_space_p;
     }
   }
-#endif /* SEG_ALLOC_BEFORE_GC */
+#endif /* JMEM_SEG_ALLOC_BEFORE_GC */
 #endif /* JMEM_SEGMENTED_HEAP */
   for (jmem_free_unused_memory_severity_t severity =
            JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
