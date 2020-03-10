@@ -51,6 +51,7 @@ __get_timeval_diff_usec(struct timeval *prior, struct timeval *post) {
 }
 
 inline void __attr_always_inline___ __get_js_uptime(struct timeval *js_uptime) {
+#if defined(JMEM_PROFILE)
   gettimeofday(js_uptime, NULL);
 
   if (js_uptime->tv_usec < JERRY_CONTEXT(timeval_js_start).tv_usec) {
@@ -59,6 +60,9 @@ inline void __attr_always_inline___ __get_js_uptime(struct timeval *js_uptime) {
   }
   js_uptime->tv_usec -= JERRY_CONTEXT(timeval_js_start).tv_usec;
   js_uptime->tv_sec -= JERRY_CONTEXT(timeval_js_start).tv_sec;
+#else
+  UNUSED(js_uptime);
+#endif
 }
 
 /* Total size profiling */
