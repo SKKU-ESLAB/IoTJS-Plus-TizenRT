@@ -23,7 +23,8 @@
 #define JMEM_SEGMENT_RMAP_RBTREE
 
 #define JMEM_SEG_ALLOC_BEFORE_GC
-#define JMEM_AGGRESSIVE_GC
+
+// #define JMEM_AGGRESSIVE_GC
 
 // /* Profiler configs */
 #define JMEM_PROFILE
