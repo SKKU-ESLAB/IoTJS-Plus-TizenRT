@@ -3,9 +3,13 @@
 # see kconfig-language at https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
 #
 
-config EXAMPLES_REDC_IOTJS_INSTALLER
-	bool "REDC IoT.js Installer"
+config EXAMPLES_REDC_IOTJS_LAUNCHER
+	bool "REDC IoT.js Launcher"
 	default n
 	select ENABLE_IOTJS
 	---help---
-		Enable REDC IoT.js Installer
+		Enable REDC IoT.js Launcher
+
+config USER_ENTRYPOINT
+  string
+  default "iotjs_installer_main" if ENTRY_REDC_IOTJS_LAUNCHER

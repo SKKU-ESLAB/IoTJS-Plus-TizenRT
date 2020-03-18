@@ -1,6 +1,6 @@
 ###########################################################################
 #
-# Copyright 2017 Samsung Electronics All Rights Reserved.
+# Copyright 2018 Samsung Electronics France All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,25 +15,56 @@
 # language governing permissions and limitations under the License.
 #
 ###########################################################################
+############################################################################
+# apps/examples/iotjs_startup/Makefile
+#
+#   Copyright (C) 2008, 2010-2013 Gregory Nutt. All rights reserved.
+#   Author: Gregory Nutt <gnutt@nuttx.org>
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 3. Neither the name NuttX nor the names of its contributors may be
+#    used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+# OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+############################################################################
 
 -include $(TOPDIR)/.config
 -include $(TOPDIR)/Make.defs
 include $(APPDIR)/Make.defs
 
-# built-in application info
+# StartUp built-in application info
 
-APPNAME = wm_test
+APPNAME = iotjs_launcher
 FUNCNAME = $(APPNAME)_main
 THREADEXEC = TASH_EXECMD_ASYNC
 
-# Wi-Fi manager example
+# StartUp Example
 
 ASRCS =
-
-MAINSRC = wm_test.c
-ifeq ($(CONFIG_EXAMPLES_WIFIMANAGER_STRESS_TOOL),y)
-CSRCS = wm_test_stress.c
-endif
+CSRCS =
+MAINSRC = iotjs_launcher_main.c
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))
 COBJS = $(CSRCS:.c=$(OBJEXT))
@@ -62,12 +93,14 @@ else
   INSTALL_DIR = $(BIN_DIR)
 endif
 
-CONFIG_EXAMPLES_WIFIMANAGER_TEST_PROGNAME ?= wm_test$(EXEEXT)
-PROGNAME = $(CONFIG_EXAMPLES_WIFIMANAGER_TEST_PROGNAME)
+CONFIG_EXAMPLES_IOTJS_STARTUP_PROGNAME ?= iotjs_startup$(EXEEXT)
+PROGNAME = $(CONFIG_EXAMPLES_IOTJS_STARTUP_PROGNAME)
 
 ROOTDEPPATH = --dep-path .
 
 # Common build
+
+VPATH =
 
 all: .built
 .PHONY: clean depend distclean
@@ -95,11 +128,11 @@ install:
 
 endif
 
-ifeq ($(CONFIG_BUILTIN_APPS)$(CONFIG_EXAMPLES_WIFIMANAGER_TEST),yy)
+ifeq ($(CONFIG_BUILTIN_APPS)$(CONFIG_EXAMPLES_IOTJS_STARTUP),yy)
 $(BUILTIN_REGISTRY)$(DELIM)$(FUNCNAME).bdat: $(DEPCONFIG) Makefile
-	$(call REGISTER,$(APPNAME),$(FUNCNAME),$(THREADEXEC))
+	$(Q) $(call REGISTER,$(APPNAME),$(FUNCNAME),$(THREADEXEC),$(PRIORITY),$(STACKSIZE))
 
-context: $(BUILTIN_REGISTRY)$(DELIM)$(APPNAME)_main.bdat
+context: $(BUILTIN_REGISTRY)$(DELIM)$(FUNCNAME).bdat
 
 else
 context:

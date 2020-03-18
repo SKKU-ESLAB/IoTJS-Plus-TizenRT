@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <title>IoT.js Launcher</title>
+  </head>
+  <body>
+    <h1>IoT.js Launcher</h1>
+    <h2>Download Log</h2>
+    <ul>
+      <li><a href="http://IPADDR/total_size.log">Total Size</a></li>
+      <li><a href="http://IPADDR/segment_utilization.log">Segment Utilization</a></li>
+      <li><a href="http://IPADDR/time.log">Time</a></li>
+      <li><a href="http://IPADDR/object_lifespan.log">Object Lifespan</a></li>
+      <li><a href="http://IPADDR/object_allocation.log">Object Allocation</a></li>
+    </ul>
+    <h2>Install</h2>
+    <form action="upload.php" method="post" enctype="multipart/form-data">
+      Select file to upload:
+      <input type="file" name="fileToUpload" id="fileToUpload">
+      <input type="submit" value="Upload Image" name="submit">
+    </form>
+    <ul>
+      <li><a href="http://IPADDR/close.html">Close the launcher</a></li>
+    </ul>
+  </body>
+</html>

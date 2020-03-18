@@ -1,0 +1,3 @@
+config ENTRY_REDC_IOTJS_LAUNCHER
+	bool "REDC IoT.js Launcher"
+	depends on EXAMPLES_REDC_IOTJS_LAUNCHER

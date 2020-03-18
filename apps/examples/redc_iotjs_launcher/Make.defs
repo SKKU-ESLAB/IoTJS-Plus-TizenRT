@@ -16,6 +16,6 @@
 #
 ###########################################################################
 
-ifeq ($(CONFIG_EXAMPLES_IOTJS_STARTUP),y)
-CONFIGURED_APPS += examples/iotjs_startup
+ifeq ($(CONFIG_EXAMPLES_REDC_IOTJS_LAUNCHER),y)
+CONFIGURED_APPS += examples/REDC_IOTJS_LAUNCHER
 endif
