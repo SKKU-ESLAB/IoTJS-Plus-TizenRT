@@ -17,5 +17,5 @@
 ###########################################################################
 
 ifeq ($(CONFIG_EXAMPLES_REDC_IOTJS_LAUNCHER),y)
-CONFIGURED_APPS += examples/REDC_IOTJS_LAUNCHER
+CONFIGURED_APPS += examples/redc_iotjs_launcher
 endif
