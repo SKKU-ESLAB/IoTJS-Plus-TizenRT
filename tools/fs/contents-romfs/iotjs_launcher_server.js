@@ -104,7 +104,7 @@ function http_handler(req, res) {
 function app_main() {
   server = http.createServer(http_handler);
   server.listen(httpServerPort, function () {
-    console.log("Log download server starts: port=" + httpServerPort);
+    console.log("\n\nIoT.js Launcher: installer server starts: port=" + httpServerPort);
   });
 }
 app_main();
