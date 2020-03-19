@@ -73,6 +73,9 @@ function http_handler(req, res) {
             parsingState = "ContentHeader";
           } else {
             console.log("Write: " + line);
+            if (line.length == 0) {
+              line = " ";
+            }
             var lineBuffer = new Buffer(line);
             fs.writeSync(fd, lineBuffer, 0, lineBuffer.length);
           }
