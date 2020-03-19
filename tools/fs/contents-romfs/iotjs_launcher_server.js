@@ -53,7 +53,7 @@ function http_handler(req, res) {
       var reqBodyLines = reqBody.split(/\r?\n/);
       for (var i in reqBodyLines) {
         var line = reqBodyLines[i];
-        console.log("[" + parsingState + "] " + line);
+        // console.log("[" + parsingState + "] " + line);
         if (parsingState == "ContentBody") {
           if (line.indexOf("------") >= 0) {
             parsingState = "ContentHeader";
@@ -72,10 +72,8 @@ function http_handler(req, res) {
           if (line.indexOf("------") >= 0) {
             parsingState = "ContentHeader";
           } else {
-            console.log("Write: " + line);
-            if (line.length == 0) {
-              line = " ";
-            }
+            // console.log("Write: " + line);
+            line += "\n";
             var lineBuffer = new Buffer(line);
             fs.writeSync(fd, lineBuffer, 0, lineBuffer.length);
           }
