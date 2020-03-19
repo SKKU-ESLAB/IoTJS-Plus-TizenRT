@@ -53,15 +53,14 @@ function http_handler(req, res) {
       var reqBodyLines = reqBody.split(/\r?\n/);
       for (var i in reqBodyLines) {
         var line = reqBodyLines[i];
+        console.log("[" + parsingState + "] " + line);
         if (parsingState == "ContentBody") {
           if (line.indexOf("------") >= 0) {
             parsingState = "ContentHeader";
           }
         } else if (parsingState == "ContentHeader") {
-          if (line.indexOf("Content-Type") >= 0) {
-            if (line.indexOf("filename") >= 0) {
-              parsingState = "JSHeader";
-            }
+          if (line.indexOf("Content-Disposition") >= 0 && line.indexOf("filename") >= 0) {
+            parsingState = "JSHeader";
           } else if (line.length == 0) {
             parsingState = "ContentBody";
           }
@@ -73,6 +72,7 @@ function http_handler(req, res) {
           if (line.indexOf("------") >= 0) {
             parsingState = "ContentHeader";
           } else {
+            console.log("Write: " + line);
             var lineBuffer = new Buffer(line);
             fs.writeSync(fd, lineBuffer, 0, lineBuffer.length);
           }
@@ -80,7 +80,7 @@ function http_handler(req, res) {
       }
       fs.closeSync(fd);
       console.log("Write to " + filePath + " success!");
-      console.log("Contents: " + reqBody);
+      // console.log("Contents: " + reqBody);
     } else {
       res.writeHead(403);
     }

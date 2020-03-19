@@ -149,7 +149,7 @@ int iotjs_launcher_main(int argc, char *argv[])
 	chdir(dirname(CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE));
 
 	if (is_launch_mode) {
-		printf("IoT.js Launcher LAUNCH MODE: run %s...\n", CONFIG_EXAMPLES_IOTJS_LAUNCHER_APP_JS_FILE);
+		printf("\n\nIoT.js Launcher LAUNCH MODE: run %s...\n\n", CONFIG_EXAMPLES_IOTJS_LAUNCHER_APP_JS_FILE);
 		char *targv[] = {"iotjs", CONFIG_EXAMPLES_IOTJS_LAUNCHER_APP_JS_FILE};
 		int targc = 2;
 
@@ -161,7 +161,7 @@ int iotjs_launcher_main(int argc, char *argv[])
 			sleep(10);
 		}
 	} else {
-		printf("IoT.js Launcher INSTALL MODE: run %s...\n", CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE);
+		printf("\n\nIoT.js Launcher INSTALL MODE: run %s...\n\n", CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE);
 		char *targv[] = {"iotjs", "--no-jmem-logs", CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE};
 		int targc = 3;
 
