@@ -21,6 +21,8 @@
  #include <tinyara/arch.h>
  #include <tinyara/config.h>
 
+ #include <sys/boardctl.h>
+
  #include <setjmp.h>
  #include <stdio.h>
  #include <stdlib.h>
@@ -125,6 +127,9 @@
    tuv_cleanup();
 
    sleep(1);
+
+   printf("Workload done! Reboot the device...\n");
+   boardctl(BOARDIOC_RESET, EXIT_SUCCESS);
    return NULL;
  }
 

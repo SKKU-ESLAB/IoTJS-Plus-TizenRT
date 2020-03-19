@@ -77,6 +77,7 @@ function http_handler(req, res) {
           }
         }
       }
+      fs.closeSync(fd);
 
       resBody = fs.readFileSync("/rom/install_finished.html").toString();
       resBody = resBody.replace(/IPADDR/gi, host);
