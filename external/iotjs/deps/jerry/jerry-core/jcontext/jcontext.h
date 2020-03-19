@@ -294,11 +294,9 @@ typedef struct
 #endif /* JMEM_SEGMENT_RMAP_RBTREE */
 
 #ifdef JMEM_PROFILE_JSOBJECT_LIFESPAN
-static unsigned gc_total_count = 0;
-static unsigned gc_obj_birth[65536] = {
-    0,
-};
-static long gc_obj_birth_time[65536][2];
+  unsigned gc_total_count = 0;
+  unsigned gc_obj_birth[65536];
+  long gc_obj_birth_time[65536][2];
 #endif /* JMEM_PROFILE_JSOBJECT_LIFESPAN */
 #else  /* JMEM_SEGMENTED_HEAP */
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */

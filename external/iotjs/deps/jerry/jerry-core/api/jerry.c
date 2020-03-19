@@ -52,7 +52,8 @@ JERRY_STATIC_ASSERT ((int) ECMA_ERROR_COMMON == (int) JERRY_ERROR_COMMON
 JERRY_STATIC_ASSERT ((int) ECMA_INIT_EMPTY == (int) JERRY_INIT_EMPTY
                      && (int) ECMA_INIT_SHOW_OPCODES == (int) JERRY_INIT_SHOW_OPCODES
                      && (int) ECMA_INIT_SHOW_REGEXP_OPCODES == (int) JERRY_INIT_SHOW_REGEXP_OPCODES
-                     && (int) ECMA_INIT_MEM_STATS == (int) JERRY_INIT_MEM_STATS,
+                     && (int) ECMA_INIT_MEM_STATS == (int) JERRY_INIT_MEM_STATS
+                     && (int) ECMA_INIT_JMEM_LOGS_ENABLED == (int) JERRY_INIT_JMEM_LOGS_ENABLED,
                      ecma_init_flag_t_must_be_equal_to_jerry_init_flag_t);
 
 #ifndef JERRY_JS_PARSER

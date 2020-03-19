@@ -57,6 +57,7 @@ typedef enum
   JERRY_INIT_MEM_STATS           = (1u << 2), /**< dump memory statistics */
   JERRY_INIT_MEM_STATS_SEPARATE  = (1u << 3), /**< deprecated, an unused placeholder now */
   JERRY_INIT_DEBUGGER            = (1u << 4), /**< deprecated, an unused placeholder now */
+  JERRY_INIT_JMEM_LOGS_ENABLED   = (1u << 5), /**< jmem logs enabled */
 } jerry_init_flag_t;
 
 /**

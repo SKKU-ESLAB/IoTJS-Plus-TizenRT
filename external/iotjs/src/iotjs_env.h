@@ -24,6 +24,7 @@ typedef struct {
   bool show_opcode;
   bool debugger;
   int debugger_port;
+  bool is_jerry_jmem_logs_enabled;
 } Config;
 
 typedef enum {

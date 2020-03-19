@@ -1,4 +1,5 @@
 var fs = require('fs');
+var Buffer = require('buffer');
 var http = require('http');
 var httpServerPort = 80;
 var Server = require('http_server').Server;
@@ -44,12 +45,42 @@ function http_handler(req, res) {
           'Content-Length': resBody.length
         });
       }
-    } else if(req.method == 'POST') {
-      if(url.indexOf(".js" >= 0)) {
-        var filePath = "/mnt" + url;
-        fs.writeFileSync(filePOath, reqBody);
-        console.log("Write to " + filePath + " success!");
+    } else if (req.method == 'POST') {
+      var filePath = "/mnt/index.js";
+      var fd = fs.openSync(filePath, 'w');
+
+      var parsingState = "ContentBody";
+      var reqBodyLines = reqBody.split(/\r?\n/);
+      for (var i in reqBodyLines) {
+        var line = reqBodyLines[i];
+        if (parsingState == "ContentBody") {
+          if (line.indexOf("------") >= 0) {
+            parsingState = "ContentHeader";
+          }
+        } else if (parsingState == "ContentHeader") {
+          if (line.indexOf("Content-Type") >= 0) {
+            if (line.indexOf("filename") >= 0) {
+              parsingState = "JSHeader";
+            }
+          } else if (line.length == 0) {
+            parsingState = "ContentBody";
+          }
+        } else if (parsingState == "JSHeader") {
+          if (line.length == 0) {
+            parsingState = "JSBody";
+          }
+        } else if (parsingState == "JSBody") {
+          if (line.indexOf("------") >= 0) {
+            parsingState = "ContentHeader";
+          } else {
+            var lineBuffer = new Buffer(line);
+            fs.writeSync(fd, lineBuffer, 0, lineBuffer.length);
+          }
+        }
       }
+      fs.closeSync(fd);
+      console.log("Write to " + filePath + " success!");
+      console.log("Contents: " + reqBody);
     } else {
       res.writeHead(403);
     }

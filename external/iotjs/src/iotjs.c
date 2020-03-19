@@ -51,6 +51,10 @@ static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }
+
+  if (iotjs_environment_config(env)->is_jerry_jmem_logs_enabled) {
+    jerry_flags |= JERRY_INIT_JMEM_LOGS_ENABLED;
+  }
   // Initialize jerry.
   jerry_init(jerry_flags);
 

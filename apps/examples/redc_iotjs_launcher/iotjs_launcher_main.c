@@ -22,8 +22,16 @@
 #include <libgen.h>
 #include <wifi_manager/wifi_manager.h>
 
-#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_JS_FILE
-#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_JS_FILE "/rom/iotjs_launcher_server.js"
+#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_LAUNCH_MODE_FILE
+#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_LAUNCH_MODE_FILE "/mnt/launch_mode"
+#endif
+
+#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE
+#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE "/rom/iotjs_launcher_server.js"
+#endif
+
+#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_APP_JS_FILE
+#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_APP_JS_FILE "/mnt/index.js"
 #endif
 
 #ifndef CONFIG_EXAMPLES_IOTJS_EXTRA_MODULE_PATH
@@ -56,7 +64,7 @@ static void iotjs_launcher_wifi_sta_connected(wifi_manager_result_e status)
 {
 	printf("log: %s status=0x%x\n", __FUNCTION__, status);
 	g_is_connected = ((status == WIFI_MANAGER_SUCCESS) ||
-			  (status == WIFI_MANAGER_ALREADY_CONNECTED));
+					  (status == WIFI_MANAGER_ALREADY_CONNECTED));
 }
 
 static void iotjs_launcher_wifi_sta_disconnected(wifi_manager_disconnect_e status)
@@ -98,12 +106,33 @@ static void iotjs_launcher_wifi_connect(void)
 	strncpy(config.ssid, CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID, config.ssid_length + 1);
 	strncpy(config.passphrase, CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS, config.passphrase_length + 1);
 
-	config.ap_auth_type = (wifi_manager_ap_auth_type_e) CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH;
-	config.ap_crypto_type = (wifi_manager_ap_crypto_type_e) CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_CRYPTO;
+	config.ap_auth_type = (wifi_manager_ap_auth_type_e)CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH;
+	config.ap_crypto_type = (wifi_manager_ap_crypto_type_e)CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_CRYPTO;
 
 	status = wifi_manager_connect_ap(&config);
 	if (status != WIFI_MANAGER_SUCCESS) {
 		printf("error: wifi_manager_connect_ap (status=0x%x)\n", status);
+	}
+}
+
+static bool __is_launch_mode(void)
+{
+	FILE* fp = fopen(CONFIG_EXAMPLES_IOTJS_LAUNCHER_LAUNCH_MODE_FILE, "r");
+	if (fp != NULL) {
+		fclose(fp);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+static void __toggle_launch_mode(void)
+{
+	if (__is_launch_mode()) {
+		remove(CONFIG_EXAMPLES_IOTJS_LAUNCHER_LAUNCH_MODE_FILE);
+	} else {
+		FILE *fp = fopen(CONFIG_EXAMPLES_IOTJS_LAUNCHER_LAUNCH_MODE_FILE, "w");
+		fclose(fp);
 	}
 }
 
@@ -113,17 +142,36 @@ int main(int argc, FAR char *argv[])
 int iotjs_launcher_main(int argc, char *argv[])
 #endif
 {
-	setenv("IOTJS_EXTRA_MODULE_PATH", CONFIG_EXAMPLES_IOTJS_EXTRA_MODULE_PATH, 1);
-	chdir(dirname(CONFIG_EXAMPLES_IOTJS_LAUNCHER_JS_FILE));
-	char *targv[] = { "iotjs", CONFIG_EXAMPLES_IOTJS_LAUNCHER_JS_FILE };
-	int targc = 2;
+	bool is_launch_mode = __is_launch_mode();
+	__toggle_launch_mode();
 
-	iotjs_launcher_wifi_connect();
-	for (;;) {
-		if (g_is_connected) {
-			iotjs(targc, targv);
+	setenv("IOTJS_EXTRA_MODULE_PATH", CONFIG_EXAMPLES_IOTJS_EXTRA_MODULE_PATH, 1);
+	chdir(dirname(CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE));
+
+	if (is_launch_mode) {
+		printf("IoT.js Launcher LAUNCH MODE: run %s...\n", CONFIG_EXAMPLES_IOTJS_LAUNCHER_APP_JS_FILE);
+		char *targv[] = {"iotjs", CONFIG_EXAMPLES_IOTJS_LAUNCHER_APP_JS_FILE};
+		int targc = 2;
+
+		iotjs_launcher_wifi_connect();
+		for (;;) {
+			if (g_is_connected) {
+				iotjs(targc, targv);
+			}
+			sleep(10);
 		}
-		sleep(10);
+	} else {
+		printf("IoT.js Launcher INSTALL MODE: run %s...\n", CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE);
+		char *targv[] = {"iotjs", "--no-jmem-logs", CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE};
+		int targc = 3;
+
+		iotjs_launcher_wifi_connect();
+		for (;;) {
+			if (g_is_connected) {
+				iotjs(targc, targv);
+			}
+			sleep(10);
+		}
 	}
 	return 0;
 }
