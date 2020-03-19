@@ -10,28 +10,28 @@ function http_handler(req, res) {
   var reqBody = '';
   var url = req.url;
 
-  req.on('data', function (chunk) {
+  req.on('data', function(chunk) {
     reqBody += chunk;
   });
 
-  var endHandler = function () {
+  var endHandler = function() {
     var isCloseServer = false;
-    var resBody = "";
-    var errorMsg = "";
+    var resBody = '';
+    var errorMsg = '';
     if (req.method == 'GET') {
       var isHtml = false;
       var filePath = undefined;
-      if (url.indexOf(".html") >= 0 || url.indexOf(".htm") >= 0) {
+      if (url.indexOf('.html') >= 0 || url.indexOf('.htm') >= 0) {
         isHtml = true;
       }
-      if (url == "/") {
+      if (url == '/') {
         // index.html
-        filePath = "/rom/index.html";
+        filePath = '/rom/index.html';
         isHtml = true;
       } else if (isHtml) {
-        filePath = "/rom" + url; // html in rom
+        filePath = '/rom' + url;  // html in rom
       } else {
-        filePath = "/mnt" + url; // others in mnt
+        filePath = '/mnt' + url;  // others in mnt
       }
       if (!fs.existsSync(filePath)) {
         res.writeHead(404);
@@ -41,60 +41,60 @@ function http_handler(req, res) {
         if (isHtml && (host !== undefined)) {
           resBody = resBody.replace(/IPADDR/gi, host);
         }
-        res.writeHead(200, {
-          'Content-Length': resBody.length
-        });
+        res.writeHead(200, {'Content-Length': resBody.length});
       }
     } else if (req.method == 'POST') {
-      var filePath = "/mnt/index.js";
+      var filePath = '/mnt/index.js';
       var fd = fs.openSync(filePath, 'w');
 
-      var parsingState = "ContentBody";
+      var parsingState = 'ContentBody';
       var reqBodyLines = reqBody.split(/\r?\n/);
       for (var i in reqBodyLines) {
         var line = reqBodyLines[i];
         // console.log("[" + parsingState + "] " + line);
-        if (parsingState == "ContentBody") {
-          if (line.indexOf("------") >= 0) {
-            parsingState = "ContentHeader";
+        if (parsingState == 'ContentBody') {
+          if (line.indexOf('------') >= 0) {
+            parsingState = 'ContentHeader';
           }
-        } else if (parsingState == "ContentHeader") {
-          if (line.indexOf("Content-Disposition") >= 0 && line.indexOf("filename") >= 0) {
-            parsingState = "JSHeader";
+        } else if (parsingState == 'ContentHeader') {
+          if (line.indexOf('Content-Disposition') >= 0 && line.indexOf('filename') >= 0) {
+            parsingState = 'JSHeader';
           } else if (line.length == 0) {
-            parsingState = "ContentBody";
+            parsingState = 'ContentBody';
           }
-        } else if (parsingState == "JSHeader") {
+        } else if (parsingState == 'JSHeader') {
           if (line.length == 0) {
-            parsingState = "JSBody";
+            parsingState = 'JSBody';
           }
-        } else if (parsingState == "JSBody") {
-          if (line.indexOf("------") >= 0) {
-            parsingState = "ContentHeader";
+        } else if (parsingState == 'JSBody') {
+          if (line.indexOf('------') >= 0) {
+            parsingState = 'ContentHeader';
           } else {
             // console.log("Write: " + line);
-            line += "\n";
+            line += '\n';
             var lineBuffer = new Buffer(line);
             fs.writeSync(fd, lineBuffer, 0, lineBuffer.length);
           }
         }
       }
-      fs.closeSync(fd);
-      console.log("Write to " + filePath + " success!");
-      // console.log("Contents: " + reqBody);
+
+      resBody = fs.readFileSync("/rom/install_finished.html").toString();
+      resBody = resBody.replace(/IPADDR/gi, host);
+      res.writeHead(200, {'Content-Length': resBody.length});
     } else {
       res.writeHead(403);
     }
 
-    if (url == "/close.html") {
+    if (url == '/close.html') {
       isCloseServer = true;
     }
 
     res.write(resBody);
-    res.end(function () {
+    res.end(function() {
       if (isCloseServer) {
-        console.log("close the server");
+        console.log('close the server... reboot this device...');
         server.close();
+        console.reboot();
       }
     });
   };
@@ -104,8 +104,8 @@ function http_handler(req, res) {
 
 function app_main() {
   server = http.createServer(http_handler);
-  server.listen(httpServerPort, function () {
-    console.log("\n\nIoT.js Launcher: installer server starts: port=" + httpServerPort);
+  server.listen(httpServerPort, function() {
+    console.log('\n\nIoT.js Launcher: installer server starts: port=' + httpServerPort);
   });
 }
 app_main();

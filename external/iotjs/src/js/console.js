@@ -33,6 +33,10 @@ Console.prototype.error = function() {
   consoleBuiltin.stderr(util.format.apply(this, arguments) + '\n');
 };
 
+Console.prototype.reboot = function() {
+  consoleBuiltin.reboot();
+};
+
 
 module.exports = new Console();
 module.exports.Console = Console;

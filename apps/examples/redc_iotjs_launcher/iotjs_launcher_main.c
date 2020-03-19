@@ -38,20 +38,34 @@
 #define CONFIG_EXAMPLES_IOTJS_EXTRA_MODULE_PATH "/rom/example/iotjs_modules"
 #endif
 
+// #define CONFIG_EXAMPLE_IOTJS_LAUNCHE_LAB_PROFILE
+
+#ifdef CONFIG_EXAMPLE_IOTJS_LAUNCHE_LAB_PROFILE
 #ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID
 #define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID "RedCarrottt"
 #endif
-
 #ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS
 #define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS ""
 #endif
-
 #ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH
 #define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH WIFI_MANAGER_AUTH_OPEN
 #endif
-
 #ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_CRYPTO
 #define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_CRYPTO WIFI_MANAGER_CRYPTO_NONE
+#endif
+#else
+#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID
+#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID "CarrotttWAN2"
+#endif
+#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS
+#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS "abc9012abc"
+#endif
+#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH
+#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH WIFI_MANAGER_AUTH_WPA2_PSK
+#endif
+#ifndef CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_CRYPTO
+#define CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_CRYPTO WIFI_MANAGER_CRYPTO_AES
+#endif
 #endif
 
 extern int iotjs(int argc, char *argv[]);
@@ -158,7 +172,7 @@ int iotjs_launcher_main(int argc, char *argv[])
 			if (g_is_connected) {
 				iotjs(targc, targv);
 			}
-			sleep(10);
+			sleep(1);
 		}
 	} else {
 		printf("\n\nIoT.js Launcher INSTALL MODE: run %s...\n\n", CONFIG_EXAMPLES_IOTJS_LAUNCHER_SERVER_JS_FILE);
@@ -170,7 +184,7 @@ int iotjs_launcher_main(int argc, char *argv[])
 			if (g_is_connected) {
 				iotjs(targc, targv);
 			}
-			sleep(10);
+			sleep(1);
 		}
 	}
 	return 0;

@@ -1,5 +1,4 @@
 /*
 !/.gitignore
-!iotjs_launcher_server.js
-!index.html
-!close.html
+!*.js
+!*.html

@@ -22,4 +22,8 @@ UseTab:          Always #[M08]
 PointerAlignment: Right
 SortIncludes: false
 BreakConstructorInitializers: AfterColon
+---
+BasedOnStyle:    Google
+Language:           JavaScript
+ColumnLimit:       100
 ...
