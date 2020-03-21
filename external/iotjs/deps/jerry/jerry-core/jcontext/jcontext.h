@@ -140,6 +140,9 @@ typedef struct
 #ifdef JMEM_PROFILE
   /* Total size profiling */
   struct timeval timeval_js_start;
+#ifdef JMEM_PROFILE_TOTAL_SIZE
+  uint32_t jmem_heap_allocated_objects_count;
+#endif
 #ifdef JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC
   struct timeval jsuptime_recent_total_size_print;
 #endif

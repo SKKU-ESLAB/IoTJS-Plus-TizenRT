@@ -195,6 +195,9 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
 #else
     JERRY_CONTEXT(jmem_heap_allocated_size) += JMEM_ALIGNMENT;
 #endif
+#ifdef JMEM_PROFILE_TOTAL_SIZE
+    JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
+#endif
     JMEM_HEAP_STAT_ALLOC_ITER();
 
     if (data_space_p->size == JMEM_ALIGNMENT) {
@@ -242,6 +245,9 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
         /* Region is sufficiently big, store address. */
         data_space_p = current_p;
         JERRY_CONTEXT(jmem_heap_allocated_size) += required_size;
+#ifdef JMEM_PROFILE_TOTAL_SIZE
+        JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
+#endif
 #ifdef JMEM_SEGMENTED_HEAP
         uint32_t start_segment = current_offset / JMEM_SEGMENT_SIZE;
         uint32_t end_segment =
@@ -595,6 +601,9 @@ void __attr_hot___ jmem_heap_free_block(
 
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) > 0);
   JERRY_CONTEXT(jmem_heap_allocated_size) -= aligned_size;
+#ifdef JMEM_PROFILE_TOTAL_SIZE
+    JERRY_CONTEXT(jmem_heap_allocated_objects_count)--;
+#endif
 
   while (JERRY_CONTEXT(jmem_heap_allocated_size) +
              CONFIG_MEM_HEAP_DESIRED_LIMIT <=

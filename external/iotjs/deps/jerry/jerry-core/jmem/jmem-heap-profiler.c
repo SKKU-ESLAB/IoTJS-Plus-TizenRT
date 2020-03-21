@@ -105,8 +105,9 @@ inline void __attr_always_inline___ __profile_print_total_size(void) {
   segments_in_bytes =
       (uint32_t)JERRY_HEAP_CONTEXT(segments_count) * JMEM_SEGMENT_SIZE;
 #endif
-  fprintf(fp, "TS, %lu.%06lu, %lu, %lu\n", js_uptime.tv_sec, js_uptime.tv_usec,
-          (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_size), segments_in_bytes);
+  fprintf(fp, "TS, %lu.%06lu, %lu, %lu, %lu\n", js_uptime.tv_sec, js_uptime.tv_usec,
+          (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_size), segments_in_bytes,
+          (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_objects_count));
   fflush(fp);
   fclose(fp);
 #endif
