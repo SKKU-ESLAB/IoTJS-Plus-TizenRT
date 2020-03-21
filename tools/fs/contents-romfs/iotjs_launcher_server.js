@@ -10,11 +10,11 @@ function http_handler(req, res) {
   var reqBody = '';
   var url = req.url;
 
-  req.on('data', function (chunk) {
+  req.on('data', function(chunk) {
     reqBody += chunk;
   });
 
-  var endHandler = function () {
+  var endHandler = function() {
     var isCloseServer = false;
     var resBody = '';
     var errorMsg = '';
@@ -28,21 +28,29 @@ function http_handler(req, res) {
         // index.html
         filePath = '/rom/index.html';
         isHtml = true;
+      } else if (url == '/deleteAll') {
+        if (fs.existsSync('/mnt/total_size.log')) fs.unlinkSync('/mnt/total_size.log');
+        if (fs.existsSync('/mnt/segment_utilization.log')) fs.unlinkSync('/mnt/segment_utilization.log');
+        if (fs.existsSync('/mnt/time.log')) fs.unlinkSync('/mnt/time.log');
+        if (fs.existsSync('/mnt/object_lifespan.log')) fs.unlinkSync('/mnt/object_lifespan.log');
+        if (fs.existsSync('/mnt/object_allocation.log')) fs.unlinkSync('/mnt/object_allocation.log');
+        resBody = 'Delete all the logs successfully!';
+        res.writeHead(200, {'Content-Length': resBody.length});
       } else if (isHtml) {
         filePath = '/rom' + url;  // html in rom
       } else {
         filePath = '/mnt' + url;  // others in mnt
       }
       if (!fs.existsSync(filePath)) {
-        res.writeHead(404);
-        resBody = "Not found file: " + filePath;
+        resBody = 'Not found file: ' + filePath;
+        res.writeHead(404, {'Content-Length': resBody.length});
       } else {
         resBody = fs.readFileSync(filePath).toString();
         var host = req.headers.Host;
         if (isHtml && (host !== undefined)) {
           resBody = resBody.replace(/IPADDR/gi, host);
         }
-        res.writeHead(200, { 'Content-Length': resBody.length });
+        res.writeHead(200, {'Content-Length': resBody.length});
       }
     } else if (req.method == 'POST') {
       var filePath = '/mnt/index.js';
@@ -80,12 +88,12 @@ function http_handler(req, res) {
       }
       fs.closeSync(fd);
 
-      resBody = fs.readFileSync("/rom/install_finished.html").toString();
+      resBody = fs.readFileSync('/rom/install_finished.html').toString();
       resBody = resBody.replace(/IPADDR/gi, host);
-      res.writeHead(200, { 'Content-Length': resBody.length });
+      res.writeHead(200, {'Content-Length': resBody.length});
     } else {
-      res.writeHead(403);
-      resBody = "Not allowed URL: " + filePath;
+      resBody = 'Not allowed URL: ' + filePath;
+      res.writeHead(403, {'Content-Length': resBody.length});
     }
 
     if (url == '/close.html') {
@@ -95,7 +103,7 @@ function http_handler(req, res) {
     if (resBody.length > 0) {
       res.write(resBody);
     }
-    res.end(function () {
+    res.end(function() {
       if (isCloseServer) {
         console.log('close the server... reboot this device...');
         server.close();
@@ -109,7 +117,7 @@ function http_handler(req, res) {
 
 function app_main() {
   server = http.createServer(http_handler);
-  server.listen(httpServerPort, function () {
+  server.listen(httpServerPort, function() {
     console.log('\n\nIoT.js Launcher: installer server starts: port=' + httpServerPort);
   });
 }
