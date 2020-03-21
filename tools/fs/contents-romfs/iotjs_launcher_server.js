@@ -10,11 +10,11 @@ function http_handler(req, res) {
   var reqBody = '';
   var url = req.url;
 
-  req.on('data', function(chunk) {
+  req.on('data', function (chunk) {
     reqBody += chunk;
   });
 
-  var endHandler = function() {
+  var endHandler = function () {
     var isCloseServer = false;
     var resBody = '';
     var errorMsg = '';
@@ -35,13 +35,14 @@ function http_handler(req, res) {
       }
       if (!fs.existsSync(filePath)) {
         res.writeHead(404);
+        resBody = "Not found file: " + filePath;
       } else {
         resBody = fs.readFileSync(filePath).toString();
         var host = req.headers.Host;
         if (isHtml && (host !== undefined)) {
           resBody = resBody.replace(/IPADDR/gi, host);
         }
-        res.writeHead(200, {'Content-Length': resBody.length});
+        res.writeHead(200, { 'Content-Length': resBody.length });
       }
     } else if (req.method == 'POST') {
       var filePath = '/mnt/index.js';
@@ -81,17 +82,20 @@ function http_handler(req, res) {
 
       resBody = fs.readFileSync("/rom/install_finished.html").toString();
       resBody = resBody.replace(/IPADDR/gi, host);
-      res.writeHead(200, {'Content-Length': resBody.length});
+      res.writeHead(200, { 'Content-Length': resBody.length });
     } else {
       res.writeHead(403);
+      resBody = "Not allowed URL: " + filePath;
     }
 
     if (url == '/close.html') {
       isCloseServer = true;
     }
 
-    res.write(resBody);
-    res.end(function() {
+    if (resBody.length > 0) {
+      res.write(resBody);
+    }
+    res.end(function () {
       if (isCloseServer) {
         console.log('close the server... reboot this device...');
         server.close();
@@ -105,7 +109,7 @@ function http_handler(req, res) {
 
 function app_main() {
   server = http.createServer(http_handler);
-  server.listen(httpServerPort, function() {
+  server.listen(httpServerPort, function () {
     console.log('\n\nIoT.js Launcher: installer server starts: port=' + httpServerPort);
   });
 }
