@@ -101,13 +101,30 @@ inline void __attr_always_inline___ __profile_print_total_size(void) {
   __get_js_uptime(&js_uptime);
 
   uint32_t segments_in_bytes = 0;
-#ifdef JMEM_SEGMENTED_HEAP
+  uint32_t total_memory_size = 0;
+#ifdef JMEM_DYNAMIC_HEAP_EMULATION
+// Dynamic heap
+#define JSOBJECT_SYS_ALLOC_OVERHEAD 8
+  uint32_t sys_allocator_overhead =
+      JSOBJECT_SYS_ALLOC_OVERHEAD *
+      (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_objects_count);
+  total_memory_size = (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_size) +
+                      sys_allocator_overhead;
+#elif defined(JMEM_SEGMENTED_HEAP)
+  // Segmented heap
+  uint32_t segmented_heap_overhead = JMEM_NUM_SEGMENTS * 32;
   segments_in_bytes =
       (uint32_t)JERRY_HEAP_CONTEXT(segments_count) * JMEM_SEGMENT_SIZE;
+  total_memory_size = segments_in_bytes + (uint32_t)segmented_heap_overhead;
+#else
+  // Static heap
+  total_memory_size = JMEM_HEAP_SIZE;
 #endif
-  fprintf(fp, "TS, %lu.%06lu, %lu, %lu, %lu\n", js_uptime.tv_sec, js_uptime.tv_usec,
-          (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_size), segments_in_bytes,
-          (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_objects_count));
+  fprintf(fp, "TS, %lu.%06lu, %lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
+          js_uptime.tv_usec, (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_size),
+          segments_in_bytes,
+          (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_objects_count),
+          (uint32_t)total_memory_size);
   fflush(fp);
   fclose(fp);
 #endif
@@ -184,7 +201,8 @@ __profile_print_segment_utilization(const char *header, size_t jsobject_size) {
   fprintf(fp, "%s %lu, %lu.%06lu", header, (unsigned long)jsobject_size,
           js_uptime.tv_sec, js_uptime.tv_usec);
 
-  for (uint32_t segment_idx = 0; segment_idx < JMEM_SEGMENT; segment_idx++) {
+  for (uint32_t segment_idx = 0; segment_idx < JMEM_NUM_SEGMENTS;
+       segment_idx++) {
     jmem_segment_t *segment = &(JERRY_HEAP_CONTEXT(segments[segment_idx]));
 #ifdef JMEM_PROFILE_SEGMENT_UTILIZATION__ABSOLUTE
     fprintf(fp, ", %5d / %5d", segment->occupied_size, segment->total_size);

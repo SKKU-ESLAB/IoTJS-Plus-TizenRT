@@ -34,11 +34,9 @@
 #endif /* !JERRY_ENABLE_EXTERNAL_CONTEXT */
 
 /* Segmented heap allocator */
-#ifdef JMEM_SEGMENTED_HEAP
-#define JMEM_SEGMENT_SIZE 8192
-#define JMEM_SEGMENT_SHIFT 13
-#define JMEM_SEGMENT (JMEM_HEAP_SIZE / JMEM_SEGMENT_SIZE)
+#define JMEM_NUM_SEGMENTS (JMEM_HEAP_SIZE / JMEM_SEGMENT_SIZE)
 
+#ifdef JMEM_SEGMENTED_HEAP
 /**
  * Segment information
  */

@@ -95,8 +95,10 @@ void jmem_heap_init(void) {
   /* Print allocator type */
 #ifdef JMEM_SEGMENTED_HEAP
   printf("Segmented allocation // Segment size: %dB * %d\n", JMEM_SEGMENT_SIZE,
-         JMEM_SEGMENT);
-#else  /* JMEM_SEGMENTED_HEAP */
+         JMEM_NUM_SEGMENTS);
+#elif defined(JMEM_DYNAMIC_HEAP_EMULATION) /* JMEM_SEGMENTED_HEAP */
+  printf("Dynamic allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
+#else  /* JMEM_DYNAMIC_HEAP_EMULATION */
   printf("Static allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
 #endif /* !JMEM_SEGMENTED_HEAP */
 
@@ -195,9 +197,7 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
 #else
     JERRY_CONTEXT(jmem_heap_allocated_size) += JMEM_ALIGNMENT;
 #endif
-#ifdef JMEM_PROFILE_TOTAL_SIZE
     JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
-#endif
     JMEM_HEAP_STAT_ALLOC_ITER();
 
     if (data_space_p->size == JMEM_ALIGNMENT) {
@@ -245,9 +245,7 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
         /* Region is sufficiently big, store address. */
         data_space_p = current_p;
         JERRY_CONTEXT(jmem_heap_allocated_size) += required_size;
-#ifdef JMEM_PROFILE_TOTAL_SIZE
         JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
-#endif
 #ifdef JMEM_SEGMENTED_HEAP
         uint32_t start_segment = current_offset / JMEM_SEGMENT_SIZE;
         uint32_t end_segment =
@@ -363,7 +361,21 @@ static void *jmem_heap_gc_and_alloc_block(
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
-  if (JERRY_CONTEXT(jmem_heap_allocated_size) + size > JMEM_HEAP_SIZE) {
+#ifdef JMEM_DYNAMIC_HEAP_EMULATION
+#define JSOBJECT_SYS_ALLOC_OVERHEAD 8
+  size_t sys_allocator_overhead =
+      JSOBJECT_SYS_ALLOC_OVERHEAD *
+      (size_t)JERRY_CONTEXT(jmem_heap_allocated_objects_count);
+  size_t segmented_heap_overhead = JMEM_NUM_SEGMENTS * 32;
+
+  size_t allocated_size =
+      JERRY_CONTEXT(jmem_heap_allocated_size) + sys_allocator_overhead;
+  size_t max_size = JMEM_HEAP_SIZE + segmented_heap_overhead;
+#else
+  size_t allocated_size = JERRY_CONTEXT(jmem_heap_allocated_size);
+  size_t max_size = JMEM_HEAP_SIZE;
+#endif
+  if (allocated_size + size > max_size) {
     profile_print_segment_utilization_before_gc(
         size); /* Segment utilization profiling */
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
@@ -601,9 +613,7 @@ void __attr_hot___ jmem_heap_free_block(
 
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) > 0);
   JERRY_CONTEXT(jmem_heap_allocated_size) -= aligned_size;
-#ifdef JMEM_PROFILE_TOTAL_SIZE
-    JERRY_CONTEXT(jmem_heap_allocated_objects_count)--;
-#endif
+  JERRY_CONTEXT(jmem_heap_allocated_objects_count)--;
 
   while (JERRY_CONTEXT(jmem_heap_allocated_size) +
              CONFIG_MEM_HEAP_DESIRED_LIMIT <=

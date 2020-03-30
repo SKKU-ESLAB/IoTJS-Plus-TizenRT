@@ -50,7 +50,7 @@ void jmem_segmented_init_segments(void) {
   /* Initialize other segments' metadata */
   {
     uint32_t segment_idx;
-    for (segment_idx = 1; segment_idx < JMEM_SEGMENT; segment_idx++) {
+    for (segment_idx = 1; segment_idx < JMEM_NUM_SEGMENTS; segment_idx++) {
       JERRY_HEAP_CONTEXT(area[segment_idx]) = (uint8_t *)NULL;
       JERRY_HEAP_CONTEXT(segments[segment_idx]).occupied_size = 0;
       JERRY_HEAP_CONTEXT(segments[segment_idx]).total_size = 0;
@@ -95,7 +95,7 @@ jmem_heap_get_addr_from_offset_segmented(uint32_t u) {
 }
 
 static uint32_t __find_proper_segment_entry(bool is_two_segs) {
-  for (uint32_t segment_idx = 0; segment_idx < JMEM_SEGMENT; segment_idx++) {
+  for (uint32_t segment_idx = 0; segment_idx < JMEM_NUM_SEGMENTS; segment_idx++) {
     if (is_two_segs) {
       if (JERRY_HEAP_CONTEXT(area[segment_idx] == NULL) &&
           JERRY_HEAP_CONTEXT(area[segment_idx + 1] == NULL)) {
@@ -107,19 +107,19 @@ static uint32_t __find_proper_segment_entry(bool is_two_segs) {
       }
     }
   }
-  return JMEM_SEGMENT;
+  return JMEM_NUM_SEGMENTS;
 }
 
 void *jmem_heap_add_segment(bool is_two_segs) {
   // Find empty entry or double empty entries in segment translation table
   uint32_t segment_idx = __find_proper_segment_entry(is_two_segs);
-  if (segment_idx >= JMEM_SEGMENT) {
+  if (segment_idx >= JMEM_NUM_SEGMENTS) {
     return NULL;
   }
 
   /* Allocate and initialize a segment or double segments */
   jmem_heap_free_t *allocated_segment = NULL;
-  JERRY_ASSERT(segment_idx < JMEM_SEGMENT &&
+  JERRY_ASSERT(segment_idx < JMEM_NUM_SEGMENTS &&
                jmem_segment_get_addr(segment_idx) == NULL);
 
   if (likely(!is_two_segs)) {
@@ -194,7 +194,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
 }
 
 void free_empty_segments(void) {
-  for (uint32_t seg_iter = 1; seg_iter < JMEM_SEGMENT; seg_iter++) {
+  for (uint32_t seg_iter = 1; seg_iter < JMEM_NUM_SEGMENTS; seg_iter++) {
     jmem_heap_free_t *segment_to_free =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[seg_iter]);
     if (segment_to_free == NULL)
@@ -267,7 +267,7 @@ jmem_segment_lookup(uint8_t **seg_addr, uint8_t *p) {
   uint32_t segment_idx;
 
 #ifndef JMEM_SEGMENT_RMAP_RBTREE
-  for (segment_idx = 0; segment_idx < JMEM_SEGMENT; segment_idx++) {
+  for (segment_idx = 0; segment_idx < JMEM_NUM_SEGMENTS; segment_idx++) {
     segment_addr = JERRY_HEAP_CONTEXT(area[segment_idx]);
     if (segment_addr != NULL &&
         (uint32_t)(p - segment_addr) < (uint32_t)JMEM_SEGMENT_SIZE)

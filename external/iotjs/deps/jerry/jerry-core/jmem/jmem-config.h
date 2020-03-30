@@ -18,13 +18,20 @@
 
 #include "config.h"
 
+/* Segmented heap allocator */
+#define JMEM_SEGMENT_SIZE 8192
+#define JMEM_SEGMENT_SHIFT 13
+
 /* Segmented heap allocator configs */
+#define JMEM_DYNAMIC_ALLOCATOR_EMULATION
+#ifndef JMEM_DYNAMIC_ALLOCATOR_EMULATION
 #define JMEM_SEGMENTED_HEAP
 #define JMEM_SEGMENT_RMAP_RBTREE
 
 #define JMEM_SEG_ALLOC_BEFORE_GC
+#endif
 
-// #define JMEM_AGGRESSIVE_GC
+// #define JMEM_AGGRESSIVE_GC // obsolete option
 
 // /* Profiler configs */
 #define JMEM_PROFILE

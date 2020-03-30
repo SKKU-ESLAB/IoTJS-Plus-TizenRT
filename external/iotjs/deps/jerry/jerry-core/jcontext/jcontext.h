@@ -84,6 +84,7 @@ typedef struct
   size_t ecma_gc_objects_number; /**< number of currently allocated objects */
   size_t ecma_gc_new_objects; /**< number of newly allocated objects since last GC session */
   size_t jmem_heap_allocated_size; /**< size of allocated regions */
+  uint32_t jmem_heap_allocated_objects_count; /**< the count of allocated JS objects in the heap */
   size_t jmem_heap_limit; /**< current limit of heap usage, that is upon being reached,
                            *   causes call of "try give memory back" callbacks */
   uint32_t lit_magic_string_ex_count; /**< external magic strings count */
@@ -140,9 +141,6 @@ typedef struct
 #ifdef JMEM_PROFILE
   /* Total size profiling */
   struct timeval timeval_js_start;
-#ifdef JMEM_PROFILE_TOTAL_SIZE
-  uint32_t jmem_heap_allocated_objects_count;
-#endif
 #ifdef JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC
   struct timeval jsuptime_recent_total_size_print;
 #endif
@@ -287,8 +285,8 @@ typedef struct
   jmem_heap_free_t first; /**< first node in free region list */
 #ifdef JMEM_SEGMENTED_HEAP
   /* JS heap area on heap area (dynamically allocated) */
-  uint8_t *area[JMEM_SEGMENT];
-  jmem_segment_t segments[JMEM_SEGMENT];
+  uint8_t *area[JMEM_NUM_SEGMENTS];
+  jmem_segment_t segments[JMEM_NUM_SEGMENTS];
 
   uint32_t segments_count;
   uint32_t last_seg_idx;
