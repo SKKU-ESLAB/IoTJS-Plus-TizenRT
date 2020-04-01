@@ -385,8 +385,10 @@ static void *jmem_heap_gc_and_alloc_block(
   void *data_space_p = jmem_heap_alloc_block_internal(size); // BLOCK ALLOC
   if (likely(data_space_p != NULL)) {
     profile_print_total_size_each_time(); /* Total size profiling */
+#ifndef JERRY_SYSTEM_ALLOCATOR
     profile_jsobject_set_object_birth_time(
         jmem_compress_pointer(data_space_p)); /* JS object lifespan profiling */
+#endif
     profile_jsobject_inc_allocation(size); /* JS object allocation profiling */
     return data_space_p;
   }
