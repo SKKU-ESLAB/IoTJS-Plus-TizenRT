@@ -89,7 +89,7 @@ DECLARE_ROUTINES_FOR (collection_chunk)
 
 static inline void __attr_always_inline___ add_cpointer_size(size_t cp_size) {
   // Apply the number of cpointers to the actually allocated heap size
-  #if defined(JMEM_DYNAMIC_HEAP_EMULATION)
+  #if defined(JMEM_DYNAMIC_HEAP_EMUL)
   JERRY_CONTEXT(jmem_heap_actually_allocated_size) += cp_size; // 2B per cpointers
   #else
   UNUSED(cp_size);
@@ -98,7 +98,7 @@ static inline void __attr_always_inline___ add_cpointer_size(size_t cp_size) {
 
 static inline void __attr_always_inline___ sub_cpointer_size(size_t cp_size) {
   // Apply the number of cpointers to the actually allocated heap size
-  #if defined(JMEM_DYNAMIC_HEAP_EMULATION)
+  #if defined(JMEM_DYNAMIC_HEAP_EMUL)
   JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= cp_size; // 2B per cpointers
   #else
   UNUSED(cp_size);

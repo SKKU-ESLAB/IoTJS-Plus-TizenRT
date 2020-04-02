@@ -97,17 +97,17 @@ static void jmem_heap_stat_free_iter(void);
  */
 void jmem_heap_init(void) {
   /* Print allocator type */
-#ifdef JMEM_SEGMENTED_HEAP
+#if defined(JERRY_SYSTEM_ALLOCATOR)
+  printf("Dynamic allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
+#elif defined(JMEM_SEGMENTED_HEAP)         /* JERRY_SYSTEM_ALLOCATOR */
   printf("Segmented allocation // Segment size: %dB * %d\n", JMEM_SEGMENT_SIZE,
          JMEM_NUM_SEGMENTS);
-#elif defined(JMEM_DYNAMIC_HEAP_EMULATION) /* JMEM_SEGMENTED_HEAP */
+#elif defined(JMEM_DYNAMIC_HEAP_EMUL) /* JMEM_SEGMENTED_HEAP */
   printf("Emulated dynamic allocation // JS heap area size: %dB\n",
          JMEM_HEAP_AREA_SIZE);
-#elif defined(JERRY_SYSTEM_ALLOCATOR)
-  printf("Dynamic allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
-#else  /* JMEM_DYNAMIC_HEAP_EMULATION */
+#else                                      /* JMEM_DYNAMIC_HEAP_EMUL */
   printf("Static allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
-#endif /* !JMEM_SEGMENTED_HEAP */
+#endif
 
   /* Check validity of configs */
 #ifndef JERRY_CPOINTER_32_BIT
@@ -351,8 +351,9 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
 
   // Dynamic heap
   size_t aligned_size = size + SYSTEM_ALLOCATOR_METADATA_SIZE;
-  aligned_size = ((aligned_size + SYSTEM_ALLOCATOR_ALIGN_BYTES - 1)
-    / SYSTEM_ALLOCATOR_ALIGN_BYTES) * SYSTEM_ALLOCATOR_ALIGN_BYTES;
+  aligned_size = ((aligned_size + SYSTEM_ALLOCATOR_ALIGN_BYTES - 1) /
+                  SYSTEM_ALLOCATOR_ALIGN_BYTES) *
+                 SYSTEM_ALLOCATOR_ALIGN_BYTES;
   JERRY_CONTEXT(jmem_heap_actually_allocated_size) += aligned_size;
 
   profile_alloc_end(); /* Time profiling */
@@ -396,7 +397,7 @@ static void *jmem_heap_gc_and_alloc_block(
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
   size_t allocated_size = JERRY_CONTEXT(jmem_heap_actually_allocated_size);
-#if defined(JMEM_DYNAMIC_HEAP_EMULATION) || defined(JERRY_SYSTEM_ALLOCATOR)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(JERRY_SYSTEM_ALLOCATOR)
   // Dynamic heap or dynamic heap emulation: add segment overhead to the max
   // size for the fair comparison
   size_t max_size = JMEM_HEAP_SIZE + JMEM_NUM_SEGMENTS * 32;
@@ -683,8 +684,9 @@ void __attr_hot___ jmem_heap_free_block(
 
   // Dynamic heap
   size_t aligned_size = size + SYSTEM_ALLOCATOR_METADATA_SIZE;
-  aligned_size = ((aligned_size + SYSTEM_ALLOCATOR_ALIGN_BYTES - 1)
-    / SYSTEM_ALLOCATOR_ALIGN_BYTES) * SYSTEM_ALLOCATOR_ALIGN_BYTES;
+  aligned_size = ((aligned_size + SYSTEM_ALLOCATOR_ALIGN_BYTES - 1) /
+                  SYSTEM_ALLOCATOR_ALIGN_BYTES) *
+                 SYSTEM_ALLOCATOR_ALIGN_BYTES;
   JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= aligned_size;
 
   profile_print_total_size_each_time(); /* Total size profiling */
