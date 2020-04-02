@@ -286,8 +286,8 @@ typedef struct
   jmem_heap_free_t first; /**< first node in free region list */
 #ifdef JMEM_SEGMENTED_HEAP
   /* JS heap area on heap area (dynamically allocated) */
-  uint8_t *area[JMEM_NUM_SEGMENTS];
-  jmem_segment_t segments[JMEM_NUM_SEGMENTS];
+  uint8_t *area[JMEM_SEGMENTED_NUM_SEGMENTS];
+  jmem_segment_t segments[JMEM_SEGMENTED_NUM_SEGMENTS];
 
   uint32_t segments_count;
   uint32_t last_seg_idx;

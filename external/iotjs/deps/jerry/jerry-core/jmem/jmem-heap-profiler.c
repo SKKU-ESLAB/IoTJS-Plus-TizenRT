@@ -109,9 +109,9 @@ inline void __attr_always_inline___ __profile_print_total_size(void) {
   // Segmented heap
 #define SEGMENT_METADATA_SIZE_PER_ENTRY 32
   uint32_t segmented_heap_overhead =
-      JMEM_NUM_SEGMENTS * SEGMENT_METADATA_SIZE_PER_ENTRY;
+      JMEM_SEGMENTED_NUM_SEGMENTS * SEGMENT_METADATA_SIZE_PER_ENTRY;
   uint32_t segments_in_bytes =
-      (uint32_t)JERRY_HEAP_CONTEXT(segments_count) * JMEM_SEGMENT_SIZE;
+      (uint32_t)JERRY_HEAP_CONTEXT(segments_count) * JMEM_SEGMENTED_SEGMENT_SIZE;
   total_memory_size = segments_in_bytes + (uint32_t)segmented_heap_overhead;
 #else
   // Static heap
@@ -197,7 +197,7 @@ __profile_print_segment_utilization(const char *header, size_t jsobject_size) {
   fprintf(fp, "%s %lu, %lu.%06lu", header, (unsigned long)jsobject_size,
           js_uptime.tv_sec, js_uptime.tv_usec);
 
-  for (uint32_t segment_idx = 0; segment_idx < JMEM_NUM_SEGMENTS;
+  for (uint32_t segment_idx = 0; segment_idx < JMEM_SEGMENTED_NUM_SEGMENTS;
        segment_idx++) {
     jmem_segment_t *segment = &(JERRY_HEAP_CONTEXT(segments[segment_idx]));
 #ifdef JMEM_PROFILE_SEGMENT_UTILIZATION__ABSOLUTE

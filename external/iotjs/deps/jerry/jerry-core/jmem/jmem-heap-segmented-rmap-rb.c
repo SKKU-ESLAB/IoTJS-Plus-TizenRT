@@ -37,7 +37,7 @@ seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
 
     // curr_addr     < ------ >      addr
     //                result
-    if (result >= (intptr_t)JMEM_SEGMENT_SIZE) {
+    if (result >= (intptr_t)JMEM_SEGMENTED_SEGMENT_SIZE) {
       node = node->rb_right;
     } else if (result < 0) {
       node = node->rb_left;

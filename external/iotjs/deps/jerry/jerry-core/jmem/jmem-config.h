@@ -19,8 +19,8 @@
 #include "config.h"
 
 /* Segmented heap allocation configs */
-#define JMEM_SEGMENT_SIZE 8192
-#define JMEM_SEGMENT_SHIFT 13
+#define JMEM_SEGMENTED_SEGMENT_SIZE 8192
+#define JMEM_SEGMENTED_SEGMENT_SHIFT 13
 
 
 /* Heap allocation type */
