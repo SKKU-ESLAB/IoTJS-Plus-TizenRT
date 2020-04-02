@@ -88,6 +88,10 @@ static void jmem_heap_stat_free_iter(void);
 #define JMEM_HEAP_STAT_FREE_ITER()
 #endif /* JMEM_STATS */
 
+// Calculating system allocator's effect
+#define SYSTEM_ALLOCATOR_METADATA_SIZE 8
+#define SYSTEM_ALLOCATOR_ALIGN_BYTES 8
+
 /**
  * Startup initialization of heap
  */
@@ -97,6 +101,9 @@ void jmem_heap_init(void) {
   printf("Segmented allocation // Segment size: %dB * %d\n", JMEM_SEGMENT_SIZE,
          JMEM_NUM_SEGMENTS);
 #elif defined(JMEM_DYNAMIC_HEAP_EMULATION) /* JMEM_SEGMENTED_HEAP */
+  printf("Emulated dynamic allocation // JS heap area size: %dB\n",
+         JMEM_HEAP_AREA_SIZE);
+#elif defined(JERRY_SYSTEM_ALLOCATOR)
   printf("Dynamic allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
 #else  /* JMEM_DYNAMIC_HEAP_EMULATION */
   printf("Static allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
@@ -189,13 +196,20 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
         JMEM_HEAP_GET_ADDR_FROM_OFFSET(JERRY_HEAP_CONTEXT(first).next_offset);
     JERRY_ASSERT(jmem_is_heap_pointer(data_space_p));
 
-#ifdef JMEM_SEGMENTED_HEAP
+
     JERRY_CONTEXT(jmem_heap_allocated_size) += JMEM_ALIGNMENT;
+#ifdef JMEM_DYNAMIC_ALLOCATOR_EMULATION
+    // Dynamic heap emulation
+    JERRY_CONTEXT(jmem_heap_actually_allocated_size) +=
+        JMEM_ALIGNMENT + SYSTEM_ALLOCATOR_METADATA_SIZE;
+#else
+    // Static heap or segmented heap
+    JERRY_CONTEXT(jmem_heap_actually_allocated_size) += JMEM_ALIGNMENT;
+#endif
+#ifdef JMEM_SEGMENTED_HEAP
     JERRY_HEAP_CONTEXT(
         segments[JERRY_HEAP_CONTEXT(first).next_offset / JMEM_SEGMENT_SIZE])
         .occupied_size += JMEM_ALIGNMENT;
-#else
-    JERRY_CONTEXT(jmem_heap_allocated_size) += JMEM_ALIGNMENT;
 #endif
     JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
     JMEM_HEAP_STAT_ALLOC_ITER();
@@ -244,8 +258,18 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
       if (current_p->size >= required_size) {
         /* Region is sufficiently big, store address. */
         data_space_p = current_p;
+
         JERRY_CONTEXT(jmem_heap_allocated_size) += required_size;
         JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
+#ifdef JMEM_DYNAMIC_ALLOCATOR_EMULATION
+        // Dynamic heap emulation
+        JERRY_CONTEXT(jmem_heap_actually_allocated_size) +=
+            required_size + SYSTEM_ALLOCATOR_METADATA_SIZE;
+#else
+        // Static heap or segmented heap
+        JERRY_CONTEXT(jmem_heap_actually_allocated_size) += required_size;
+#endif
+
 #ifdef JMEM_SEGMENTED_HEAP
         uint32_t start_segment = current_offset / JMEM_SEGMENT_SIZE;
         uint32_t end_segment =
@@ -320,8 +344,18 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
   profile_alloc_end(); /* Time profiling */
   return (void *)data_space_p;
 #else  /* JERRY_SYSTEM_ALLOCATOR */
-  profile_alloc_end(); /* Time profiling */
   void *data_space_p = malloc(size);
+
+  JERRY_CONTEXT(jmem_heap_allocated_size) += size;
+  JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
+
+  // Dynamic heap
+  size_t aligned_size = size + SYSTEM_ALLOCATOR_METADATA_SIZE;
+  aligned_size = ((aligned_size + SYSTEM_ALLOCATOR_ALIGN_BYTES - 1)
+    / SYSTEM_ALLOCATOR_ALIGN_BYTES) * SYSTEM_ALLOCATOR_ALIGN_BYTES;
+  JERRY_CONTEXT(jmem_heap_actually_allocated_size) += aligned_size;
+
+  profile_alloc_end(); /* Time profiling */
   return data_space_p;
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
 } /* jmem_heap_alloc_block_internal */
@@ -361,18 +395,13 @@ static void *jmem_heap_gc_and_alloc_block(
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
-#ifdef JMEM_DYNAMIC_HEAP_EMULATION
-#define JSOBJECT_SYS_ALLOC_OVERHEAD 8
-  size_t sys_allocator_overhead =
-      JSOBJECT_SYS_ALLOC_OVERHEAD *
-      (size_t)JERRY_CONTEXT(jmem_heap_allocated_objects_count);
-  size_t segmented_heap_overhead = JMEM_NUM_SEGMENTS * 32;
-
-  size_t allocated_size =
-      JERRY_CONTEXT(jmem_heap_allocated_size) + sys_allocator_overhead;
-  size_t max_size = JMEM_HEAP_SIZE + segmented_heap_overhead;
+  size_t allocated_size = JERRY_CONTEXT(jmem_heap_actually_allocated_size);
+#if defined(JMEM_DYNAMIC_HEAP_EMULATION) || defined(JERRY_SYSTEM_ALLOCATOR)
+  // Dynamic heap or dynamic heap emulation: add segment overhead to the max
+  // size for the fair comparison
+  size_t max_size = JMEM_HEAP_SIZE + JMEM_NUM_SEGMENTS * 32;
 #else
-  size_t allocated_size = JERRY_CONTEXT(jmem_heap_allocated_size);
+  // Static heap or segmented heap
   size_t max_size = JMEM_HEAP_SIZE;
 #endif
   if (allocated_size + size > max_size) {
@@ -613,9 +642,19 @@ void __attr_hot___ jmem_heap_free_block(
   }
 #endif
 
+  // Static heap or segmented heap
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) > 0);
   JERRY_CONTEXT(jmem_heap_allocated_size) -= aligned_size;
   JERRY_CONTEXT(jmem_heap_allocated_objects_count)--;
+
+#ifdef JMEM_DYNAMIC_ALLOCATOR_EMULATION
+  // Dynamic heap emulation
+  JERRY_CONTEXT(jmem_heap_actually_allocated_size) -=
+      aligned_size + SYSTEM_ALLOCATOR_METADATA_SIZE;
+#else
+  // Static heap or segmented heap
+  JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= aligned_size;
+#endif
 
   while (JERRY_CONTEXT(jmem_heap_allocated_size) +
              CONFIG_MEM_HEAP_DESIRED_LIMIT <=
@@ -638,6 +677,18 @@ void __attr_hot___ jmem_heap_free_block(
 #else  /* JERRY_SYSTEM_ALLOCATOR */
   JERRY_UNUSED(size);
   free(ptr);
+
+  JERRY_CONTEXT(jmem_heap_allocated_size) -= size;
+  JERRY_CONTEXT(jmem_heap_allocated_objects_count)--;
+
+  // Dynamic heap
+  size_t aligned_size = size + SYSTEM_ALLOCATOR_METADATA_SIZE;
+  aligned_size = ((aligned_size + SYSTEM_ALLOCATOR_ALIGN_BYTES - 1)
+    / SYSTEM_ALLOCATOR_ALIGN_BYTES) * SYSTEM_ALLOCATOR_ALIGN_BYTES;
+  JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= aligned_size;
+
+  profile_print_total_size_each_time(); /* Total size profiling */
+  profile_free_end();                   /* Time profiling */
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
 } /* jmem_heap_free_block */
 
