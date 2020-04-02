@@ -58,13 +58,13 @@ void jmem_segmented_init_segments(void) {
   }
 
   /* Initialize segment reverse map */
-#ifdef JMEM_SEGMENT_RMAP_RBTREE
+#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
   JERRY_HEAP_CONTEXT(segment_rmap_rb_root).rb_node = NULL;
   seg_rmap_node_t *node = (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
   node->seg_idx = 0;
   node->base_addr = JERRY_HEAP_CONTEXT(area[0]);
   segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), node);
-#endif /* JMEM_SEGMENT_RMAP_RBTREE */
+#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
 }
 
 inline uint32_t __attribute__((hot))
@@ -169,7 +169,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   allocated_segment->next_offset = prev_p->next_offset;
   prev_p->next_offset = allocated_segment_first_offset;
 
-#ifdef JMEM_SEGMENT_RMAP_RBTREE
+#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
   seg_rmap_node_t *new_rmap_node =
       (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
   new_rmap_node->base_addr = (uint8_t *)allocated_segment;
@@ -183,7 +183,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
     segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root),
                         new_rmap_node);
   }
-#endif /* JMEM_SEGMENT_RMAP_RBTREE */
+#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
 
   if (unlikely(is_two_segs)) {
     JERRY_HEAP_CONTEXT(segments_count) += 2;
@@ -266,19 +266,19 @@ jmem_segment_lookup(uint8_t **seg_addr, uint8_t *p) {
   uint8_t *segment_addr = NULL;
   uint32_t segment_idx;
 
-#ifndef JMEM_SEGMENT_RMAP_RBTREE
+#ifndef JMEM_SEGMENTED_RMAP_BINSEARCH
   for (segment_idx = 0; segment_idx < JMEM_NUM_SEGMENTS; segment_idx++) {
     segment_addr = JERRY_HEAP_CONTEXT(area[segment_idx]);
     if (segment_addr != NULL &&
         (uint32_t)(p - segment_addr) < (uint32_t)JMEM_SEGMENT_SIZE)
       break;
   }
-#else  /* JMEM_SEGMENT_RMAP_RBTREE */
+#else  /* JMEM_SEGMENTED_RMAP_BINSEARCH */
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), p);
   segment_idx = node->seg_idx;
   segment_addr = node->base_addr;
-#endif /* !JMEM_SEGMENT_RMAP_RBTREE */
+#endif /* !JMEM_SEGMENTED_RMAP_BINSEARCH */
 
   *seg_addr = segment_addr;
 
@@ -324,9 +324,9 @@ static void jmem_segment_free(void *seg_ptr, bool is_following_node) {
     FREE(seg_ptr);
   }
 
-#ifdef JMEM_SEGMENT_RMAP_RBTREE
+#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
   segment_rmap_remove(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root),
                       (uint8_t *)seg_ptr);
-#endif /* JMEM_SEGMENT_RMAP_RBTREE */
+#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
 }
 #endif /* JMEM_SEGMENTED_HEAP */

@@ -198,7 +198,7 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
 
 
     JERRY_CONTEXT(jmem_heap_allocated_size) += JMEM_ALIGNMENT;
-#ifdef JMEM_DYNAMIC_ALLOCATOR_EMULATION
+#ifdef JMEM_DYNAMIC_HEAP_EMUL
     // Dynamic heap emulation
     JERRY_CONTEXT(jmem_heap_actually_allocated_size) +=
         JMEM_ALIGNMENT + SYSTEM_ALLOCATOR_METADATA_SIZE;
@@ -261,7 +261,7 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size) {
 
         JERRY_CONTEXT(jmem_heap_allocated_size) += required_size;
         JERRY_CONTEXT(jmem_heap_allocated_objects_count)++;
-#ifdef JMEM_DYNAMIC_ALLOCATOR_EMULATION
+#ifdef JMEM_DYNAMIC_HEAP_EMUL
         // Dynamic heap emulation
         JERRY_CONTEXT(jmem_heap_actually_allocated_size) +=
             required_size + SYSTEM_ALLOCATOR_METADATA_SIZE;
@@ -423,7 +423,7 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   // Segment Allocation before GC
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef JMEM_AGGRESSIVE_GC
+#ifdef JMEM_SEGMENTED_AGGRESSIVE_GC
   {
     profile_print_segment_utilization_before_gc(
         size); /* Segment utilization profiling */
@@ -441,7 +441,7 @@ static void *jmem_heap_gc_and_alloc_block(
     }
   }
 #endif
-#ifdef JMEM_SEG_ALLOC_BEFORE_GC
+#ifdef JMEM_SEGMENTED_SEGALLOC_FIRST
   {
     /* Try one or two segments -> try to alloc a block */
     bool is_two_segs = false;
@@ -458,7 +458,7 @@ static void *jmem_heap_gc_and_alloc_block(
       return data_space_p;
     }
   }
-#endif /* JMEM_SEG_ALLOC_BEFORE_GC */
+#endif /* JMEM_SEGMENTED_SEGALLOC_FIRST */
 #endif /* JMEM_SEGMENTED_HEAP */
   for (jmem_free_unused_memory_severity_t severity =
            JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
@@ -647,7 +647,7 @@ void __attr_hot___ jmem_heap_free_block(
   JERRY_CONTEXT(jmem_heap_allocated_size) -= aligned_size;
   JERRY_CONTEXT(jmem_heap_allocated_objects_count)--;
 
-#ifdef JMEM_DYNAMIC_ALLOCATOR_EMULATION
+#ifdef JMEM_DYNAMIC_HEAP_EMUL
   // Dynamic heap emulation
   JERRY_CONTEXT(jmem_heap_actually_allocated_size) -=
       aligned_size + SYSTEM_ALLOCATOR_METADATA_SIZE;

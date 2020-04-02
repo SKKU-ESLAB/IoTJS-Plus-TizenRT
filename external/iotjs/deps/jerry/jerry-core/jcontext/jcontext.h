@@ -291,9 +291,9 @@ typedef struct
 
   uint32_t segments_count;
   uint32_t last_seg_idx;
-#ifdef JMEM_SEGMENT_RMAP_RBTREE
+#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
   rb_root segment_rmap_rb_root;
-#endif /* JMEM_SEGMENT_RMAP_RBTREE */
+#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
 
 #ifdef JMEM_PROFILE_JSOBJECT_LIFESPAN
   unsigned gc_total_count = 0;

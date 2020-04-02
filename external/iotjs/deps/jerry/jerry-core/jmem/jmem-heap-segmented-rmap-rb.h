@@ -23,7 +23,7 @@
 #include "jmem-heap-segmented-rmap-rb-node.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef JMEM_SEGMENT_RMAP_RBTREE
+#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
 
 #define container_of(ptr, type, member)                                        \
   ((type *)(((char *)(ptr)) - ((char *)(&((type *)0)->member))))
@@ -75,7 +75,7 @@ extern rb_node *rb_next(const rb_node *node);
     (r)->rb_parent_color |= (unsigned long)1;                                  \
   } while (0)
 
-#endif /* JMEM_SEGMENT_RMAP_RBTREE */
+#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
 #endif /* JMEM_SEGMENTED_HEAP */
 
 #endif /* !defined(JMEM_HEAP_SEGMENTED_RB_H) */

@@ -19,6 +19,9 @@
 #include "ecma-lcache.h"
 #include "jrt.h"
 #include "jmem.h"
+#include "jcontext.h"
+
+#define UNUSED(x) (void)(x)
 
 JERRY_STATIC_ASSERT (sizeof (ecma_property_value_t) == sizeof (ecma_value_t),
                      size_of_ecma_property_value_t_must_be_equal_to_size_of_ecma_value_t);
@@ -84,6 +87,24 @@ DECLARE_ROUTINES_FOR (number)
 DECLARE_ROUTINES_FOR (collection_header)
 DECLARE_ROUTINES_FOR (collection_chunk)
 
+static inline void __attr_always_inline___ add_cpointer_size(size_t cp_size) {
+  // Apply the number of cpointers to the actually allocated heap size
+  #if defined(JMEM_DYNAMIC_HEAP_EMULATION)
+  JERRY_CONTEXT(jmem_heap_actually_allocated_size) += cp_size; // 2B per cpointers
+  #else
+  UNUSED(cp_size);
+  #endif
+}
+
+static inline void __attr_always_inline___ sub_cpointer_size(size_t cp_size) {
+  // Apply the number of cpointers to the actually allocated heap size
+  #if defined(JMEM_DYNAMIC_HEAP_EMULATION)
+  JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= cp_size; // 2B per cpointers
+  #else
+  UNUSED(cp_size);
+  #endif
+}
+
 /**
  * Allocate memory for ecma-object
  *
@@ -96,7 +117,9 @@ ecma_alloc_object (void)
   jmem_stats_allocate_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-  return (ecma_object_t *) jmem_pools_alloc (sizeof (ecma_object_t));
+  add_cpointer_size(8);
+  ecma_object_t * res = (ecma_object_t *) jmem_pools_alloc (sizeof (ecma_object_t));
+  return res;
 } /* ecma_alloc_object */
 
 /**
@@ -110,6 +133,7 @@ ecma_dealloc_object (ecma_object_t *object_p) /**< object to be freed */
 #endif /* JMEM_STATS */
 
   jmem_pools_free (object_p, sizeof (ecma_object_t));
+  sub_cpointer_size(8);
 } /* ecma_dealloc_object */
 
 /**
@@ -124,7 +148,9 @@ ecma_alloc_extended_object (size_t size) /**< size of object */
   jmem_stats_allocate_object_bytes (size);
 #endif /* JMEM_STATS */
 
-  return jmem_heap_alloc_block (size);
+  add_cpointer_size(8);
+  ecma_extended_object_t * res = jmem_heap_alloc_block (size);
+  return res;
 } /* ecma_alloc_extended_object */
 
 /**
@@ -139,6 +165,7 @@ ecma_dealloc_extended_object (ecma_extended_object_t *ext_object_p, /**< propert
 #endif /* JMEM_STATS */
 
   jmem_heap_free_block (ext_object_p, size);
+  sub_cpointer_size(8);
 } /* ecma_dealloc_extended_object */
 
 /**
@@ -153,7 +180,8 @@ ecma_alloc_string (void)
   jmem_stats_allocate_string_bytes (sizeof (ecma_string_t));
 #endif /* JMEM_STATS */
 
-  return (ecma_string_t *) jmem_pools_alloc (sizeof (ecma_string_t));
+  ecma_string_t * res = (ecma_string_t *) jmem_pools_alloc (sizeof (ecma_string_t));
+  return res;
 } /* ecma_alloc_string */
 
 /**
@@ -181,7 +209,8 @@ ecma_alloc_string_buffer (size_t size) /**< size of string */
   jmem_stats_allocate_string_bytes (size);
 #endif /* JMEM_STATS */
 
-  return jmem_heap_alloc_block (size);
+  ecma_string_t * res = jmem_heap_alloc_block (size);
+  return res;
 } /* ecma_alloc_string_buffer */
 
 /**
@@ -210,7 +239,9 @@ ecma_alloc_getter_setter_pointers (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  return (ecma_getter_setter_pointers_t *) jmem_pools_alloc (sizeof (ecma_getter_setter_pointers_t));
+  add_cpointer_size(4);
+  ecma_getter_setter_pointers_t * res = (ecma_getter_setter_pointers_t *) jmem_pools_alloc (sizeof (ecma_getter_setter_pointers_t));
+  return res;
 } /* ecma_alloc_getter_setter_pointers */
 
 /**
@@ -225,6 +256,7 @@ ecma_dealloc_getter_setter_pointers (ecma_getter_setter_pointers_t *getter_sette
 #endif /* JMEM_STATS */
 
   jmem_pools_free (getter_setter_pointers_p, sizeof (ecma_getter_setter_pointers_t));
+  sub_cpointer_size(4);
 } /* ecma_dealloc_getter_setter_pointers */
 
 /**
@@ -239,7 +271,9 @@ ecma_alloc_property_pair (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  return jmem_heap_alloc_block (sizeof (ecma_property_pair_t));
+  add_cpointer_size(4);
+  ecma_property_pair_t * res = jmem_heap_alloc_block (sizeof (ecma_property_pair_t));
+  return res;
 } /* ecma_alloc_property_pair */
 
 /**
@@ -253,6 +287,7 @@ ecma_dealloc_property_pair (ecma_property_pair_t *property_pair_p) /**< property
 #endif /* JMEM_STATS */
 
   jmem_heap_free_block (property_pair_p, sizeof (ecma_property_pair_t));
+  sub_cpointer_size(4);
 } /* ecma_dealloc_property_pair */
 
 /**

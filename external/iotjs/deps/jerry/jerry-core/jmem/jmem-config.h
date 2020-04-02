@@ -18,24 +18,46 @@
 
 #include "config.h"
 
-/* Segmented heap allocator */
+/* Segmented heap allocation configs */
 #define JMEM_SEGMENT_SIZE 8192
 #define JMEM_SEGMENT_SHIFT 13
 
-/* Segmented heap allocator configs */
-// #define JMEM_DYNAMIC_ALLOCATOR_EMULATION
-#if !defined(JMEM_DYNAMIC_ALLOCATOR_EMULATION) && !defined(JERRY_SYSTEM_ALLOCATOR)
-#define JMEM_SEGMENTED_HEAP
-#define JMEM_SEGMENT_RMAP_RBTREE
 
-#define JMEM_SEG_ALLOC_BEFORE_GC
+/* Heap allocation type */
+// 1) Dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled
+#define JMEM_SEGMENTED_HEAP // 2) Segmented heap
+// #define JMEM_DYNAMIC_HEAP_EMUL // 3) Dynamic heap emulation
+// 4) Static heap - else
+
+
+/* For each allocation type configs */
+#if defined(JMEM_SYSTEM_ALLOCATOR)
+
+// 1) Dynamic heap
+// no options
+
+#elif defined(JMEM_SEGMENTED_HEAP)
+
+// 2) Segmented heap
+#define JMEM_SEGMENTED_RMAP_BINSEARCH // binary search for reverse map
+#define JMEM_SEGMENTED_SEGALLOC_FIRST // segment alloc at first before GC
+// #define JMEM_SEGMENTED_AGGRESSIVE_GC
+
+#elif defined(JMEM_DYNAMIC_HEAP_EMUL)
+
+// 3) Dynamic heap emulation
+#define JMEM_DYNAMIC_HEAP_EMUL_SLAB // dynamic heap emulation with slab segment
+
+#else
+
+// 4) Static heap
+// no options
+
 #endif
 
-// #define JMEM_AGGRESSIVE_GC // obsolete option
 
-// /* Profiler configs */
+/* Profiler configs */
 #define JMEM_PROFILE
-// 
 /* jmem-heap-profiler.c */
 #define JMEM_PROFILE_TOTAL_SIZE
 #define JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC (100 * 1000)

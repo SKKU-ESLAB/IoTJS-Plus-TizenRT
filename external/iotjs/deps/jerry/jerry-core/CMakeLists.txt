@@ -29,7 +29,7 @@ set(FEATURE_PROFILE          "es5.1" CACHE STRING "Use default or other profile?
 set(FEATURE_REGEXP_DUMP      OFF     CACHE BOOL   "Enable regexp byte-code dumps?")
 set(FEATURE_SNAPSHOT_EXEC    OFF     CACHE BOOL   "Enable executing snapshot files?")
 set(FEATURE_SNAPSHOT_SAVE    OFF     CACHE BOOL   "Enable saving snapshot files?")
-set(FEATURE_SYSTEM_ALLOCATOR ON     CACHE BOOL   "Enable system allocator?")
+set(FEATURE_SYSTEM_ALLOCATOR OFF     CACHE BOOL   "Enable system allocator?")
 set(FEATURE_VALGRIND         OFF     CACHE BOOL   "Enable Valgrind support?")
 set(FEATURE_VALGRIND_FREYA   OFF     CACHE BOOL   "Enable Valgrind-Freya support?")
 set(FEATURE_VM_EXEC_STOP     OFF     CACHE BOOL   "Enable VM execution stopping?")
