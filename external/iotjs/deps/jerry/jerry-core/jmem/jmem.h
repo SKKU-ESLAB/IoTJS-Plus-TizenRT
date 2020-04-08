@@ -36,6 +36,12 @@
 /* Segmented heap allocator */
 #define JMEM_SEGMENTED_NUM_SEGMENTS (JMEM_HEAP_SIZE / JMEM_SEGMENTED_SEGMENT_SIZE)
 
+/* Dynamic heap with slab */
+#define FULL_BITWIDTH_JSOBJECT_SIZE (16)
+#define NUM_BLOCKS_PER_SLAB (1024)
+#define SLAB_SEGMENT_SIZE (FULL_BITWIDTH_JSOBJECT_SIZE * NUM_BLOCKS_PER_SLAB)
+#define MAX_NUM_SLABS (JMEM_HEAP_SIZE / SLAB_SEGMENT_SIZE)
+
 #ifdef JMEM_SEGMENTED_HEAP
 /**
  * Segment information
@@ -129,6 +135,11 @@ void jmem_finalize (void);
 void *jmem_heap_alloc_block (const size_t size);
 void *jmem_heap_alloc_block_null_on_error (const size_t size);
 void jmem_heap_free_block (void *ptr, const size_t size);
+
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
+void *jmem_heap_alloc_block_no_aas (const size_t size);
+void *jmem_heap_free_block_no_aas (void *ptr, const size_t size);
+#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
 
 /* Modification for unifying segmented heap allocator */
 /**

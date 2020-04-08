@@ -139,6 +139,13 @@ typedef struct
                                            *   allocator request is in progress */
 #endif /* JERRY_VALGRIND_FREYA */
 
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
+  int num_allocated_slabs;
+  int present_slab;
+  int block_count[MAX_NUM_SLABS]; // 64B
+  char block_slab_idx_rmap[NUM_BLOCKS_PER_SLAB * MAX_NUM_SLABS]; // 16KB
+#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
+
 #ifdef JMEM_PROFILE
   /* Total size profiling */
   struct timeval timeval_js_start;
@@ -175,7 +182,7 @@ typedef struct
   unsigned int jsobject_count[JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE
                                 / JMEM_ALIGNMENT];
 #endif
-#endif
+#endif /* defined(JMEM_PROFILE) */
 } jerry_context_t;
 
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
