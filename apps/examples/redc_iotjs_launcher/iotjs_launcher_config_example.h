@@ -1,4 +1,4 @@
-/* Copyright 2019 Gyeonghwan Hong, Sungkyunkwan University
+/* Copyright 2020 Gyeonghwan Hong, Sungkyunkwan University
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

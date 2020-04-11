@@ -85,7 +85,7 @@ typedef struct
   size_t ecma_gc_new_objects; /**< number of newly allocated objects since last GC session */
   size_t jmem_heap_allocated_size; /**< size of allocated regions */
   size_t jmem_heap_actually_allocated_size; /**< size of allocated regions */
-  uint32_t jmem_heap_allocated_objects_count; /**< the count of allocated JS objects in the heap */
+  uint32_t jmem_heap_allocated_blocks_count; /**< the count of allocated JS objects in the heap */
   size_t jmem_heap_limit; /**< current limit of heap usage, that is upon being reached,
                            *   causes call of "try give memory back" callbacks */
   uint32_t lit_magic_string_ex_count; /**< external magic strings count */
@@ -141,9 +141,9 @@ typedef struct
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
   int num_allocated_slabs;
-  int present_slab;
-  int block_count[MAX_NUM_SLABS]; // 64B
-  char block_slab_idx_rmap[NUM_BLOCKS_PER_SLAB * MAX_NUM_SLABS]; // 16KB
+  bool is_slab_allocated[MAX_NUM_SLABS]; // 64B
+  int num_allocated_slots[MAX_NUM_SLABS]; // 64B
+  unsigned char cp2si_rmap[NUM_SLOTS_PER_SLAB * MAX_NUM_SLABS]; // 16KB
 #endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
 
 #ifdef JMEM_PROFILE
