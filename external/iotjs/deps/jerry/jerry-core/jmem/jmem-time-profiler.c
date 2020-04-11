@@ -23,7 +23,7 @@
 
 /* Time profiling */
 void profile_init_times(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   gettimeofday(&JERRY_CONTEXT(timeval_start), NULL);
   JERRY_CONTEXT(alloc_time).tv_sec = 0;
@@ -45,9 +45,9 @@ void profile_init_times(void) {
 }
 
 void profile_print_times(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(JMEM_PROFILE_TIME_FILENAME, "a");
+  FILE *fp = fopen(PROF_TIME_FILENAME, "a");
 
   struct timeval timeval_end;
   gettimeofday(&timeval_end, NULL);
@@ -108,42 +108,42 @@ void _stop_watch(struct timeval *timer, struct timeval *t) {
 }
 
 void __attr_always_inline___ profile_alloc_start(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   JERRY_CONTEXT(alloc_count)++;
   _check_watch(&JERRY_CONTEXT(timeval_alloc));
 #endif
 }
 void __attr_always_inline___ profile_alloc_end(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   _stop_watch(&JERRY_CONTEXT(timeval_alloc), &JERRY_CONTEXT(alloc_time));
 #endif
 }
 
 void __attr_always_inline___ profile_free_start(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   JERRY_CONTEXT(free_count)++;
   _check_watch(&JERRY_CONTEXT(timeval_free));
 #endif
 }
 void __attr_always_inline___ profile_free_end(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   _stop_watch(&JERRY_CONTEXT(timeval_free), &JERRY_CONTEXT(free_time));
 #endif
 }
 
 void __attr_always_inline___ profile_compression_start(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   JERRY_CONTEXT(compression_count)++;
   _check_watch(&JERRY_CONTEXT(timeval_compression));
 #endif
 }
 inline void __attr_always_inline___ profile_compression_end(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   _stop_watch(&JERRY_CONTEXT(timeval_compression),
               &JERRY_CONTEXT(compression_time));
@@ -151,14 +151,14 @@ inline void __attr_always_inline___ profile_compression_end(void) {
 }
 
 inline void __attr_always_inline___ profile_decompression_start(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   JERRY_CONTEXT(decompression_count)++;
   _check_watch(&JERRY_CONTEXT(timeval_decompression));
 #endif
 }
 inline void __attr_always_inline___ profile_decompression_end(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   _stop_watch(&JERRY_CONTEXT(timeval_decompression),
               &JERRY_CONTEXT(decompression_time));
@@ -166,14 +166,14 @@ inline void __attr_always_inline___ profile_decompression_end(void) {
 }
 
 inline void __attr_always_inline___ profile_gc_start(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   JERRY_CONTEXT(gc_count)++;
   _check_watch(&JERRY_CONTEXT(timeval_gc));
 #endif
 }
 inline void __attr_always_inline___ profile_gc_end(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_TIME)
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   _stop_watch(&JERRY_CONTEXT(timeval_gc), &JERRY_CONTEXT(gc_time));
 #endif

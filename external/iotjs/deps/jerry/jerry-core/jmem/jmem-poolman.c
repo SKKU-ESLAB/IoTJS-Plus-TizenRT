@@ -23,6 +23,10 @@
 
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
+#include "jmem-config.h"
+#include "jmem-heap-dynamic-emul-slab.h"
+
+#define UNUSED(x) (void)(x)
 
 /** \addtogroup mem Memory allocation
  * @{
@@ -71,24 +75,26 @@ void jmem_pools_finalize(void) {
 
 static inline void *__attr_hot___ __attr_always_inline___
 jmem_heap_alloc_block_for_pool(size_t size) {
-  #ifdef defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
+  #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
     // Dynamic heap with slab
-    return jmem_heap_alloc_block_no_aas(size);
-  #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
-    // Others
+    UNUSED(size);
+    return alloc_a_block_from_slab();
+  #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
+    // Others 
     return jmem_heap_alloc_block(size);
-  #endif /* !(defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)) */
+  #endif /* !(defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)) */
 }
 
 static inline void __attr_hot___ __attr_always_inline___
 jmem_heap_free_block_for_pool(void* ptr, size_t size) {
-  #ifdef defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
+  #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
     // Dynamic heap with slab
-    return jmem_heap_free_block_no_aas(ptr, size);
-  #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
+    UNUSED(size);
+    return free_a_block_from_slab(ptr);
+  #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
     // Others
     return jmem_heap_free_block(ptr, size);
-  #endif /* !(defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)) */
+  #endif /* !(defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)) */
 }
 
 /**

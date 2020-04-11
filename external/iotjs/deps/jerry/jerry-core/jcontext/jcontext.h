@@ -139,24 +139,24 @@ typedef struct
                                            *   allocator request is in progress */
 #endif /* JERRY_VALGRIND_FREYA */
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
   int num_allocated_slabs;
-  bool is_slab_allocated[MAX_NUM_SLABS]; // 64B
-  int num_allocated_slots[MAX_NUM_SLABS]; // 64B
-  unsigned char cp2si_rmap[NUM_SLOTS_PER_SLAB * MAX_NUM_SLABS]; // 16KB
-#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
+  bool is_slab_allocated[DE_MAX_NUM_SLABS]; // 64B
+  int num_allocated_slots[DE_MAX_NUM_SLABS]; // 64B
+  unsigned char cp2si_rmap[DE_NUM_SLOTS_PER_SLAB * DE_MAX_NUM_SLABS]; // 16KB
+#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
 
 #ifdef JMEM_PROFILE
   /* Total size profiling */
   struct timeval timeval_js_start;
-#ifdef JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC
+#ifdef PROF_TOTAL_SIZE__PERIOD_USEC
   struct timeval jsuptime_recent_total_size_print;
 #endif
-#ifdef JMEM_PROFILE_SEGMENT_UTILIZATION__PERIOD_USEC
+#ifdef PROF_SEGMENT_UTILIZATION__PERIOD_USEC
   struct timeval jsuptime_recent_segutil_print;
 #endif
 
-#ifdef JMEM_PROFILE_TIME
+#ifdef PROF_TIME
   /* Time profiling */
   struct timeval timeval_start;
   struct timeval timeval_alloc;
@@ -178,8 +178,8 @@ typedef struct
   unsigned int gc_count;
 #endif
 
-#ifdef JMEM_PROFILE_JSOBJECT_ALLOCATION
-  unsigned int jsobject_count[JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE
+#ifdef PROF_JSOBJECT_ALLOCATION
+  unsigned int jsobject_count[PROF_JSOBJECT_ALLOCATION__MAX_SIZE
                                 / JMEM_ALIGNMENT];
 #endif
 #endif /* defined(JMEM_PROFILE) */
@@ -293,20 +293,20 @@ typedef struct
   jmem_heap_free_t first; /**< first node in free region list */
 #ifdef JMEM_SEGMENTED_HEAP
   /* JS heap area on heap area (dynamically allocated) */
-  uint8_t *area[JMEM_SEGMENTED_NUM_SEGMENTS];
-  jmem_segment_t segments[JMEM_SEGMENTED_NUM_SEGMENTS];
+  uint8_t *area[SEG_NUM_SEGMENTS];
+  jmem_segment_t segments[SEG_NUM_SEGMENTS];
 
   uint32_t segments_count;
   uint32_t last_seg_idx;
-#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
+#ifdef SEG_RMAP_BINSEARCH
   rb_root segment_rmap_rb_root;
-#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
+#endif /* SEG_RMAP_BINSEARCH */
 
-#ifdef JMEM_PROFILE_JSOBJECT_LIFESPAN
+#ifdef PROF_JSOBJECT_LIFESPAN
   unsigned gc_total_count = 0;
   unsigned gc_obj_birth[65536];
   long gc_obj_birth_time[65536][2];
-#endif /* JMEM_PROFILE_JSOBJECT_LIFESPAN */
+#endif /* PROF_JSOBJECT_LIFESPAN */
 #else  /* JMEM_SEGMENTED_HEAP */
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */
 #endif /* !JMEM_SEGMENTED_HEAP */

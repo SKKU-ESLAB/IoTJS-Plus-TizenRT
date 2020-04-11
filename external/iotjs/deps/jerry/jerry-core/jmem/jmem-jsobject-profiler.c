@@ -27,7 +27,7 @@
 
 /* JS object lifespan profiling */
 inline void __attr_always_inline___ profile_jsobject_inc_total_count(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_JSOBJECT_LIFESPAN)
+#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
   CHECK_LOGGING_ENABLED();
   JERRY_HEAP_CONTEXT(gc_total_count)++;
 #endif
@@ -35,7 +35,7 @@ inline void __attr_always_inline___ profile_jsobject_inc_total_count(void) {
 
 inline void __attr_always_inline___
 profile_jsobject_set_object_birth_time(uintptr_t compressed_pointer) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_JSOBJECT_LIFESPAN)
+#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
   CHECK_LOGGING_ENABLED();
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -50,7 +50,7 @@ profile_jsobject_set_object_birth_time(uintptr_t compressed_pointer) {
 
 inline void __attr_always_inline___
 profile_jsobject_set_object_birth_count(uintptr_t compressed_pointer) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_JSOBJECT_LIFESPAN)
+#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
   CHECK_LOGGING_ENABLED();
   JERRY_HEAP_CONTEXT(gc_obj_birth)
   [compressed_pointer] = JERRY_HEAP_CONTEXT(gc_total_count);
@@ -61,9 +61,9 @@ profile_jsobject_set_object_birth_count(uintptr_t compressed_pointer) {
 
 inline void __attr_always_inline___
 profile_jsobject_print_object_lifespan(uintptr_t compressed_pointer) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_JSOBJECT_LIFESPAN)
+#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
   CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(JMEM_PROFILE_JSOBJECT_LIFESPAN_FILENAME, "a");
+  FILE *fp = fopen(PROF_JSOBJECT_LIFESPAN_FILENAME, "a");
 
   fprintf(fp, "OL, %u, %u, %lu.%lu\n", compressed_pointer,
           JERRY_HEAP_CONTEXT(gc_total_count) -
@@ -82,14 +82,14 @@ profile_jsobject_print_object_lifespan(uintptr_t compressed_pointer) {
 /* JS object allocation profiling */
 inline void __attr_always_inline___
 profile_jsobject_inc_allocation(size_t jsobject_size) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_JSOBJECT_ALLOCATION)
+#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_ALLOCATION)
   CHECK_LOGGING_ENABLED();
   size_t aligned_size =
       (jsobject_size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT * JMEM_ALIGNMENT;
 
   uint32_t index = (uint32_t)(aligned_size / JMEM_ALIGNMENT) - 1;
-  if (index >= JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT) {
-    index = JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT - 1;
+  if (index >= PROF_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT) {
+    index = PROF_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT - 1;
     printf("Large JS object allocation: %lu\n", (uint32_t)aligned_size);
   }
   JERRY_CONTEXT(jsobject_count[index])++;
@@ -99,12 +99,12 @@ profile_jsobject_inc_allocation(size_t jsobject_size) {
 }
 
 inline void __attr_always_inline___ profile_jsobject_print_allocation(void) {
-#if defined(JMEM_PROFILE) && defined(JMEM_PROFILE_JSOBJECT_ALLOCATION)
+#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_ALLOCATION)
   CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(JMEM_PROFILE_JSOBJECT_ALLOCATION_FILENAME, "a");
+  FILE *fp = fopen(PROF_JSOBJECT_ALLOCATION_FILENAME, "a");
 
   for (uint32_t index = 0;
-       index < JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT;
+       index < PROF_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT;
        index++) {
     fprintf(fp, "OA, %lu, %lu\n", (unsigned long)((index + 1) * JMEM_ALIGNMENT),
             (unsigned long)(JERRY_CONTEXT(jsobject_count[index])));

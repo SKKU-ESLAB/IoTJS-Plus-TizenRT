@@ -25,6 +25,7 @@
 #include "jmem-heap-segmented.h"
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
+#include "jmem-heap-dynamic-emul-slab.h"
 #include "jmem-heap-profiler.h"
 #include "jmem-jsobject-profiler.h"
 #include "jmem-time-profiler.h"
@@ -100,12 +101,15 @@ void jmem_heap_init(void) {
 #if defined(JERRY_SYSTEM_ALLOCATOR)
   printf("Dynamic allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
 #elif defined(JMEM_SEGMENTED_HEAP)    /* JERRY_SYSTEM_ALLOCATOR */
-  printf("Segmented allocation // Segment size: %dB * %d\n",
-         JMEM_SEGMENTED_SEGMENT_SIZE, JMEM_SEGMENTED_NUM_SEGMENTS);
+  printf("Segmented allocation // Segment size: %dB * %d\n", SEG_SEGMENT_SIZE,
+         SEG_NUM_SEGMENTS);
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) /* JMEM_SEGMENTED_HEAP */
   printf("Emulated dynamic allocation // JS heap area size: %dB\n",
          JMEM_HEAP_AREA_SIZE);
-#else                                 /* JMEM_DYNAMIC_HEAP_EMUL */
+#if defined(DE_SLAB)
+  printf("Slab enabled\n");
+#endif
+#else /* JMEM_DYNAMIC_HEAP_EMUL */
   printf("Static allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
 #endif
 
@@ -130,7 +134,7 @@ void jmem_heap_init(void) {
 #ifdef JMEM_SEGMENTED_HEAP
   jmem_heap_free_t *const region_p =
       (jmem_heap_free_t *)(JERRY_HEAP_CONTEXT(area[0]) + JMEM_ALIGNMENT);
-  region_p->size = JMEM_SEGMENTED_SEGMENT_SIZE - JMEM_ALIGNMENT;
+  region_p->size = SEG_SEGMENT_SIZE - JMEM_ALIGNMENT;
 #else
   jmem_heap_free_t *const region_p =
       (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area);
@@ -210,8 +214,8 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
 #endif
     }
 #ifdef JMEM_SEGMENTED_HEAP
-    JERRY_HEAP_CONTEXT(segments[JERRY_HEAP_CONTEXT(first).next_offset /
-                                JMEM_SEGMENTED_SEGMENT_SIZE])
+    JERRY_HEAP_CONTEXT(
+        segments[JERRY_HEAP_CONTEXT(first).next_offset / SEG_SEGMENT_SIZE])
         .occupied_size += JMEM_ALIGNMENT;
 #endif
     JERRY_CONTEXT(jmem_heap_allocated_blocks_count)++;
@@ -276,10 +280,10 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
         }
 
 #ifdef JMEM_SEGMENTED_HEAP
-        uint32_t start_segment = current_offset / JMEM_SEGMENTED_SEGMENT_SIZE;
+        uint32_t start_segment = current_offset / SEG_SEGMENT_SIZE;
         uint32_t end_segment =
             (current_offset + (uint32_t)required_size - JMEM_ALIGNMENT) /
-            JMEM_SEGMENTED_SEGMENT_SIZE;
+            SEG_SEGMENT_SIZE;
         if (start_segment == end_segment) {
           // Update metadata of single segment
           JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size +=
@@ -287,8 +291,8 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
         } else {
           // Update metadata of double segment
           JERRY_ASSERT(start_segment + 1 == end_segment);
-          uint32_t first_size = JMEM_SEGMENTED_SEGMENT_SIZE -
-                                current_offset % JMEM_SEGMENTED_SEGMENT_SIZE;
+          uint32_t first_size =
+              SEG_SEGMENT_SIZE - current_offset % SEG_SEGMENT_SIZE;
           JERRY_ASSERT(required_size > first_size);
           uint32_t following_size = (uint32_t)required_size - first_size;
           JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size +=
@@ -391,11 +395,11 @@ static void *jmem_heap_gc_and_alloc_block(
 {
 #ifdef JMEM_SEGMENTED_HEAP
   // Disallow too large block bigger than two segments
-  if (size >= JMEM_SEGMENTED_SEGMENT_SIZE * 2) {
+  if (size >= SEG_SEGMENT_SIZE * 2) {
     printf("Requested size: %lu, but allowed maximum allocation size is: %lu\n",
-           (uint32_t)size, (uint32_t)JMEM_SEGMENTED_SEGMENT_SIZE * 2);
+           (uint32_t)size, (uint32_t)SEG_SEGMENT_SIZE * 2);
   }
-  JERRY_ASSERT(size < JMEM_SEGMENTED_SEGMENT_SIZE * 2);
+  JERRY_ASSERT(size < SEG_SEGMENT_SIZE * 2);
 #endif
 
   if (unlikely(size == 0)) {
@@ -410,7 +414,7 @@ static void *jmem_heap_gc_and_alloc_block(
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(JERRY_SYSTEM_ALLOCATOR)
   // Dynamic heap or dynamic heap emulation: add segment overhead to the max
   // size for the fair comparison
-  size_t max_size = JMEM_HEAP_SIZE + JMEM_SEGMENTED_NUM_SEGMENTS * 32;
+  size_t max_size = JMEM_HEAP_SIZE + SEG_NUM_SEGMENTS * 32;
 #else
   // Static heap or segmented heap
   size_t max_size = JMEM_HEAP_SIZE;
@@ -458,11 +462,11 @@ static void *jmem_heap_gc_and_alloc_block(
     }
   }
 #endif
-#ifdef JMEM_SEGMENTED_SEGALLOC_FIRST
+#ifdef SEG_SEGALLOC_FIRST
   {
     /* Try one or two segments -> try to alloc a block */
     bool is_two_segs = false;
-    if (size > JMEM_SEGMENTED_SEGMENT_SIZE) {
+    if (size > SEG_SEGMENT_SIZE) {
       is_two_segs = true;
     }
     /* Segment utilization profiling */
@@ -476,7 +480,7 @@ static void *jmem_heap_gc_and_alloc_block(
       return data_space_p;
     }
   }
-#endif /* JMEM_SEGMENTED_SEGALLOC_FIRST */
+#endif /* SEG_SEGALLOC_FIRST */
 #endif /* JMEM_SEGMENTED_HEAP */
   for (jmem_free_unused_memory_severity_t severity =
            JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
@@ -644,10 +648,10 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   JERRY_CONTEXT(jmem_heap_list_skip_p) = prev_p;
 
 #ifdef JMEM_SEGMENTED_HEAP
-  uint32_t start_segment = block_offset / JMEM_SEGMENTED_SEGMENT_SIZE;
+  uint32_t start_segment = block_offset / SEG_SEGMENT_SIZE;
   uint32_t end_segment =
       (block_offset + (uint32_t)aligned_size - JMEM_ALIGNMENT) /
-      JMEM_SEGMENTED_SEGMENT_SIZE;
+      SEG_SEGMENT_SIZE;
   JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size > 0);
   JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[end_segment]).occupied_size > 0);
   if (start_segment == end_segment) {
@@ -656,8 +660,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   } else {
     // Update metadata of double segment
     JERRY_ASSERT(start_segment + 1 == end_segment);
-    uint32_t first_size = JMEM_SEGMENTED_SEGMENT_SIZE -
-                          block_offset % JMEM_SEGMENTED_SEGMENT_SIZE;
+    uint32_t first_size = SEG_SEGMENT_SIZE - block_offset % SEG_SEGMENT_SIZE;
     JERRY_ASSERT(aligned_size > first_size);
     uint32_t following_size = (uint32_t)aligned_size - first_size;
     JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size -= first_size;
@@ -727,10 +730,10 @@ void __attr_hot___ jmem_heap_free_block(
     void *ptr,         /**< pointer to beginning of data space of the block */
     const size_t size) /**< size of allocated region */
 {
-  return jmem_heap_free_block_internal(ptr, size, false);
+  jmem_heap_free_block_internal(ptr, size, false);
 } /* jmem_heap_free_block */
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
 inline void *__attr_hot___ __attr_always_inline___
 jmem_heap_alloc_block_no_aas(const size_t size) {
   return jmem_heap_gc_and_alloc_block(size, false, true);
@@ -740,7 +743,7 @@ jmem_heap_free_block_no_aas(void *ptr, const size_t size) {
   jmem_heap_free_block_internal(ptr, size, true);
 }
 #endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && \
-          defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
+          defined(DE_SLAB) */
 
 
 #ifndef JERRY_NDEBUG

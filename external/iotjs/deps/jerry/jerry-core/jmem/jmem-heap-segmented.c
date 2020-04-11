@@ -48,7 +48,7 @@ void jmem_segmented_init_segments(void) {
   /* Initialize other segments' metadata */
   {
     uint32_t segment_idx;
-    for (segment_idx = 1; segment_idx < JMEM_SEGMENTED_NUM_SEGMENTS; segment_idx++) {
+    for (segment_idx = 1; segment_idx < SEG_NUM_SEGMENTS; segment_idx++) {
       JERRY_HEAP_CONTEXT(area[segment_idx]) = (uint8_t *)NULL;
       JERRY_HEAP_CONTEXT(segments[segment_idx]).occupied_size = 0;
       JERRY_HEAP_CONTEXT(segments[segment_idx]).total_size = 0;
@@ -56,13 +56,13 @@ void jmem_segmented_init_segments(void) {
   }
 
   /* Initialize segment reverse map */
-#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
+#ifdef SEG_RMAP_BINSEARCH
   JERRY_HEAP_CONTEXT(segment_rmap_rb_root).rb_node = NULL;
   seg_rmap_node_t *node = (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
   node->seg_idx = 0;
   node->base_addr = JERRY_HEAP_CONTEXT(area[0]);
   segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), node);
-#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
+#endif /* SEG_RMAP_BINSEARCH */
 }
 
 inline uint32_t __attribute__((hot))
@@ -81,19 +81,19 @@ jmem_heap_get_offset_from_addr_segmented(jmem_heap_free_t *p) {
   segment_idx = jmem_segment_lookup(&segment_addr, (uint8_t *)p);
 
   return (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(p, segment_addr) +
-                    (uint32_t)JMEM_SEGMENTED_SEGMENT_SIZE * segment_idx);
+                    (uint32_t)SEG_SEGMENT_SIZE * segment_idx);
 }
 inline jmem_heap_free_t *__attribute__((hot))
 jmem_heap_get_addr_from_offset_segmented(uint32_t u) {
   if (u == JMEM_HEAP_END_OF_LIST_UINT32)
     return JMEM_HEAP_END_OF_LIST;
   return (jmem_heap_free_t *)((uintptr_t)JERRY_HEAP_CONTEXT(
-                                  area[u >> JMEM_SEGMENTED_SEGMENT_SHIFT]) +
-                              (uintptr_t)(u % JMEM_SEGMENTED_SEGMENT_SIZE));
+                                  area[u >> SEG_SEGMENT_SHIFT]) +
+                              (uintptr_t)(u % SEG_SEGMENT_SIZE));
 }
 
 static uint32_t __find_proper_segment_entry(bool is_two_segs) {
-  for (uint32_t segment_idx = 0; segment_idx < JMEM_SEGMENTED_NUM_SEGMENTS; segment_idx++) {
+  for (uint32_t segment_idx = 0; segment_idx < SEG_NUM_SEGMENTS; segment_idx++) {
     if (is_two_segs) {
       if (JERRY_HEAP_CONTEXT(area[segment_idx] == NULL) &&
           JERRY_HEAP_CONTEXT(area[segment_idx + 1] == NULL)) {
@@ -105,19 +105,19 @@ static uint32_t __find_proper_segment_entry(bool is_two_segs) {
       }
     }
   }
-  return JMEM_SEGMENTED_NUM_SEGMENTS;
+  return SEG_NUM_SEGMENTS;
 }
 
 void *jmem_heap_add_segment(bool is_two_segs) {
   // Find empty entry or double empty entries in segment translation table
   uint32_t segment_idx = __find_proper_segment_entry(is_two_segs);
-  if (segment_idx >= JMEM_SEGMENTED_NUM_SEGMENTS) {
+  if (segment_idx >= SEG_NUM_SEGMENTS) {
     return NULL;
   }
 
   /* Allocate and initialize a segment or double segments */
   jmem_heap_free_t *allocated_segment = NULL;
-  JERRY_ASSERT(segment_idx < JMEM_SEGMENTED_NUM_SEGMENTS &&
+  JERRY_ASSERT(segment_idx < SEG_NUM_SEGMENTS &&
                jmem_segment_get_addr(segment_idx) == NULL);
 
   if (likely(!is_two_segs)) {
@@ -129,17 +129,17 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   } else {
     // Double segments
     JERRY_HEAP_CONTEXT(area[segment_idx]) =
-        (uint8_t *)MALLOC(JMEM_SEGMENTED_SEGMENT_SIZE * 2);
+        (uint8_t *)MALLOC(SEG_SEGMENT_SIZE * 2);
     JERRY_HEAP_CONTEXT(area[segment_idx + 1]) =
-        ((uint8_t *)JERRY_HEAP_CONTEXT(area[segment_idx])) + JMEM_SEGMENTED_SEGMENT_SIZE;
+        ((uint8_t *)JERRY_HEAP_CONTEXT(area[segment_idx])) + SEG_SEGMENT_SIZE;
 
     jmem_heap_free_t *const region_p =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[segment_idx]);
-    region_p->size = (size_t)JMEM_SEGMENTED_SEGMENT_SIZE * 2;
+    region_p->size = (size_t)SEG_SEGMENT_SIZE * 2;
     region_p->next_offset =
         JMEM_HEAP_GET_OFFSET_FROM_ADDR(JMEM_HEAP_END_OF_LIST);
     JERRY_HEAP_CONTEXT(segments[segment_idx]).total_size =
-        JMEM_SEGMENTED_SEGMENT_SIZE * 2;
+        SEG_SEGMENT_SIZE * 2;
     JERRY_HEAP_CONTEXT(segments[segment_idx]).occupied_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).total_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).occupied_size = 0;
@@ -157,7 +157,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   jmem_heap_free_t *current_p =
       JMEM_HEAP_GET_ADDR_FROM_OFFSET(JERRY_HEAP_CONTEXT(first).next_offset);
   uint32_t allocated_segment_first_offset =
-      (uint32_t)segment_idx * (uint32_t)JMEM_SEGMENTED_SEGMENT_SIZE;
+      (uint32_t)segment_idx * (uint32_t)SEG_SEGMENT_SIZE;
   while (current_p != JMEM_HEAP_END_OF_LIST &&
          curr_offset < allocated_segment_first_offset) {
     prev_p = current_p;
@@ -167,7 +167,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   allocated_segment->next_offset = prev_p->next_offset;
   prev_p->next_offset = allocated_segment_first_offset;
 
-#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
+#ifdef SEG_RMAP_BINSEARCH
   seg_rmap_node_t *new_rmap_node =
       (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
   new_rmap_node->base_addr = (uint8_t *)allocated_segment;
@@ -176,12 +176,12 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   if (unlikely(is_two_segs)) {
     new_rmap_node = (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
     new_rmap_node->base_addr =
-        ((uint8_t *)allocated_segment) + JMEM_SEGMENTED_SEGMENT_SIZE;
+        ((uint8_t *)allocated_segment) + SEG_SEGMENT_SIZE;
     new_rmap_node->seg_idx = segment_idx + 1;
     segment_rmap_insert(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root),
                         new_rmap_node);
   }
-#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
+#endif /* SEG_RMAP_BINSEARCH */
 
   if (unlikely(is_two_segs)) {
     JERRY_HEAP_CONTEXT(segments_count) += 2;
@@ -192,19 +192,19 @@ void *jmem_heap_add_segment(bool is_two_segs) {
 }
 
 void free_empty_segments(void) {
-  for (uint32_t seg_iter = 1; seg_iter < JMEM_SEGMENTED_NUM_SEGMENTS; seg_iter++) {
+  for (uint32_t seg_iter = 1; seg_iter < SEG_NUM_SEGMENTS; seg_iter++) {
     jmem_heap_free_t *segment_to_free =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[seg_iter]);
     if (segment_to_free == NULL)
       continue;
 
     jmem_segment_t *segment = &(JERRY_HEAP_CONTEXT(segments[seg_iter]));
-    if (segment->total_size == JMEM_SEGMENTED_SEGMENT_SIZE) {
+    if (segment->total_size == SEG_SEGMENT_SIZE) {
       // Single segment
       if (segment->occupied_size > 0) {
         continue;
       }
-    } else if (segment->total_size == JMEM_SEGMENTED_SEGMENT_SIZE * 2) {
+    } else if (segment->total_size == SEG_SEGMENT_SIZE * 2) {
       // Head segment in double segments
       jmem_segment_t *following_segment =
           &(JERRY_HEAP_CONTEXT(segments[seg_iter + 1]));
@@ -217,13 +217,13 @@ void free_empty_segments(void) {
     }
 
     JERRY_ASSERT(segment_to_free->size != 0);
-    JERRY_ASSERT((segment_to_free->size % JMEM_SEGMENTED_SEGMENT_SIZE) == 0);
+    JERRY_ASSERT((segment_to_free->size % SEG_SEGMENT_SIZE) == 0);
 
     uint32_t curr_offset = JERRY_HEAP_CONTEXT(first).next_offset;
     jmem_heap_free_t *current_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET(curr_offset);
     jmem_heap_free_t *prev_p = &JERRY_HEAP_CONTEXT(first);
     uint32_t allocated_segment_first_offset =
-        (uint32_t)seg_iter * (uint32_t)JMEM_SEGMENTED_SEGMENT_SIZE;
+        (uint32_t)seg_iter * (uint32_t)SEG_SEGMENT_SIZE;
     // if(allocated_segment_first_offset == 0) {
     //   allocated_segment_first_offset = JMEM_ALIGNMENT;
     // }
@@ -235,7 +235,7 @@ void free_empty_segments(void) {
     }
     JERRY_ASSERT(curr_offset == allocated_segment_first_offset);
     prev_p->next_offset = current_p->next_offset;
-    if (unlikely(segment_to_free->size > JMEM_SEGMENTED_SEGMENT_SIZE)) {
+    if (unlikely(segment_to_free->size > SEG_SEGMENT_SIZE)) {
       jmem_segment_free(JERRY_HEAP_CONTEXT(area[seg_iter + 1]), true);
       JERRY_HEAP_CONTEXT(area[seg_iter + 1]) = NULL;
       JERRY_HEAP_CONTEXT(segments[seg_iter + 1]).total_size = 0;
@@ -264,19 +264,19 @@ jmem_segment_lookup(uint8_t **seg_addr, uint8_t *p) {
   uint8_t *segment_addr = NULL;
   uint32_t segment_idx;
 
-#ifndef JMEM_SEGMENTED_RMAP_BINSEARCH
-  for (segment_idx = 0; segment_idx < JMEM_SEGMENTED_NUM_SEGMENTS; segment_idx++) {
+#ifndef SEG_RMAP_BINSEARCH
+  for (segment_idx = 0; segment_idx < SEG_NUM_SEGMENTS; segment_idx++) {
     segment_addr = JERRY_HEAP_CONTEXT(area[segment_idx]);
     if (segment_addr != NULL &&
-        (uint32_t)(p - segment_addr) < (uint32_t)JMEM_SEGMENTED_SEGMENT_SIZE)
+        (uint32_t)(p - segment_addr) < (uint32_t)SEG_SEGMENT_SIZE)
       break;
   }
-#else  /* JMEM_SEGMENTED_RMAP_BINSEARCH */
+#else  /* SEG_RMAP_BINSEARCH */
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), p);
   segment_idx = node->seg_idx;
   segment_addr = node->base_addr;
-#endif /* !JMEM_SEGMENTED_RMAP_BINSEARCH */
+#endif /* !SEG_RMAP_BINSEARCH */
 
   *seg_addr = segment_addr;
 
@@ -292,7 +292,7 @@ void free_first_empty_segment(void) {
  * Segment management
  */
 static void *jmem_segment_alloc(void) {
-  void *ret = MALLOC(JMEM_SEGMENTED_SEGMENT_SIZE);
+  void *ret = MALLOC(SEG_SEGMENT_SIZE);
   JERRY_ASSERT(ret != NULL);
 
   return ret;
@@ -302,10 +302,10 @@ static void jmem_segment_init(void *seg_ptr, jmem_segment_t *seg_info) {
   JERRY_ASSERT(seg_ptr != NULL && seg_info != NULL);
 
   jmem_heap_free_t *const region_p = (jmem_heap_free_t *)seg_ptr;
-  region_p->size = (size_t)JMEM_SEGMENTED_SEGMENT_SIZE;
+  region_p->size = (size_t)SEG_SEGMENT_SIZE;
   region_p->next_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR(JMEM_HEAP_END_OF_LIST);
 
-  seg_info->total_size = (size_t)JMEM_SEGMENTED_SEGMENT_SIZE;
+  seg_info->total_size = (size_t)SEG_SEGMENT_SIZE;
   seg_info->occupied_size = 0;
 }
 static void *jmem_segment_alloc_init(jmem_segment_t *seg_info) {
@@ -322,9 +322,9 @@ static void jmem_segment_free(void *seg_ptr, bool is_following_node) {
     FREE(seg_ptr);
   }
 
-#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
+#ifdef SEG_RMAP_BINSEARCH
   segment_rmap_remove(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root),
                       (uint8_t *)seg_ptr);
-#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
+#endif /* SEG_RMAP_BINSEARCH */
 }
 #endif /* JMEM_SEGMENTED_HEAP */

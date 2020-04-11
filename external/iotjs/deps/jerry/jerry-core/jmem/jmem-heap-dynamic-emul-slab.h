@@ -18,14 +18,13 @@
 
 #include "jmem-config.h"
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
-extern void init_slab(void);
-extern void *alloc_a_block_from_slab(size_t size);
-extern void free_a_block_from_slab(void *block_address, size_t size);
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
+extern void *alloc_a_block_from_slab(void);
+extern void free_a_block_from_slab(void *block_address);
 extern unsigned char alloc_a_slab_segment(void);
 extern void free_a_slab_segment(unsigned char slab_index);
 
 #endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && \
-          defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
+          defined(DE_SLAB) */
 
 #endif /* !defined(JMEM_HEAP_DYNAMIC_HEAP_EMUL_SLAB_H) */

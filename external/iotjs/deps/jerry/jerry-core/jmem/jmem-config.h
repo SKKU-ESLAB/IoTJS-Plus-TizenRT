@@ -19,8 +19,8 @@
 #include "config.h"
 
 /* Segmented heap allocation configs */
-#define JMEM_SEGMENTED_SEGMENT_SIZE 8192
-#define JMEM_SEGMENTED_SEGMENT_SHIFT 13
+#define SEG_SEGMENT_SIZE 8192
+#define SEG_SEGMENT_SHIFT 13
 
 
 /* Heap allocation type */
@@ -39,14 +39,14 @@
 #elif defined(JMEM_SEGMENTED_HEAP)
 
 // 2) Segmented heap
-#define JMEM_SEGMENTED_RMAP_BINSEARCH // binary search for reverse map
-#define JMEM_SEGMENTED_SEGALLOC_FIRST // segment alloc at first before GC
+#define SEG_RMAP_BINSEARCH // binary search for reverse map
+#define SEG_SEGALLOC_FIRST // segment alloc at first before GC
 // #define JMEM_SEGMENTED_AGGRESSIVE_GC
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL)
 
 // 3) Dynamic heap emulation
-#define JMEM_DYNAMIC_HEAP_EMUL_SLAB // dynamic heap emulation with slab segment
+#define DE_SLAB // dynamic heap emulation with slab segment
 
 #else
 
@@ -59,42 +59,42 @@
 /* Profiler configs */
 #define JMEM_PROFILE
 /* jmem-heap-profiler.c */
-#define JMEM_PROFILE_TOTAL_SIZE
-#define JMEM_PROFILE_TOTAL_SIZE__PERIOD_USEC (100 * 1000)
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION__ABSOLUTE
-// // #define JMEM_PROFILE_SEGMENT_UTILIZATION__AFTER_FREE_BLOCK
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION__BEFORE_ADD_SEGMENT
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION__BEFORE_GC
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION__AFTER_GC
-// #define JMEM_PROFILE_SEGMENT_UTILIZATION__PERIOD_USEC (100 * 1000)
+#define PROF_TOTAL_SIZE
+#define PROF_TOTAL_SIZE__PERIOD_USEC (100 * 1000)
+// #define PROF_SEGMENT_UTILIZATION
+// #define PROF_SEGMENT_UTILIZATION__ABSOLUTE
+// // #define PROF_SEGMENT_UTILIZATION__AFTER_FREE_BLOCK
+// #define PROF_SEGMENT_UTILIZATION__BEFORE_ADD_SEGMENT
+// #define PROF_SEGMENT_UTILIZATION__BEFORE_GC
+// #define PROF_SEGMENT_UTILIZATION__AFTER_GC
+// #define PROF_SEGMENT_UTILIZATION__PERIOD_USEC (100 * 1000)
 
 /* jmem-time-profiler.c */
-#define JMEM_PROFILE_TIME
+#define PROF_TIME
 
 /* jmem-jsobject-profiler.c */
-// #define JMEM_PROFILE_JSOBJECT_LIFESPAN
-// #define JMEM_PROFILE_JSOBJECT_ALLOCATION
-// #define JMEM_PROFILE_JSOBJECT_ALLOCATION__MAX_SIZE 1024 // 8B ~ 1024B
+// #define PROF_JSOBJECT_LIFESPAN
+// #define PROF_JSOBJECT_ALLOCATION
+// #define PROF_JSOBJECT_ALLOCATION__MAX_SIZE 1024 // 8B ~ 1024B
 
 /* Profiler output configs */
 /* If config is defined, output is stored to the specified file.
  * Otherwise, output is printed to stdout.
  */
-#define JMEM_PROFILE_MODE_ARTIK053
+#define PROF_MODE_ARTIK053
 
-#ifdef JMEM_PROFILE_MODE_ARTIK053
-#define JMEM_PROFILE_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
-#define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
-#define JMEM_PROFILE_TIME_FILENAME "/mnt/time.log"
-#define JMEM_PROFILE_JSOBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
-#define JMEM_PROFILE_JSOBJECT_ALLOCATION_FILENAME "/mnt/object_allocation.log"
+#ifdef PROF_MODE_ARTIK053
+#define PROF_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
+#define PROF_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
+#define PROF_TIME_FILENAME "/mnt/time.log"
+#define PROF_JSOBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
+#define PROF_JSOBJECT_ALLOCATION_FILENAME "/mnt/object_allocation.log"
 #else
-#define JMEM_PROFILE_TOTAL_SIZE_FILENAME "total_size.log"
-#define JMEM_PROFILE_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
-#define JMEM_PROFILE_TIME_FILENAME "time.log"
-#define JMEM_PROFILE_JSOBJECT_LIFESPAN_FILENAME "object_lifespan.log"
-#define JMEM_PROFILE_JSOBJECT_ALLOCATION_FILENAME "object_allocation.log"
+#define PROF_TOTAL_SIZE_FILENAME "total_size.log"
+#define PROF_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
+#define PROF_TIME_FILENAME "time.log"
+#define PROF_JSOBJECT_LIFESPAN_FILENAME "object_lifespan.log"
+#define PROF_JSOBJECT_ALLOCATION_FILENAME "object_allocation.log"
 #endif
 
 #endif /* !JMEM_CONFIG_H */

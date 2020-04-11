@@ -117,11 +117,6 @@ ecma_alloc_object (void)
   jmem_stats_allocate_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
-  add_cpointer_size(8);
-#endif
-
   ecma_object_t * res = (ecma_object_t *) jmem_pools_alloc (sizeof (ecma_object_t));
   return res;
 } /* ecma_alloc_object */
@@ -138,10 +133,6 @@ ecma_dealloc_object (ecma_object_t *object_p) /**< object to be freed */
 
   jmem_pools_free (object_p, sizeof (ecma_object_t));
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
-  sub_cpointer_size(8);
-#endif
 } /* ecma_dealloc_object */
 
 /**
@@ -255,10 +246,6 @@ ecma_alloc_getter_setter_pointers (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
-  add_cpointer_size(4);
-#endif
   ecma_getter_setter_pointers_t * res = (ecma_getter_setter_pointers_t *) jmem_pools_alloc (sizeof (ecma_getter_setter_pointers_t));
   return res;
 } /* ecma_alloc_getter_setter_pointers */
@@ -275,11 +262,6 @@ ecma_dealloc_getter_setter_pointers (ecma_getter_setter_pointers_t *getter_sette
 #endif /* JMEM_STATS */
 
   jmem_pools_free (getter_setter_pointers_p, sizeof (ecma_getter_setter_pointers_t));
-
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
-  sub_cpointer_size(4);
-#endif
 } /* ecma_dealloc_getter_setter_pointers */
 
 /**

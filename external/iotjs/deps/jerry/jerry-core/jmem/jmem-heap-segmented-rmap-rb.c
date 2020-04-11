@@ -24,7 +24,7 @@
 #include "jmem-heap-segmented-rmap-rb.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef JMEM_SEGMENTED_RMAP_BINSEARCH
+#ifdef SEG_RMAP_BINSEARCH
 seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
   rb_node *node = root->rb_node;
 
@@ -35,7 +35,7 @@ seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
 
     // curr_addr     < ------ >      addr
     //                result
-    if (result >= (intptr_t)JMEM_SEGMENTED_SEGMENT_SIZE) {
+    if (result >= (intptr_t)SEG_SEGMENT_SIZE) {
       node = node->rb_right;
     } else if (result < 0) {
       node = node->rb_left;
@@ -399,5 +399,5 @@ rb_node *rb_next(const rb_node *node) {
 
   return parent;
 }
-#endif /* JMEM_SEGMENTED_RMAP_BINSEARCH */
+#endif /* SEG_RMAP_BINSEARCH */
 #endif /* JMEM_SEGMENTED_HEAP */

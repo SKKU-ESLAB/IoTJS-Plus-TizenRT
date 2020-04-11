@@ -34,13 +34,13 @@
 #endif /* !JERRY_ENABLE_EXTERNAL_CONTEXT */
 
 /* Segmented heap allocator */
-#define JMEM_SEGMENTED_NUM_SEGMENTS (JMEM_HEAP_SIZE / JMEM_SEGMENTED_SEGMENT_SIZE)
+#define SEG_NUM_SEGMENTS (JMEM_HEAP_SIZE / SEG_SEGMENT_SIZE)
 
 /* Dynamic heap with slab */
-#define SLOT_SIZE (16)
-#define NUM_SLOTS_PER_SLAB (1024)
-#define SLAB_SEGMENT_SIZE (SLOT_SIZE * NUM_SLOTS_PER_SLAB)
-#define MAX_NUM_SLABS (JMEM_HEAP_SIZE / SLAB_SEGMENT_SIZE)
+#define DE_SLAB_SLOT_SIZE (16)
+#define DE_NUM_SLOTS_PER_SLAB (1024)
+#define DE_SLAB_SEGMENT_SIZE (DE_SLAB_SLOT_SIZE * DE_NUM_SLOTS_PER_SLAB)
+#define DE_MAX_NUM_SLABS (JMEM_HEAP_SIZE / DE_SLAB_SEGMENT_SIZE)
 
 #ifdef JMEM_SEGMENTED_HEAP
 /**
@@ -136,10 +136,10 @@ void *jmem_heap_alloc_block (const size_t size);
 void *jmem_heap_alloc_block_null_on_error (const size_t size);
 void jmem_heap_free_block (void *ptr, const size_t size);
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
 void *jmem_heap_alloc_block_no_aas (const size_t size);
 void jmem_heap_free_block_no_aas (void *ptr, const size_t size);
-#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(JMEM_DYNAMIC_HEAP_EMUL_SLAB) */
+#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
 
 /* Modification for unifying segmented heap allocator */
 /**
