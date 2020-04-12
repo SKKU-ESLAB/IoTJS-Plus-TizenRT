@@ -101,6 +101,8 @@ inline void __attr_always_inline___ __profile_print_total_size(void) {
   uint32_t total_memory_size = 0;
 #if defined(JERRY_SYSTEM_ALLOCATOR) || defined(JMEM_DYNAMIC_HEAP_EMUL)
   // Dynamic heap or Dynamic heap emulation
+  // TODO: actually-allocated-size must not include metadata.
+  // TODO: decouple metadata from actually-allocated-size
   total_memory_size =
       (uint32_t)JERRY_CONTEXT(jmem_heap_actually_allocated_size);
 #elif defined(JMEM_SEGMENTED_HEAP)
