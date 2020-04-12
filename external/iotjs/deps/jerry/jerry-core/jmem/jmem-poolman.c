@@ -78,7 +78,7 @@ jmem_heap_alloc_block_for_pool(size_t size) {
   #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
     // Dynamic heap with slab
     UNUSED(size);
-    return alloc_a_block_from_slab();
+    return alloc_a_block_from_slab(size);
   #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
     // Others 
     return jmem_heap_alloc_block(size);
@@ -90,7 +90,7 @@ jmem_heap_free_block_for_pool(void* ptr, size_t size) {
   #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
     // Dynamic heap with slab
     UNUSED(size);
-    return free_a_block_from_slab(ptr);
+    return free_a_block_from_slab(ptr, size);
   #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
     // Others
     return jmem_heap_free_block(ptr, size);
@@ -106,7 +106,6 @@ jmem_heap_free_block_for_pool(void* ptr, size_t size) {
 inline void *__attr_hot___ __attr_always_inline___
 jmem_pools_alloc(size_t size) /**< size of the chunk */
 {
-  // TODO: alloc_block_from_slab()
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
@@ -158,7 +157,6 @@ inline void __attr_hot___ __attr_always_inline___
 jmem_pools_free(void *chunk_p, /**< pointer to the chunk */
                 size_t size)   /**< size of the chunk */
 {
-  // TODO: free_block_from_slab()
   JERRY_ASSERT(chunk_p != NULL);
 
   jmem_pools_chunk_t *const chunk_to_free_p = (jmem_pools_chunk_t *)chunk_p;

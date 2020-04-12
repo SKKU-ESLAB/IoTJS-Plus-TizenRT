@@ -19,7 +19,7 @@
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
 
-void *alloc_a_block_from_slab(void) {
+void *alloc_a_block_from_slab(size_t size) {
   // Search a slab
   unsigned char slab_index;
   bool is_slab_found = false;
@@ -29,7 +29,7 @@ void *alloc_a_block_from_slab(void) {
     if (!is_allocated) {
       continue;
     }
-    if (num_allocated_slots + 1 <= DE_NUM_SLOTS_PER_SLAB) {
+    if (num_allocated_slots + 1 < DE_NUM_SLOTS_PER_SLAB) {
       is_slab_found = true;
       break;
     }
@@ -40,23 +40,29 @@ void *alloc_a_block_from_slab(void) {
   }
 
   // Allocate a real block from static heap (because it is just an emulation)
-  void *block_address = jmem_heap_alloc_block_no_aas(DE_SLAB_SLOT_SIZE);
+  void *block_address = jmem_heap_alloc_block_no_aas(size);
 
   // Allocate slots to the slab segment: update slab metadata
   jmem_cpointer_t block_cp = jmem_compress_pointer(block_address);
-  JERRY_CONTEXT(cp2si_rmap[block_cp]) = slab_index;    // Update rmap
+  JERRY_CONTEXT(cp2si_rmap[block_cp]) = slab_index; // Update rmap
   JERRY_CONTEXT(num_allocated_slots[slab_index]) += 1; // Update size
+  // printf("Alloc: %d/%d %d/%d\n", (int)block_cp,
+  //        JMEM_HEAP_SIZE / JMEM_ALIGNMENT,
+  //        (int)JERRY_CONTEXT(jmem_heap_actually_allocated_size), JMEM_HEAP_AREA_SIZE);
+  // printf("Alloc: slab #%d = %d\n", slab_index,
+  // JERRY_CONTEXT(num_allocated_slots[slab_index]));
 
   return block_address;
 }
 
-void free_a_block_from_slab(void *block_address) {
+void free_a_block_from_slab(void *block_address, size_t size) {
   // Free a real block from static heap (because it is just an emulation)
-  jmem_heap_free_block_no_aas(block_address, DE_SLAB_SLOT_SIZE);
+  jmem_heap_free_block_no_aas(block_address, size);
 
   // Free slots from the slab segment: update slab metadata
   jmem_cpointer_t block_cp = jmem_compress_pointer(block_address);
   unsigned char slab_index = JERRY_CONTEXT(cp2si_rmap[block_cp]);
+
   JERRY_CONTEXT(num_allocated_slots[slab_index]) -= 1; // Update size
   // rmap needs not to be updated
 
@@ -64,6 +70,8 @@ void free_a_block_from_slab(void *block_address) {
   if (JERRY_CONTEXT(num_allocated_slots[slab_index]) == 0) {
     free_a_slab_segment(slab_index);
   }
+  // printf("Free: slab #%d = %d\n", slab_index,
+  // JERRY_CONTEXT(num_allocated_slots[slab_index]));
 }
 
 unsigned char alloc_a_slab_segment(void) {
@@ -84,6 +92,7 @@ unsigned char alloc_a_slab_segment(void) {
   size_t allocated_size = JERRY_CONTEXT(jmem_heap_actually_allocated_size);
   allocated_size += DE_SLAB_SEGMENT_SIZE;
   if (allocated_size > max_size) {
+    printf("GC on slab segment alloc\n");
     profile_print_segment_utilization_before_gc(
         DE_SLAB_SEGMENT_SIZE); /* Segment utilization profiling */
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);

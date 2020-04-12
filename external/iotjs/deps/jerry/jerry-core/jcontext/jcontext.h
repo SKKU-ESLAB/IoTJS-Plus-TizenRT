@@ -143,7 +143,7 @@ typedef struct
   int num_allocated_slabs;
   bool is_slab_allocated[DE_MAX_NUM_SLABS]; // 64B
   int num_allocated_slots[DE_MAX_NUM_SLABS]; // 64B
-  unsigned char cp2si_rmap[DE_NUM_SLOTS_PER_SLAB * DE_MAX_NUM_SLABS]; // 16KB
+  unsigned char cp2si_rmap[JMEM_HEAP_SIZE / JMEM_ALIGNMENT]; // 32KB
 #endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
 
 #ifdef JMEM_PROFILE

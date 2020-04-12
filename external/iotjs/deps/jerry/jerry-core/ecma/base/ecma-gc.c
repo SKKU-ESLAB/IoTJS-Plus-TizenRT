@@ -708,6 +708,7 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
 {
   profile_jsobject_inc_total_count(); /* JS object lifespan profiling */
   profile_gc_start(); /* Time profiling */
+  printf("GC start\n");
 
   JERRY_CONTEXT (ecma_gc_new_objects) = 0;
 
@@ -818,6 +819,7 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
   re_cache_gc_run ();
 #endif /* !CONFIG_DISABLE_REGEXP_BUILTIN */
 
+  printf("GC end\n");
   profile_gc_end(); /* Time profiling */
 } /* ecma_gc_run */
 

@@ -17,10 +17,11 @@
 #define JMEM_HEAP_DYNAMIC_HEAP_EMUL_SLAB_H
 
 #include "jmem-config.h"
+#include "jcontext.h"
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
-extern void *alloc_a_block_from_slab(void);
-extern void free_a_block_from_slab(void *block_address);
+extern void *alloc_a_block_from_slab(size_t size);
+extern void free_a_block_from_slab(void *block_address, size_t size);
 extern unsigned char alloc_a_slab_segment(void);
 extern void free_a_slab_segment(unsigned char slab_index);
 
