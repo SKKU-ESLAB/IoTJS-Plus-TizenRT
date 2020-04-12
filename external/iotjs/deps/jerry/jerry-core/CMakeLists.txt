@@ -35,7 +35,7 @@ set(FEATURE_VALGRIND_FREYA   OFF     CACHE BOOL   "Enable Valgrind-Freya support
 set(FEATURE_VM_EXEC_STOP     OFF     CACHE BOOL   "Enable VM execution stopping?")
 set(MEM_HEAP_SIZE_KB         "512"   CACHE STRING "Size of memory heap, in kilobytes")
 
-set(MEM_HEAP_SIZE_KB "256")
+set(MEM_HEAP_SIZE_KB "128")
 
 # Option overrides
 if(FEATURE_SYSTEM_ALLOCATOR)
