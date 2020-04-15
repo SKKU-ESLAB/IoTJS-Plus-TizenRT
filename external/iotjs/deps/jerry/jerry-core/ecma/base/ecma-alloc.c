@@ -89,20 +89,32 @@ DECLARE_ROUTINES_FOR (collection_chunk)
 
 static inline void __attr_always_inline___ add_cpointer_size(size_t cp_size) {
   // Apply the number of cpointers to the actually allocated heap size
-  #if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  JERRY_CONTEXT(jmem_heap_actually_allocated_size) += cp_size; // 2B per cpointers
-  #else
+#if defined(JMEM_DYNAMIC_HEAP_EMUL)
+  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) += cp_size; // 2B per cpointers (deprecated)
+
+  // Update additional heap blocks size
+  JERRY_CONTEXT(jmem_additional_heap_blocks_size) += cp_size;
+#if !defined(DE_SLAB)
+  JERRY_CONTEXT(jmem_allocated_heap_size) += cp_size;
+#endif
+#else
   UNUSED(cp_size);
-  #endif
+#endif
 }
 
 static inline void __attr_always_inline___ sub_cpointer_size(size_t cp_size) {
   // Apply the number of cpointers to the actually allocated heap size
-  #if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= cp_size; // 2B per cpointers
-  #else
+#if defined(JMEM_DYNAMIC_HEAP_EMUL)
+  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= cp_size; // 2B per cpointers (deprecated)
+
+  // Update additional heap blocks size
+  JERRY_CONTEXT(jmem_additional_heap_blocks_size) -= cp_size;
+#if !defined(DE_SLAB)
+  JERRY_CONTEXT(jmem_allocated_heap_size) -= cp_size;
+#endif
+#else
   UNUSED(cp_size);
-  #endif
+#endif
 }
 
 /**

@@ -15,7 +15,7 @@
 
 #include "jmem-heap-dynamic-emul-slab.h"
 #include "jcontext.h"
-#include "jmem-heap-profiler.h"
+#include "jmem-size-profiler.h"
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
 
@@ -40,15 +40,16 @@ void *alloc_a_block_from_slab(size_t size) {
   }
 
   // Allocate a real block from static heap (because it is just an emulation)
-  void *block_address = jmem_heap_alloc_block_no_aas(size);
+  void *block_address = jmem_heap_alloc_block_small_object(size);
 
   // Allocate slots to the slab segment: update slab metadata
   jmem_cpointer_t block_cp = jmem_compress_pointer(block_address);
-  JERRY_CONTEXT(cp2si_rmap[block_cp]) = slab_index; // Update rmap
+  JERRY_CONTEXT(cp2si_rmap[block_cp]) = slab_index;    // Update rmap
   JERRY_CONTEXT(num_allocated_slots[slab_index]) += 1; // Update size
   // printf("Alloc: %d/%d %d/%d\n", (int)block_cp,
   //        JMEM_HEAP_SIZE / JMEM_ALIGNMENT,
-  //        (int)JERRY_CONTEXT(jmem_heap_actually_allocated_size), JMEM_HEAP_AREA_SIZE);
+  //        (int)JERRY_CONTEXT(jmem_heap_actually_allocated_size),
+  //        JMEM_HEAP_AREA_SIZE);
   // printf("Alloc: slab #%d = %d\n", slab_index,
   // JERRY_CONTEXT(num_allocated_slots[slab_index]));
 
@@ -57,7 +58,7 @@ void *alloc_a_block_from_slab(size_t size) {
 
 void free_a_block_from_slab(void *block_address, size_t size) {
   // Free a real block from static heap (because it is just an emulation)
-  jmem_heap_free_block_no_aas(block_address, size);
+  jmem_heap_free_block_small_object(block_address, size);
 
   // Free slots from the slab segment: update slab metadata
   jmem_cpointer_t block_cp = jmem_compress_pointer(block_address);
@@ -104,8 +105,13 @@ unsigned char alloc_a_slab_segment(void) {
   JERRY_CONTEXT(is_slab_allocated[slab_index]) = true;
   JERRY_CONTEXT(num_allocated_slabs)++;
 
-  // Update actually allocated size
-  JERRY_CONTEXT(jmem_heap_actually_allocated_size) += DE_SLAB_SEGMENT_SIZE;
+  // Update actually allocated size (deprecated)
+  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) += DE_SLAB_SEGMENT_SIZE;
+
+  // Update allocated heap size, system allocator metadata size
+  JERRY_CONTEXT(jmem_allocated_heap_size) += DE_SLAB_SEGMENT_SIZE;
+  JERRY_CONTEXT(jmem_system_allocator_metadata_size) +=
+      SYSTEM_ALLOCATOR_METADATA_SIZE;
 
   // Return the slab index of the allocated slab
   return slab_index;
@@ -116,8 +122,13 @@ void free_a_slab_segment(unsigned char slab_index) {
   JERRY_CONTEXT(is_slab_allocated[slab_index]) = false;
   JERRY_CONTEXT(num_allocated_slabs)--;
 
-  // Update actually allocated size
-  JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= DE_SLAB_SEGMENT_SIZE;
+  // Update actually allocated size (deprecated)
+  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= DE_SLAB_SEGMENT_SIZE;
+
+  // Update allocated heap size, system allocator metadata size
+  JERRY_CONTEXT(jmem_allocated_heap_size) -= DE_SLAB_SEGMENT_SIZE;
+  JERRY_CONTEXT(jmem_system_allocator_metadata_size) -=
+      SYSTEM_ALLOCATOR_METADATA_SIZE;
 }
 #endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && \
           defined(DE_SLAB) */

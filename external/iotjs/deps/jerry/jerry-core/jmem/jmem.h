@@ -35,12 +35,17 @@
 
 /* Segmented heap allocator */
 #define SEG_NUM_SEGMENTS (JMEM_HEAP_SIZE / SEG_SEGMENT_SIZE)
+#define SEG_METADATA_SIZE_PER_SEGMENT (32)
 
 /* Dynamic heap with slab */
 #define DE_SLAB_SLOT_SIZE (16)
 #define DE_NUM_SLOTS_PER_SLAB (512)
 #define DE_SLAB_SEGMENT_SIZE (DE_SLAB_SLOT_SIZE * DE_NUM_SLOTS_PER_SLAB)
 #define DE_MAX_NUM_SLABS (JMEM_HEAP_SIZE / DE_SLAB_SEGMENT_SIZE)
+
+/* Calculating system allocator's effect */
+#define SYSTEM_ALLOCATOR_METADATA_SIZE 8
+#define SYSTEM_ALLOCATOR_ALIGN_BYTES 8
 
 #ifdef JMEM_SEGMENTED_HEAP
 /**
@@ -137,8 +142,8 @@ void *jmem_heap_alloc_block_null_on_error (const size_t size);
 void jmem_heap_free_block (void *ptr, const size_t size);
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
-void *jmem_heap_alloc_block_no_aas (const size_t size);
-void jmem_heap_free_block_no_aas (void *ptr, const size_t size);
+void *jmem_heap_alloc_block_small_object (const size_t size);
+void jmem_heap_free_block_small_object (void *ptr, const size_t size);
 #endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
 
 /* Modification for unifying segmented heap allocator */

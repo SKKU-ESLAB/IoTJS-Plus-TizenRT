@@ -26,8 +26,8 @@
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
 #include "jmem-heap-dynamic-emul-slab.h"
-#include "jmem-heap-profiler.h"
 #include "jmem-jsobject-profiler.h"
+#include "jmem-size-profiler.h"
 #include "jmem-time-profiler.h"
 
 /** \addtogroup mem Memory allocation
@@ -89,10 +89,6 @@ static void jmem_heap_stat_free_iter(void);
 #define JMEM_HEAP_STAT_FREE_ITER()
 #endif /* JMEM_STATS */
 
-// Calculating system allocator's effect
-#define SYSTEM_ALLOCATOR_METADATA_SIZE 8
-#define SYSTEM_ALLOCATOR_ALIGN_BYTES 8
-
 /**
  * Startup initialization of heap
  */
@@ -148,9 +144,18 @@ void jmem_heap_init(void) {
 
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
 
+  /* Calculate statically allocated size */
+#if defined(JMEM_STATIC_HEAP)
+  JERRY_CONTEXT(jmem_allocated_heap_size) = JMEM_HEAP_SIZE;
+#endif
+#if defined(JMEM_SEGMENTED_HEAP)
+  JERRY_CONTEXT(jmem_segment_allocator_metadata_size) =
+      SEG_NUM_SEGMENTS * SEG_METADATA_SIZE_PER_SEGMENT;
+#endif
+
   /* Initialize profiling */
-  profile_set_js_start_time(); /* Total size profiling */
-  profile_init_times();        /* Time profiling */
+  init_size_profiler(); /* Total size profiling */
+  init_time_profiler(); /* Time profiling */
 
   JMEM_HEAP_STAT_INIT();
 } /* jmem_heap_init */
@@ -171,7 +176,7 @@ void jmem_heap_finalize(void) {
 
   JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments_count) == 0);
 #endif
-  JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) == 0);
+  JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_blocks_size) == 0);
 } /* jmem_heap_finalize */
 
 /**
@@ -184,7 +189,7 @@ void jmem_heap_finalize(void) {
  *         NULL - if there is not enough memory.
  */
 static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
-                                                          bool is_no_aas) {
+                                                          bool is_small_block) {
   profile_alloc_start(); /* Time profiling */
 
 #ifndef JERRY_SYSTEM_ALLOCATOR
@@ -197,28 +202,39 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
   jmem_heap_free_t *data_space_p = NULL;
   if (required_size == JMEM_ALIGNMENT &&
       likely(JERRY_HEAP_CONTEXT(first).next_offset != JMEM_HEAP_END_OF_LIST)) {
+    // Minimal size (8B in compressed address / 16B in full-bitwidth address)
     data_space_p =
         JMEM_HEAP_GET_ADDR_FROM_OFFSET(JERRY_HEAP_CONTEXT(first).next_offset);
     JERRY_ASSERT(jmem_is_heap_pointer(data_space_p));
 
+    // Update heap blocks size
+    JERRY_CONTEXT(jmem_heap_blocks_size) += JMEM_ALIGNMENT;
+    JERRY_CONTEXT(jmem_heap_allocated_blocks_count)++;
 
-    JERRY_CONTEXT(jmem_heap_allocated_size) += JMEM_ALIGNMENT;
-    if (!is_no_aas) {
-#ifdef JMEM_DYNAMIC_HEAP_EMUL
-      // Dynamic heap emulation
-      JERRY_CONTEXT(jmem_heap_actually_allocated_size) +=
-          JMEM_ALIGNMENT + SYSTEM_ALLOCATOR_METADATA_SIZE;
-#else
-      // Static heap or segmented heap
-      JERRY_CONTEXT(jmem_heap_actually_allocated_size) += JMEM_ALIGNMENT;
-#endif
+    // Update allocated heap size, sys-alloc. metadata size (dynamic heap)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL)
+#if defined(DE_SLAB)
+    // Dynamic heap emulation with slab
+    if (!is_small_block) {
+      JERRY_CONTEXT(jmem_allocated_heap_size) += JMEM_ALIGNMENT;
+      JERRY_CONTEXT(jmem_system_allocator_metadata_size) +=
+          SYSTEM_ALLOCATOR_METADATA_SIZE;
     }
+#else
+    // Dynamic heap emulation without slab
+    JERRY_CONTEXT(jmem_allocated_heap_size) += JMEM_ALIGNMENT;
+    JERRY_CONTEXT(jmem_system_allocator_metadata_size) +=
+        SYSTEM_ALLOCATOR_METADATA_SIZE;
+#endif /* !defined(DE_SLAB) */
+#endif /* defined(JMEM_DYNAMIC_HEPA_EMUL) */
+
+    // Update segment occupied size (segment heap)
 #ifdef JMEM_SEGMENTED_HEAP
     JERRY_HEAP_CONTEXT(
         segments[JERRY_HEAP_CONTEXT(first).next_offset / SEG_SEGMENT_SIZE])
         .occupied_size += JMEM_ALIGNMENT;
 #endif
-    JERRY_CONTEXT(jmem_heap_allocated_blocks_count)++;
+
     JMEM_HEAP_STAT_ALLOC_ITER();
 
     if (data_space_p->size == JMEM_ALIGNMENT) {
@@ -266,19 +282,28 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
         /* Region is sufficiently big, store address. */
         data_space_p = current_p;
 
-        JERRY_CONTEXT(jmem_heap_allocated_size) += required_size;
+        // Update heap blocks size
+        JERRY_CONTEXT(jmem_heap_blocks_size) += required_size;
         JERRY_CONTEXT(jmem_heap_allocated_blocks_count)++;
-        if (!is_no_aas) {
-#ifdef JMEM_DYNAMIC_HEAP_EMUL
-          // Dynamic heap emulation
-          JERRY_CONTEXT(jmem_heap_actually_allocated_size) +=
-              required_size + SYSTEM_ALLOCATOR_METADATA_SIZE;
-#else
-          // Static heap or segmented heap
-          JERRY_CONTEXT(jmem_heap_actually_allocated_size) += required_size;
-#endif
-        }
 
+        // Update allocated heap size, sys-alloc. metadata size (dynamic heap)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL)
+#if defined(DE_SLAB)
+        // Dynamic heap emulation with slab
+        if (!is_small_block) {
+          JERRY_CONTEXT(jmem_allocated_heap_size) += required_size;
+          JERRY_CONTEXT(jmem_system_allocator_metadata_size) +=
+              SYSTEM_ALLOCATOR_METADATA_SIZE;
+        }
+#else
+        // Dynamic heap emulation without slab
+        JERRY_CONTEXT(jmem_allocated_heap_size) += required_size;
+        JERRY_CONTEXT(jmem_system_allocator_metadata_size) +=
+            SYSTEM_ALLOCATOR_METADATA_SIZE;
+#endif /* !defined(DE_SLAB) */
+#endif /* defined(JMEM_DYNAMIC_HEPA_EMUL) */
+
+        // Update segment occupied size (segment heap)
 #ifdef JMEM_SEGMENTED_HEAP
         uint32_t start_segment = current_offset / SEG_SEGMENT_SIZE;
         uint32_t end_segment =
@@ -337,7 +362,7 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
     }
   }
 
-  while (JERRY_CONTEXT(jmem_heap_allocated_size) >=
+  while (JERRY_CONTEXT(jmem_heap_blocks_size) >=
          JERRY_CONTEXT(jmem_heap_limit)) {
     JERRY_CONTEXT(jmem_heap_limit) += CONFIG_MEM_HEAP_DESIRED_LIMIT;
   }
@@ -355,7 +380,7 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
 #else  /* JERRY_SYSTEM_ALLOCATOR */
   void *data_space_p = malloc(size);
 
-  JERRY_CONTEXT(jmem_heap_allocated_size) += size;
+  JERRY_CONTEXT(jmem_heap_blocks_size) += size;
   JERRY_CONTEXT(jmem_heap_allocated_blocks_count)++;
 
   // Dynamic heap
@@ -390,8 +415,7 @@ static void *jmem_heap_gc_and_alloc_block(
     const size_t size,      /**< required memory size */
     bool ret_null_on_error, /**< indicates whether return null or terminate
                                  with ERR_OUT_OF_MEMORY on out of memory */
-    bool is_no_aas)         /**< do not update on actually allocated size
-                                 in order to */
+    bool is_small_block)    /**< is small JSObject or not */
 {
 #ifdef JMEM_SEGMENTED_HEAP
   // Disallow too large block bigger than two segments
@@ -420,7 +444,7 @@ static void *jmem_heap_gc_and_alloc_block(
   size_t max_size = JMEM_HEAP_SIZE;
 #endif
   size_t allocated_size = JERRY_CONTEXT(jmem_heap_actually_allocated_size);
-  if (!is_no_aas) {
+  if (!is_no_aas) { // deprecated
     allocated_size += size;
   }
   if (allocated_size > max_size) {
@@ -431,7 +455,7 @@ static void *jmem_heap_gc_and_alloc_block(
         size); /* Segment utilization profiling */
   }
   void *data_space_p =
-      jmem_heap_alloc_block_internal(size, is_no_aas); // BLOCK ALLOC
+      jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
   if (likely(data_space_p != NULL)) {
     profile_print_total_size_each_time(); /* Total size profiling */
 #ifndef JERRY_SYSTEM_ALLOCATOR
@@ -451,7 +475,7 @@ static void *jmem_heap_gc_and_alloc_block(
     profile_print_segment_utilization_after_gc(
         size); /* Segment utilization profiling */
     void *data_space_p2 =
-        jmem_heap_alloc_block_internal(size, is_no_aas); // BLOCK ALLOC
+        jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     if (likely(data_space_p2 != NULL)) {
       profile_print_total_size_each_time(); /* Total size profiling */
       profile_jsobject_set_object_birth_time(jmem_compress_pointer(
@@ -473,7 +497,7 @@ static void *jmem_heap_gc_and_alloc_block(
     profile_print_segment_utilization_before_add_segment(size);
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
       data_space_p =
-          jmem_heap_alloc_block_internal(size, is_no_aas); // BLOCK ALLOC
+          jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
       JERRY_ASSERT(data_space_p != NULL);
       profile_jsobject_set_object_birth_count(jmem_compress_pointer(
           data_space_p)); /* JS object lifespan profiling */
@@ -493,7 +517,7 @@ static void *jmem_heap_gc_and_alloc_block(
     profile_print_segment_utilization_after_gc(
         size); /* Segment utilization profiling */
     data_space_p =
-        jmem_heap_alloc_block_internal(size, is_no_aas); // BLOCK ALLOC
+        jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     if (likely(data_space_p != NULL)) {
       profile_print_total_size_each_time(); /* Total size profiling */
       profile_jsobject_set_object_birth_time(jmem_compress_pointer(
@@ -511,7 +535,7 @@ static void *jmem_heap_gc_and_alloc_block(
     profile_print_segment_utilization_before_add_segment(size);
     if (jmem_heap_add_segment(is_two_segs) != NULL) {
       data_space_p =
-          jmem_heap_alloc_block_internal(size, is_no_aas); // BLOCK ALLOC
+          jmem_heap_alloc_block_internal(size, is_small_object); // BLOCK ALLOC
       JERRY_ASSERT(data_space_p != NULL);
       profile_jsobject_set_object_birth_count(jmem_compress_pointer(
           data_space_p)); /* JS object lifespan profiling */
@@ -569,8 +593,7 @@ jmem_heap_alloc_block_null_on_error(
 static void __attr_hot___ jmem_heap_free_block_internal(
     void *ptr,         /**< pointer to beginning of data space of the block */
     const size_t size, /**< size of allocated region */
-    bool is_no_aas)    /**< do not update on actually allocated size
-                            in order to emulate dynamic heap with slab */
+    bool is_small_object) /**< is small object or not */
 {
 #ifndef JERRY_SYSTEM_ALLOCATOR
   profile_free_start(); /* Time profiling */
@@ -579,7 +602,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   JERRY_ASSERT(jmem_is_heap_pointer(ptr));
   JERRY_ASSERT(size > 0);
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_limit) >=
-               JERRY_CONTEXT(jmem_heap_allocated_size));
+               JERRY_CONTEXT(jmem_heap_blocks_size));
 
   JMEM_HEAP_STAT_FREE_ITER();
 
@@ -669,9 +692,28 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 #endif
 
   // Static heap or segmented heap
-  JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_allocated_size) > 0);
-  JERRY_CONTEXT(jmem_heap_allocated_size) -= aligned_size;
+  JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_blocks_size) > 0);
+
+  // Update heap blocks size
+  JERRY_CONTEXT(jmem_heap_blocks_size) -= aligned_size;
   JERRY_CONTEXT(jmem_heap_allocated_blocks_count)--;
+
+  // Update allocated heap size and sys-alloc. metadata size (dynamic heap)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL)
+#if defined(DE_SLAB)
+  // Dynamic heap with slab
+  if (!is_small_object) {
+    JERRY_CONTEXT(jmem_allocated_heap_size) -= aligned_size;
+    JERRY_CONTEXT(jmem_system_allocator_metadata_size) -=
+        SYSTEM_ALLOCATOR_METADATA_SIZE;
+  }
+#else  /* defined(DE_SLAB) */
+  // Dynamic heap without slab
+  JERRY_CONTEXT(jmem_allocated_heap_size) -= aligned_size;
+  JERRY_CONTEXT(jmem_system_allocator_metadata_size) -=
+      SYSTEM_ALLOCATOR_METADATA_SIZE;
+#endif /* !defined(DE_SLAB) */
+#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) */
 
   if (!is_no_aas) {
 #ifdef JMEM_DYNAMIC_HEAP_EMUL
@@ -684,14 +726,13 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 #endif
   }
 
-  while (JERRY_CONTEXT(jmem_heap_allocated_size) +
-             CONFIG_MEM_HEAP_DESIRED_LIMIT <=
+  while (JERRY_CONTEXT(jmem_heap_blocks_size) + CONFIG_MEM_HEAP_DESIRED_LIMIT <=
          JERRY_CONTEXT(jmem_heap_limit)) {
     JERRY_CONTEXT(jmem_heap_limit) -= CONFIG_MEM_HEAP_DESIRED_LIMIT;
   }
 
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_limit) >=
-               JERRY_CONTEXT(jmem_heap_allocated_size));
+               JERRY_CONTEXT(jmem_heap_blocks_size));
   JMEM_HEAP_STAT_FREE(size);
 
   profile_print_total_size_each_time(); /* Total size profiling */
@@ -706,7 +747,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   JERRY_UNUSED(size);
   free(ptr);
 
-  JERRY_CONTEXT(jmem_heap_allocated_size) -= size;
+  JERRY_CONTEXT(jmem_heap_blocks_size) -= size;
   JERRY_CONTEXT(jmem_heap_allocated_blocks_count)--;
 
   // Dynamic heap
@@ -735,11 +776,11 @@ void __attr_hot___ jmem_heap_free_block(
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
 inline void *__attr_hot___ __attr_always_inline___
-jmem_heap_alloc_block_no_aas(const size_t size) {
+jmem_heap_alloc_block_small_object(const size_t size) {
   return jmem_heap_gc_and_alloc_block(size, false, true);
 }
 inline void __attr_hot___ __attr_always_inline___
-jmem_heap_free_block_no_aas(void *ptr, const size_t size) {
+jmem_heap_free_block_small_object(void *ptr, const size_t size) {
   jmem_heap_free_block_internal(ptr, size, true);
 }
 #endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && \

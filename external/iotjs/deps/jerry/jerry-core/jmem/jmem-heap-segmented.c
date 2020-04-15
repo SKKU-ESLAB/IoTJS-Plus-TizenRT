@@ -93,7 +93,8 @@ jmem_heap_get_addr_from_offset_segmented(uint32_t u) {
 }
 
 static uint32_t __find_proper_segment_entry(bool is_two_segs) {
-  for (uint32_t segment_idx = 0; segment_idx < SEG_NUM_SEGMENTS; segment_idx++) {
+  for (uint32_t segment_idx = 0; segment_idx < SEG_NUM_SEGMENTS;
+       segment_idx++) {
     if (is_two_segs) {
       if (JERRY_HEAP_CONTEXT(area[segment_idx] == NULL) &&
           JERRY_HEAP_CONTEXT(area[segment_idx + 1] == NULL)) {
@@ -138,8 +139,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
     region_p->size = (size_t)SEG_SEGMENT_SIZE * 2;
     region_p->next_offset =
         JMEM_HEAP_GET_OFFSET_FROM_ADDR(JMEM_HEAP_END_OF_LIST);
-    JERRY_HEAP_CONTEXT(segments[segment_idx]).total_size =
-        SEG_SEGMENT_SIZE * 2;
+    JERRY_HEAP_CONTEXT(segments[segment_idx]).total_size = SEG_SEGMENT_SIZE * 2;
     JERRY_HEAP_CONTEXT(segments[segment_idx]).occupied_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).total_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).occupied_size = 0;
@@ -293,6 +293,12 @@ void free_first_empty_segment(void) {
  */
 static void *jmem_segment_alloc(void) {
   void *ret = MALLOC(SEG_SEGMENT_SIZE);
+
+  // Update allocated heap area size, system memory allocator
+  JERRY_CONTEXT(jmem_allocated_heap_size) -= SEG_SEGMENT_SIZE;
+  JERRY_CONTEXT(jmem_system_allocator_metadata_size) -=
+      SYSTEM_ALLOCATOR_METADATA_SIZE;
+
   JERRY_ASSERT(ret != NULL);
 
   return ret;
@@ -319,6 +325,10 @@ static void jmem_segment_free(void *seg_ptr, bool is_following_node) {
   JERRY_ASSERT(seg_ptr != NULL);
 
   if (!is_following_node) {
+    // Update allocated heap area size, system memory allocator
+    JERRY_CONTEXT(jmem_allocated_heap_size) -= SEG_SEGMENT_SIZE;
+    JERRY_CONTEXT(jmem_system_allocator_metadata_size) -=
+        SYSTEM_ALLOCATOR_METADATA_SIZE;
     FREE(seg_ptr);
   }
 

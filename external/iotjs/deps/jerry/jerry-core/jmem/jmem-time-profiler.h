@@ -22,7 +22,7 @@
 
 #include <sys/time.h>
 /* Time profiling */
-extern void profile_init_times(void);
+extern void init_time_profiler(void);
 extern void profile_print_times(void);
 
 extern void profile_alloc_start(void);

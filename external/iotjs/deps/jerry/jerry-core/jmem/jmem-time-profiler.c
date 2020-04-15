@@ -22,7 +22,7 @@
 #define UNUSED(x) (void)(x)
 
 /* Time profiling */
-void profile_init_times(void) {
+void init_time_profiler(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   gettimeofday(&JERRY_CONTEXT(timeval_start), NULL);

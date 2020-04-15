@@ -81,7 +81,7 @@ jmem_heap_alloc_block_for_pool(size_t size) {
     return alloc_a_block_from_slab(size);
   #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
     // Others 
-    return jmem_heap_alloc_block(size);
+    return jmem_heap_alloc_block_small_object(size);
   #endif /* !(defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)) */
 }
 
@@ -93,7 +93,7 @@ jmem_heap_free_block_for_pool(void* ptr, size_t size) {
     return free_a_block_from_slab(ptr, size);
   #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
     // Others
-    return jmem_heap_free_block(ptr, size);
+    return jmem_heap_free_block_small_object(ptr, size);
   #endif /* !(defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)) */
 }
 

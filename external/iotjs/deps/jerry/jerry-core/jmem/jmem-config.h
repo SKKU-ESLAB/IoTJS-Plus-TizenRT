@@ -24,33 +24,27 @@
 
 
 /* Heap allocation type */
-// 1) Dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled
+// 1) Real dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled
 // #define JMEM_SEGMENTED_HEAP // 2) Segmented heap
-// #define JMEM_DYNAMIC_HEAP_EMUL // 3) Dynamic heap emulation
+#define JMEM_DYNAMIC_HEAP_EMUL // 3) Dynamic heap emulation
 // 4) Static heap - else
 
 
 /* For each allocation type configs */
 #if defined(JMEM_SYSTEM_ALLOCATOR)
-
-// 1) Dynamic heap
+#define JMEM_DYNAMIC_HEAP_REAL // 1) Real dynamic heap - not used
 // no options
 
-#elif defined(JMEM_SEGMENTED_HEAP)
-
-// 2) Segmented heap
+#elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
 #define SEG_RMAP_BINSEARCH // binary search for reverse map
 #define SEG_SEGALLOC_FIRST // segment alloc at first before GC
 // #define JMEM_SEGMENTED_AGGRESSIVE_GC
 
-#elif defined(JMEM_DYNAMIC_HEAP_EMUL)
-
-// 3) Dynamic heap emulation
+#elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment
 
 #else
-
-// 4) Static heap
+#define JMEM_STATIC_HEAP // 4) Static heap
 // no options
 
 #endif
@@ -58,7 +52,7 @@
 
 /* Profiler configs */
 #define JMEM_PROFILE
-/* jmem-heap-profiler.c */
+/* jmem-size-profiler.c */
 #define PROF_TOTAL_SIZE
 #define PROF_TOTAL_SIZE__PERIOD_USEC (100 * 1000)
 // #define PROF_SEGMENT_UTILIZATION

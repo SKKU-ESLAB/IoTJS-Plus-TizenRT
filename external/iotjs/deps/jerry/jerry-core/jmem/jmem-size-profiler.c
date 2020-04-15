@@ -16,8 +16,8 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#include "jmem-heap-profiler.h"
 #include "jmem-profiler-common.h"
+#include "jmem-size-profiler.h"
 
 #define UNUSED(x) (void)(x)
 
@@ -28,15 +28,29 @@ static void __profile_print_total_size(void);
 static void __profile_print_segment_utilization(const char *type,
                                                 size_t jsobject_size);
 
-inline void __attr_always_inline___ profile_set_js_start_time(void) {
+inline void __attr_always_inline___ init_size_profiler(void) {
 #if defined(JMEM_PROFILE)
   CHECK_LOGGING_ENABLED();
   gettimeofday(&JERRY_CONTEXT(timeval_js_start), NULL);
 #if defined(PROF_TOTAL_SIZE__PERIOD_USEC)
+  FILE *fp1 = fopen(PROF_TOTAL_SIZE_FILENAME, "w");
+  fprintf(fp1,
+          "Timestamp (s), JSObject Size (s), Heap Size (s), Total Size (s)\n");
+  fflush(fp1);
+  fclose(fp1);
   JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_sec = 0;
   JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_usec = 0;
 #endif
 #if defined(PROF_SEGMENT_UTILIZATION__PERIOD_USEC)
+  FILE *fp2 = fopen(PROF_SEGMENT_UTILIZATION_FILENAME, "w");
+  fprintf(fp2, "Timestamp (s), JSObject Size (s)");
+  for (uint32_t segment_idx = 0; segment_idx < SEG_NUM_SEGMENTS;
+       segment_idx++) {
+    fprintf(fp2, ", S%lu", (unsigned long)segment_idx);
+  }
+  fprintf(fp2, "\n");
+  fflush(fp2);
+  fclose(fp2);
   JERRY_CONTEXT(jsuptime_recent_segutil_print).tv_sec = 0;
   JERRY_CONTEXT(jsuptime_recent_segutil_print).tv_usec = 0;
 #endif
@@ -117,8 +131,8 @@ inline void __attr_always_inline___ __profile_print_total_size(void) {
   // Static heap
   total_memory_size = JMEM_HEAP_SIZE;
 #endif
-  fprintf(fp, "TS, %lu.%06lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
-          js_uptime.tv_usec, (uint32_t)JERRY_CONTEXT(jmem_heap_allocated_size),
+  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu\n", js_uptime.tv_sec, js_uptime.tv_usec,
+          (uint32_t)JERRY_CONTEXT(jmem_heap_blocks_size),
           (uint32_t)JERRY_CONTEXT(jmem_heap_actually_allocated_size),
           (uint32_t)total_memory_size);
   fflush(fp);
@@ -216,6 +230,6 @@ __profile_print_segment_utilization(const char *header, size_t jsobject_size) {
   UNUSED(header);
   UNUSED(jsobject_size);
 #endif /* defined(JMEM_SEGMENTED_HEAP) &&defined(JMEM_PROFILE) && \
-        * defined(PROF_SEGMENT_UTILIZATION)               \
+        * defined(PROF_SEGMENT_UTILIZATION)                       \
         */
 }

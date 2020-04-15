@@ -83,9 +83,15 @@ typedef struct
   jerry_context_data_header_t *context_data_p; /**< linked list of user-provided context-specific pointers */
   size_t ecma_gc_objects_number; /**< number of currently allocated objects */
   size_t ecma_gc_new_objects; /**< number of newly allocated objects since last GC session */
-  size_t jmem_heap_allocated_size; /**< size of allocated regions */
+
+  size_t jmem_heap_blocks_size; /**< block size */
+  size_t jmem_additional_heap_blocks_size; /**< additional block size for full-bitwidth address */
+  size_t jmem_allocated_heap_size; /**< allocated heap size (including over-provision) */
+  size_t jmem_system_allocator_metadata_size; /**< system allocator metadata size */
+  size_t jmem_segment_allocator_metadata_size; /**< segment allocator metadata size */
   size_t jmem_heap_actually_allocated_size; /**< size of allocated regions */
   uint32_t jmem_heap_allocated_blocks_count; /**< the count of allocated JS objects in the heap */
+
   size_t jmem_heap_limit; /**< current limit of heap usage, that is upon being reached,
                            *   causes call of "try give memory back" callbacks */
   uint32_t lit_magic_string_ex_count; /**< external magic strings count */

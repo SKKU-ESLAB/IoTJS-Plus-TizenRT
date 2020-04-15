@@ -23,7 +23,7 @@
 #include <sys/time.h>
 
 /* Initialize the profiling start time */
-extern void profile_set_js_start_time(void);
+extern void init_size_profiler(void);
 
 /* Total size profiling: configurable each_time */
 extern void profile_print_total_size_each_time(void);
