@@ -13,18 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef JMEM_HEAP_SEGMENTED_H
-#define JMEM_HEAP_SEGMENTED_H
+#ifndef JMEM_HEAP_SEGMENTED_TRANSLATION_H
+#define JMEM_HEAP_SEGMENTED_TRANSLATION_H
 
-#include "jcontext.h"
-#include "jmem-config.h"
 #include "jrt.h"
 
-#ifdef JMEM_SEGMENTED_HEAP
-extern void init_segmented_heap(void);
-extern void *alloc_a_segment_group(bool is_two_segs);
-extern void free_empty_segment_groups(void);
-extern void free_initial_segment_group(void);
-#endif /* JMEM_SEGMENTED_HEAP */
+extern uint8_t *sidx_to_addr(uint32_t sidx);
+extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out);
 
-#endif /* !defined(JMEM_HEAP_SEGMENTED_H) */
+#endif /* !defined(JMEM_HEAP_SEGMENTED_TRANSLATION_H) */
