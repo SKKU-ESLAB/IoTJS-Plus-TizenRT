@@ -489,25 +489,21 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   // Segment Allocation before GC
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef SEG_SEGALLOC_FIRST
-  {
-    /* Try one or two segments -> try to alloc a block */
-    bool is_two_segs = false;
-    if (size > SEG_SEGMENT_SIZE) {
-      is_two_segs = true;
-    }
-    /* Segment utilization profiling */
-    print_segment_utilization_profile_before_segalloc(size);
-    if (jmem_heap_add_segment(is_two_segs) != NULL) {
-      data_space_p =
-          jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
-      JERRY_ASSERT(data_space_p != NULL);
-      profile_jsobject_set_object_birth_count(jmem_compress_pointer(
-          data_space_p)); /* JS object lifespan profiling */
-      return data_space_p;
-    }
+  /* Try one or two segments -> try to alloc a block */
+  bool is_two_segs = false;
+  if (size > SEG_SEGMENT_SIZE) {
+    is_two_segs = true;
   }
-#endif /* SEG_SEGALLOC_FIRST */
+  /* Segment utilization profiling */
+  print_segment_utilization_profile_before_segalloc(size);
+  if (jmem_heap_add_segment(is_two_segs) != NULL) {
+    data_space_p =
+        jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
+    JERRY_ASSERT(data_space_p != NULL);
+    profile_jsobject_set_object_birth_count(jmem_compress_pointer(
+        data_space_p)); /* JS object lifespan profiling */
+    return data_space_p;
+  }
 #endif /* JMEM_SEGMENTED_HEAP */
   for (jmem_free_unused_memory_severity_t severity =
            JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
