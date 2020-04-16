@@ -39,7 +39,7 @@ static void *jmem_segment_alloc_init(jmem_segment_t *seg_info);
 static void jmem_segment_free(void *seg_ptr, bool is_following_node);
 
 /* External functions */
-void jmem_segmented_init_segments(void) {
+void init_segmented_heap(void) {
   /* Initialize first segment */
   JERRY_HEAP_CONTEXT(area[0]) =
       (uint8_t *)jmem_segment_alloc_init(&JERRY_HEAP_CONTEXT(segments[0]));
@@ -109,7 +109,7 @@ static uint32_t __find_proper_segment_entry(bool is_two_segs) {
   return SEG_NUM_SEGMENTS;
 }
 
-void *jmem_heap_add_segment(bool is_two_segs) {
+void *alloc_a_segment_group(bool is_two_segs) {
   // Find empty entry or double empty entries in segment translation table
   uint32_t segment_idx = __find_proper_segment_entry(is_two_segs);
   if (segment_idx >= SEG_NUM_SEGMENTS) {
@@ -196,7 +196,7 @@ void *jmem_heap_add_segment(bool is_two_segs) {
   return (void *)allocated_segment;
 }
 
-void free_empty_segments(void) {
+void free_empty_segment_groups(void) {
   for (uint32_t seg_iter = 1; seg_iter < SEG_NUM_SEGMENTS; seg_iter++) {
     jmem_heap_free_t *segment_to_free =
         (jmem_heap_free_t *)JERRY_HEAP_CONTEXT(area[seg_iter]);
@@ -288,7 +288,7 @@ jmem_segment_lookup(uint8_t **seg_addr, uint8_t *p) {
   return segment_idx;
 }
 
-void free_first_empty_segment(void) {
+void free_initial_segment_group(void) {
   jmem_segment_free(JERRY_HEAP_CONTEXT(area[0]), false);
   JERRY_HEAP_CONTEXT(segments_count)--;
 }

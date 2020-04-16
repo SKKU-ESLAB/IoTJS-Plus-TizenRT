@@ -175,7 +175,7 @@ jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t severi
   jmem_pools_collect_empty ();
 
 #ifdef JMEM_SEGMENTED_HEAP
-  free_empty_segments ();
+  free_empty_segment_groups ();
 #endif /* JMEM_SEGMENTED_HEAP */
 } /* jmem_run_free_unused_memory_callbacks */
 

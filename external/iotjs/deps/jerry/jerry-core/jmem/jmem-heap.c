@@ -151,7 +151,7 @@ void jmem_heap_init(void) {
 
 #if !defined(JERRY_SYSTEM_ALLOCATOR)
 #if defined(JMEM_SEGMENTED_HEAP)
-  jmem_segmented_init_segments();
+  init_segmented_heap();
 #endif /* defined(JMEM_SEGMENTED_HEAP) */
   JERRY_CONTEXT(jmem_heap_limit) = CONFIG_MEM_HEAP_DESIRED_LIMIT;
   jmem_heap_init_first_free_region();
@@ -175,8 +175,8 @@ void jmem_heap_finalize(void) {
   print_jsobject_allocation_profile(); /* JS object allocation profiling */
 
 #ifdef JMEM_SEGMENTED_HEAP
-  free_empty_segments();
-  free_first_empty_segment();
+  free_empty_segment_groups();
+  free_initial_segment_group();
 
   JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments_count) == 0);
 #endif
@@ -496,7 +496,7 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   /* Segment utilization profiling */
   print_segment_utilization_profile_before_segalloc(size);
-  if (jmem_heap_add_segment(is_two_segs) != NULL) {
+  if (alloc_a_segment_group(is_two_segs) != NULL) {
     data_space_p =
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     JERRY_ASSERT(data_space_p != NULL);
@@ -528,19 +528,16 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   // Segment allocation after GC
 #ifdef JMEM_SEGMENTED_HEAP
-  {
-    bool is_two_segs = false;
-    /* Segment utilization profiling */
-    print_segment_utilization_profile_before_segalloc(size);
-    if (jmem_heap_add_segment(is_two_segs) != NULL) {
-      data_space_p =
-          jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
-      JERRY_ASSERT(data_space_p != NULL);
-      profile_jsobject_set_object_birth_count(jmem_compress_pointer(
-          data_space_p)); /* JS object lifespan profiling */
-    }
-    return data_space_p;
+  /* Segment utilization profiling */
+  print_segment_utilization_profile_before_segalloc(size);
+  if (alloc_a_segment_group(is_two_segs) != NULL) {
+    data_space_p =
+        jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
+    JERRY_ASSERT(data_space_p != NULL);
+    profile_jsobject_set_object_birth_count(jmem_compress_pointer(
+        data_space_p)); /* JS object lifespan profiling */
   }
+  return data_space_p;
 #endif /* JMEM_SEGMENTED_HEAP */
   JERRY_ASSERT(data_space_p == NULL);
 

@@ -22,12 +22,10 @@
 #include "jrt.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
-extern void jmem_segmented_init_segments(void);
-extern void *jmem_segmented_alloc_a_segment(const size_t size, bool is_alloc_before);
-
-extern void *jmem_heap_add_segment(bool is_two_segs);
-extern void free_empty_segments(void);
-extern void free_first_empty_segment(void);
+extern void init_segmented_heap(void);
+extern void *alloc_a_segment_group(bool is_two_segs);
+extern void free_empty_segment_groups(void);
+extern void free_initial_segment_group(void);
 #endif /* JMEM_SEGMENTED_HEAP */
 
 #endif /* !defined(JMEM_HEAP_SEGMENTED_H) */
