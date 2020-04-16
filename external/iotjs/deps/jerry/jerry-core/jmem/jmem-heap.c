@@ -443,6 +443,7 @@ static void *jmem_heap_gc_and_alloc_block(
     bool is_small_block)    /**< is small JSObject or not */
 {
 #ifdef JMEM_SEGMENTED_HEAP
+  // TODO: deprecate it!
   // Disallow too large block bigger than two segments
   if (size >= SEG_SEGMENT_SIZE * 2) {
     printf("Requested size: %lu, but allowed maximum allocation size is: %lu\n",
@@ -460,6 +461,7 @@ static void *jmem_heap_gc_and_alloc_block(
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
 
+  // Call GC if free memory is expected to lack
 #if defined(JMEM_STATIC_HEAP) || defined(JMEM_SEGMENTED_HEAP)
   size_t allocated_size = JERRY_CONTEXT(jmem_heap_blocks_size) + size;
 #else /* defined(JMEM_STATIC_HEAP) || defined(JMEM_SEGMENTED_HEAP) */
@@ -470,11 +472,9 @@ static void *jmem_heap_gc_and_alloc_block(
 #endif /* defined(DE_SLAB) */
 #endif /* !defined(JMEM_STATIC_HEAP) && !defined(JMEM_SEGMENTED_HEAP) */
   if (allocated_size > JMEM_HEAP_SIZE) {
-    print_segment_utiliaztion_profile_before_gc(
-        size); /* Segment utilization profiling */
+    print_segment_utiliaztion_profile_before_gc(size); /* Seg-util profiling */
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
-    print_segment_utiliaztion_profile_after_gc(
-        size); /* Segment utilization profiling */
+    print_segment_utiliaztion_profile_after_gc(size); /* Seg-util profiling */
   }
   void *data_space_p =
       jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
@@ -489,25 +489,6 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   // Segment Allocation before GC
 #ifdef JMEM_SEGMENTED_HEAP
-#ifdef JMEM_SEGMENTED_AGGRESSIVE_GC
-  {
-    print_segment_utiliaztion_profile_before_gc(
-        size); /* Segment utilization profiling */
-    jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
-    print_segment_utiliaztion_profile_after_gc(
-        size); /* Segment utilization profiling */
-    void *data_space_p2 =
-        jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
-    if (likely(data_space_p2 != NULL)) {
-      print_total_size_profile_on_alloc(); /* Total size profiling */
-      profile_jsobject_set_object_birth_time(jmem_compress_pointer(
-          data_space_p2)); /* JS object lifespan profiling */
-      profile_jsobject_inc_allocation(
-          size); /* JS object allocation profiling */
-      return data_space_p2;
-    }
-  }
-#endif
 #ifdef SEG_SEGALLOC_FIRST
   {
     /* Try one or two segments -> try to alloc a block */
