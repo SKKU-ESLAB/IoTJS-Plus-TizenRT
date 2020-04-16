@@ -21,8 +21,6 @@
 #include "jmem.h"
 #include "jcontext.h"
 
-#define UNUSED(x) (void)(x)
-
 JERRY_STATIC_ASSERT (sizeof (ecma_property_value_t) == sizeof (ecma_value_t),
                      size_of_ecma_property_value_t_must_be_equal_to_size_of_ecma_value_t);
 JERRY_STATIC_ASSERT (((sizeof (ecma_property_value_t) - 1) & sizeof (ecma_property_value_t)) == 0,
@@ -87,33 +85,29 @@ DECLARE_ROUTINES_FOR (number)
 DECLARE_ROUTINES_FOR (collection_header)
 DECLARE_ROUTINES_FOR (collection_chunk)
 
-static inline void __attr_always_inline___ add_cpointer_size(size_t cp_size) {
+static inline void __attr_always_inline___ add_full_bitwidth_size(size_t full_bw_size) {
   // Apply the number of cpointers to the actually allocated heap size
 #if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) += cp_size; // 2B per cpointers (deprecated)
-
   // Update additional heap blocks size
-  JERRY_CONTEXT(jmem_additional_heap_blocks_size) += cp_size;
+  JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) += full_bw_size;
 #if !defined(DE_SLAB)
-  JERRY_CONTEXT(jmem_allocated_heap_size) += cp_size;
+  JERRY_CONTEXT(jmem_allocated_heap_size) += full_bw_size;
 #endif
 #else
-  UNUSED(cp_size);
+  JERRY_UNUSED(full_bw_size);
 #endif
 }
 
-static inline void __attr_always_inline___ sub_cpointer_size(size_t cp_size) {
+static inline void __attr_always_inline___ sub_full_bitwidth_size(size_t full_bw_size) {
   // Apply the number of cpointers to the actually allocated heap size
 #if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= cp_size; // 2B per cpointers (deprecated)
-
   // Update additional heap blocks size
-  JERRY_CONTEXT(jmem_additional_heap_blocks_size) -= cp_size;
+  JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) -= full_bw_size;
 #if !defined(DE_SLAB)
-  JERRY_CONTEXT(jmem_allocated_heap_size) -= cp_size;
+  JERRY_CONTEXT(jmem_allocated_heap_size) -= full_bw_size;
 #endif
 #else
-  UNUSED(cp_size);
+  JERRY_UNUSED(full_bw_size);
 #endif
 }
 
@@ -161,7 +155,7 @@ ecma_alloc_extended_object (size_t size) /**< size of object */
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL)
   // revise actually allocated size
-  add_cpointer_size(8);
+  add_full_bitwidth_size(8);
 #endif
 
   ecma_extended_object_t * res = jmem_heap_alloc_block (size);
@@ -183,7 +177,7 @@ ecma_dealloc_extended_object (ecma_extended_object_t *ext_object_p, /**< propert
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL)
   // revise actually allocated size
-  sub_cpointer_size(8);
+  sub_full_bitwidth_size(8);
 #endif
 } /* ecma_dealloc_extended_object */
 
@@ -290,7 +284,7 @@ ecma_alloc_property_pair (void)
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL)
   // revise actually allocated size
-  add_cpointer_size(4);
+  add_full_bitwidth_size(4);
 #endif
 
   ecma_property_pair_t * res = jmem_heap_alloc_block (sizeof (ecma_property_pair_t));
@@ -311,7 +305,7 @@ ecma_dealloc_property_pair (ecma_property_pair_t *property_pair_p) /**< property
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL)
   // revise actually allocated size
-  sub_cpointer_size(4);
+  sub_full_bitwidth_size(4);
 #endif
 } /* ecma_dealloc_property_pair */
 

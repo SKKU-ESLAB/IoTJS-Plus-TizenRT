@@ -85,11 +85,10 @@ typedef struct
   size_t ecma_gc_new_objects; /**< number of newly allocated objects since last GC session */
 
   size_t jmem_heap_blocks_size; /**< block size */
-  size_t jmem_additional_heap_blocks_size; /**< additional block size for full-bitwidth address */
+  size_t jmem_full_bitwidth_pointer_overhead; /**< additional block size for full-bitwidth address */
   size_t jmem_allocated_heap_size; /**< allocated heap size (including over-provision) */
   size_t jmem_system_allocator_metadata_size; /**< system allocator metadata size */
   size_t jmem_segment_allocator_metadata_size; /**< segment allocator metadata size */
-  size_t jmem_heap_actually_allocated_size; /**< size of allocated regions */
   uint32_t jmem_heap_allocated_blocks_count; /**< the count of allocated JS objects in the heap */
 
   size_t jmem_heap_limit; /**< current limit of heap usage, that is upon being reached,
@@ -299,15 +298,12 @@ typedef struct
   jmem_heap_free_t first; /**< first node in free region list */
 #ifdef JMEM_SEGMENTED_HEAP
   /* JS heap area on heap area (dynamically allocated) */
-  uint8_t *area[SEG_NUM_SEGMENTS];
-  jmem_segment_t segments[SEG_NUM_SEGMENTS];
-
-  uint32_t segments_count;
-  uint32_t last_seg_idx;
+  uint8_t *area[SEG_NUM_SEGMENTS]; // Segment base table
 #ifdef SEG_RMAP_BINSEARCH
-  rb_root segment_rmap_rb_root;
+  rb_root segment_rmap_rb_root; // Segment reverse map tree
 #endif /* SEG_RMAP_BINSEARCH */
-
+  jmem_segment_t segments[SEG_NUM_SEGMENTS]; // Segment header
+  uint32_t segments_count; // Segment count
 #ifdef PROF_JSOBJECT_LIFESPAN
   unsigned gc_total_count = 0;
   unsigned gc_obj_birth[65536];

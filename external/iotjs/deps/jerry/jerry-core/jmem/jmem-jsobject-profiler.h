@@ -29,6 +29,6 @@ extern void profile_jsobject_print_object_lifespan(uintptr_t compressed_pointer)
 
 /* JS object allocation profiling */
 extern void profile_jsobject_inc_allocation(size_t jsobject_size);
-extern void profile_jsobject_print_allocation(void);
+extern void print_jsobject_allocation_profile(void);
 
 #endif /* !defined(JMEM_GC_PROFILER_H) */

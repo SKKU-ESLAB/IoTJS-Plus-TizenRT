@@ -23,8 +23,6 @@
 #include "jmem-profiler-common.h"
 #include "jmem.h"
 
-#define UNUSED(x) (void)(x)
-
 /* JS object lifespan profiling */
 inline void __attr_always_inline___ profile_jsobject_inc_total_count(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
@@ -44,7 +42,7 @@ profile_jsobject_set_object_birth_time(uintptr_t compressed_pointer) {
   JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][0] = tv.tv_sec;
   JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][1] = tv.tv_usec;
 #else
-  UNUSED(compressed_pointer);
+  JERRY_UNUSED(compressed_pointer);
 #endif
 }
 
@@ -55,7 +53,7 @@ profile_jsobject_set_object_birth_count(uintptr_t compressed_pointer) {
   JERRY_HEAP_CONTEXT(gc_obj_birth)
   [compressed_pointer] = JERRY_HEAP_CONTEXT(gc_total_count);
 #else
-  UNUSED(compressed_pointer);
+  JERRY_UNUSED(compressed_pointer);
 #endif
 }
 
@@ -75,7 +73,7 @@ profile_jsobject_print_object_lifespan(uintptr_t compressed_pointer) {
   fflush(fp);
   fclose(fp);
 #else
-  UNUSED(compressed_pointer);
+  JERRY_UNUSED(compressed_pointer);
 #endif
 }
 
@@ -94,11 +92,11 @@ profile_jsobject_inc_allocation(size_t jsobject_size) {
   }
   JERRY_CONTEXT(jsobject_count[index])++;
 #else
-  UNUSED(jsobject_size);
+  JERRY_UNUSED(jsobject_size);
 #endif
 }
 
-inline void __attr_always_inline___ profile_jsobject_print_allocation(void) {
+inline void __attr_always_inline___ print_jsobject_allocation_profile(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_ALLOCATION)
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_JSOBJECT_ALLOCATION_FILENAME, "a");

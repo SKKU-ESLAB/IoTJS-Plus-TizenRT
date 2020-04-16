@@ -22,11 +22,10 @@
 #include "jrt-libc-includes.h"
 
 #define JMEM_ALLOCATOR_INTERNAL
+#include "jmem.h"
 #include "jmem-allocator-internal.h"
 #include "jmem-config.h"
 #include "jmem-heap-dynamic-emul-slab.h"
-
-#define UNUSED(x) (void)(x)
 
 /** \addtogroup mem Memory allocation
  * @{
@@ -77,7 +76,7 @@ static inline void *__attr_hot___ __attr_always_inline___
 jmem_heap_alloc_block_for_pool(size_t size) {
   #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
     // Dynamic heap with slab
-    UNUSED(size);
+    JERRY_UNUSED(size);
     return alloc_a_block_from_slab(size);
   #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
     // Others 
@@ -89,11 +88,10 @@ static inline void __attr_hot___ __attr_always_inline___
 jmem_heap_free_block_for_pool(void* ptr, size_t size) {
   #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
     // Dynamic heap with slab
-    UNUSED(size);
-    return free_a_block_from_slab(ptr, size);
+    free_a_block_from_slab(ptr, size);
   #else /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
     // Others
-    return jmem_heap_free_block_small_object(ptr, size);
+    jmem_heap_free_block_small_object(ptr, size);
   #endif /* !(defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)) */
 }
 

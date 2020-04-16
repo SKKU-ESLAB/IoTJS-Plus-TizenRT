@@ -144,6 +144,11 @@ void *jmem_heap_add_segment(bool is_two_segs) {
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).total_size = 0;
     JERRY_HEAP_CONTEXT(segments[segment_idx + 1]).occupied_size = 0;
     allocated_segment = region_p;
+
+    // Update allocated heap area size, system memory allocator
+    JERRY_CONTEXT(jmem_allocated_heap_size) += SEG_SEGMENT_SIZE * 2;
+    JERRY_CONTEXT(jmem_system_allocator_metadata_size) +=
+        SYSTEM_ALLOCATOR_METADATA_SIZE;
   }
 
   // If malloc failed or all segments are full, return NULL
@@ -295,8 +300,8 @@ static void *jmem_segment_alloc(void) {
   void *ret = MALLOC(SEG_SEGMENT_SIZE);
 
   // Update allocated heap area size, system memory allocator
-  JERRY_CONTEXT(jmem_allocated_heap_size) -= SEG_SEGMENT_SIZE;
-  JERRY_CONTEXT(jmem_system_allocator_metadata_size) -=
+  JERRY_CONTEXT(jmem_allocated_heap_size) += SEG_SEGMENT_SIZE;
+  JERRY_CONTEXT(jmem_system_allocator_metadata_size) +=
       SYSTEM_ALLOCATOR_METADATA_SIZE;
 
   JERRY_ASSERT(ret != NULL);
@@ -324,11 +329,12 @@ static void *jmem_segment_alloc_init(jmem_segment_t *seg_info) {
 static void jmem_segment_free(void *seg_ptr, bool is_following_node) {
   JERRY_ASSERT(seg_ptr != NULL);
 
-  if (!is_following_node) {
-    // Update allocated heap area size, system memory allocator
+  // Update allocated heap area size, system memory allocator
     JERRY_CONTEXT(jmem_allocated_heap_size) -= SEG_SEGMENT_SIZE;
     JERRY_CONTEXT(jmem_system_allocator_metadata_size) -=
         SYSTEM_ALLOCATOR_METADATA_SIZE;
+
+  if (!is_following_node) {
     FREE(seg_ptr);
   }
 

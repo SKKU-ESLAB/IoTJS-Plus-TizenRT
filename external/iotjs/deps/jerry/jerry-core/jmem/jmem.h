@@ -141,10 +141,8 @@ void *jmem_heap_alloc_block (const size_t size);
 void *jmem_heap_alloc_block_null_on_error (const size_t size);
 void jmem_heap_free_block (void *ptr, const size_t size);
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
 void *jmem_heap_alloc_block_small_object (const size_t size);
 void jmem_heap_free_block_small_object (void *ptr, const size_t size);
-#endif /* defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB) */
 
 /* Modification for unifying segmented heap allocator */
 /**

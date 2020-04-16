@@ -46,12 +46,6 @@ void *alloc_a_block_from_slab(size_t size) {
   jmem_cpointer_t block_cp = jmem_compress_pointer(block_address);
   JERRY_CONTEXT(cp2si_rmap[block_cp]) = slab_index;    // Update rmap
   JERRY_CONTEXT(num_allocated_slots[slab_index]) += 1; // Update size
-  // printf("Alloc: %d/%d %d/%d\n", (int)block_cp,
-  //        JMEM_HEAP_SIZE / JMEM_ALIGNMENT,
-  //        (int)JERRY_CONTEXT(jmem_heap_actually_allocated_size),
-  //        JMEM_HEAP_AREA_SIZE);
-  // printf("Alloc: slab #%d = %d\n", slab_index,
-  // JERRY_CONTEXT(num_allocated_slots[slab_index]));
 
   return block_address;
 }
@@ -89,24 +83,20 @@ unsigned char alloc_a_slab_segment(void) {
   JERRY_ASSERT(is_slab_index_found);
 
   // Call GC if there is no space for a new slab segment
-  size_t max_size = JMEM_HEAP_SIZE + SEG_NUM_SEGMENTS * 32;
-  size_t allocated_size = JERRY_CONTEXT(jmem_heap_actually_allocated_size);
-  allocated_size += DE_SLAB_SEGMENT_SIZE;
-  if (allocated_size > max_size) {
+  size_t allocated_size =
+      JERRY_CONTEXT(jmem_allocated_heap_size) + DE_SLAB_SEGMENT_SIZE;
+  if (allocated_size > JMEM_HEAP_SIZE) {
     printf("GC on slab segment alloc\n");
-    profile_print_segment_utilization_before_gc(
+    print_segment_utiliaztion_profile_before_gc(
         DE_SLAB_SEGMENT_SIZE); /* Segment utilization profiling */
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
-    profile_print_segment_utilization_after_gc(
+    print_segment_utiliaztion_profile_after_gc(
         DE_SLAB_SEGMENT_SIZE); /* Segment utilization profiling */
   }
 
   // Update slab metadata
   JERRY_CONTEXT(is_slab_allocated[slab_index]) = true;
   JERRY_CONTEXT(num_allocated_slabs)++;
-
-  // Update actually allocated size (deprecated)
-  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) += DE_SLAB_SEGMENT_SIZE;
 
   // Update allocated heap size, system allocator metadata size
   JERRY_CONTEXT(jmem_allocated_heap_size) += DE_SLAB_SEGMENT_SIZE;
@@ -121,9 +111,6 @@ void free_a_slab_segment(unsigned char slab_index) {
   // Update slab metadata
   JERRY_CONTEXT(is_slab_allocated[slab_index]) = false;
   JERRY_CONTEXT(num_allocated_slabs)--;
-
-  // Update actually allocated size (deprecated)
-  // JERRY_CONTEXT(jmem_heap_actually_allocated_size) -= DE_SLAB_SEGMENT_SIZE;
 
   // Update allocated heap size, system allocator metadata size
   JERRY_CONTEXT(jmem_allocated_heap_size) -= DE_SLAB_SEGMENT_SIZE;

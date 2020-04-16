@@ -19,8 +19,6 @@
 #include "jmem-profiler-common.h"
 #include "jmem-time-profiler.h"
 
-#define UNUSED(x) (void)(x)
-
 /* Time profiling */
 void init_time_profiler(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
@@ -44,7 +42,7 @@ void init_time_profiler(void) {
 #endif
 }
 
-void profile_print_times(void) {
+void print_time_profile(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_TIME_FILENAME, "a");
