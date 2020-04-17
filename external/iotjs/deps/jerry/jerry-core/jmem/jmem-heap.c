@@ -60,7 +60,6 @@ JERRY_STATIC_ASSERT(
 #ifdef JMEM_STATS
 
 #ifdef JERRY_SYSTEM_ALLOCATOR
-/* TODO: Implement mem-stat support for system allocator */
 #error Memory statistics (JMEM_STATS) are not supported
 #endif
 
@@ -252,7 +251,6 @@ static inline void *jmem_heap_alloc_block_internal_slow(
   jmem_heap_free_t *data_space_p = NULL;
   uint32_t current_offset = JERRY_HEAP_CONTEXT(first).next_offset;
   jmem_heap_free_t *prev_p = &JERRY_HEAP_CONTEXT(first);
-
   while (current_offset != JMEM_HEAP_END_OF_LIST) {
     jmem_heap_free_t *current_p =
         JMEM_HEAP_GET_ADDR_FROM_OFFSET(current_offset);

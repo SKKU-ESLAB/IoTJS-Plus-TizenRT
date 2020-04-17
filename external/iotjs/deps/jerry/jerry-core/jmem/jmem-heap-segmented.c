@@ -60,7 +60,7 @@ static uint32_t __find_new_segment_group_region(
   uint32_t max_start_sidx = (uint32_t)SEG_NUM_SEGMENTS - required_num_segments;
   for (uint32_t start_sidx = 0; start_sidx <= max_start_sidx; start_sidx++) {
     bool is_new_area_found = true;
-    uint32_t end_sidx = start_sidx + required_num_segments;
+    uint32_t end_sidx = start_sidx + required_num_segments - 1;
     for (uint32_t sidx = start_sidx; sidx <= end_sidx; sidx++) {
       if (JERRY_HEAP_CONTEXT(area[sidx]) != NULL) {
         is_new_area_found = false;
@@ -100,11 +100,11 @@ static void *alloc_a_segment_group_internal(size_t required_size,
     return NULL;
 
   // Update segment metadata
-  uint32_t end_sidx = start_sidx + required_num_segments - 1;
-  for (uint32_t sidx = start_sidx; sidx <= end_sidx; sidx++) {
+  for (uint32_t seg_no = 0; seg_no < required_num_segments; seg_no++) {
+    uint32_t sidx = start_sidx + seg_no;
     // Allocate an free region for a segment
     jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
-    uint8_t *segment_area = segment_group_area + (SEG_SEGMENT_SIZE * sidx);
+    uint8_t *segment_area = segment_group_area + (SEG_SEGMENT_SIZE * seg_no);
 
     // Update segment base table
     JERRY_HEAP_CONTEXT(area[sidx]) = segment_area;
@@ -180,7 +180,7 @@ void free_empty_segment_groups(void) {
 
     // Check if the segment group is empty
     bool is_free_segment_group = true;
-    uint32_t end_sidx = start_sidx + segment_group_header->group_num_segments;
+    uint32_t end_sidx = start_sidx + segment_group_header->group_num_segments - 1;
     for (uint32_t sidx = start_sidx; sidx <= end_sidx; sidx++) {
       jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
       if (segment_header->occupied_size > 0)
@@ -242,6 +242,9 @@ void free_empty_segment_groups(void) {
 
       // Free the segment group
       FREE(segment_group_region);
+
+      // Skip the segments that have already been freed
+      start_sidx = end_sidx + 1;
     } /* update segment metadata END */
   }   /* for (start_sidx = 1 to (SEG_NUM_SEGMENTS - 1) by 1 */
 }
