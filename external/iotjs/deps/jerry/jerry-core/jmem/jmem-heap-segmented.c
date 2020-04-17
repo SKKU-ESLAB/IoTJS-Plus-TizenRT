@@ -141,6 +141,8 @@ void *alloc_a_segment_group(size_t required_size) {
   uint32_t start_sidx;
   uint8_t *segment_group_area =
       (uint8_t *)alloc_a_segment_group_internal(required_size, &start_sidx);
+  if(segment_group_area == NULL)
+    return NULL;
   jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[start_sidx]);
   uint32_t required_num_segments = segment_header->group_num_segments;
 
@@ -242,9 +244,6 @@ void free_empty_segment_groups(void) {
 
       // Free the segment group
       FREE(segment_group_region);
-
-      // Skip the segments that have already been freed
-      start_sidx = end_sidx + 1;
     } /* update segment metadata END */
   }   /* for (start_sidx = 1 to (SEG_NUM_SEGMENTS - 1) by 1 */
 }

@@ -520,8 +520,8 @@ static void *jmem_heap_gc_and_alloc_block(
     JERRY_ASSERT(data_space_p != NULL);
     profile_jsobject_set_object_birth_count(
         jmem_compress_pointer(data_space_p)); /* JS object lifespan profiling */
+    return data_space_p;
   }
-  return data_space_p;
 #endif /* JMEM_SEGMENTED_HEAP */
   JERRY_ASSERT(data_space_p == NULL);
 

@@ -208,11 +208,19 @@ __print_segment_utilization_profile(const char *header, size_t jsobject_size) {
        segment_idx++) {
     jmem_segment_t *segment = &(JERRY_HEAP_CONTEXT(segments[segment_idx]));
 #ifdef PROF_SEGMENT_UTILIZATION__ABSOLUTE
-    fprintf(fp, ", %5d / %5d", segment->occupied_size, segment->total_size);
+    if (JERRY_HEAP_CONTEXT(area[segment_idx]) != NULL) {
+      fprintf(fp, ", %5d", segment->occupied_size);
+    } else {
+      fprintf(fp, ", -");
+    }
 #else
-    float utilization =
-        (float)segment->occupied_size / (float)segment->total_size * 100.0f;
-    fprintf(fp, ", %2.02f", utilization);
+    if (JERRY_HEAP_CONTEXT(area[segment_idx]) != NULL) {
+      float utilization =
+          (float)segment->occupied_size / (float)SEG_SEGMENT_SIZE * 100.0f;
+      fprintf(fp, ", %2.02f", utilization);
+    } else {
+      fprintf(fp, ", -");
+    }
 #endif
   }
   fprintf(fp, "\n");
