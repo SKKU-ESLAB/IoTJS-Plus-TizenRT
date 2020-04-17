@@ -108,6 +108,7 @@ static inline void jmem_heap_print_allocator_type(void) {
 }
 
 static inline void jmem_heap_init_first_free_region(void) {
+  // Initialize first free region
 #ifdef JMEM_SEGMENTED_HEAP
   jmem_heap_free_t *const region_p =
       (jmem_heap_free_t *)(JERRY_HEAP_CONTEXT(area[0]) + JMEM_ALIGNMENT);
@@ -118,6 +119,8 @@ static inline void jmem_heap_init_first_free_region(void) {
   region_p->size = JMEM_HEAP_AREA_SIZE;
 #endif
   region_p->next_offset = JMEM_HEAP_END_OF_LIST;
+
+  // Initialize leading free region
   JERRY_HEAP_CONTEXT(first).size = 0;
   JERRY_HEAP_CONTEXT(first).next_offset =
       JMEM_HEAP_GET_OFFSET_FROM_ADDR(region_p);
@@ -170,14 +173,12 @@ void jmem_heap_init(void) {
 void jmem_heap_finalize(void) {
   print_time_profile();                        /* Time profiling */
   print_total_size_profile_finally();          /* Total size profiling */
-  print_segment_utilization_profile_finally(); /* Segment utilization profiling
-                                                */
+  print_segment_utilization_profile_finally(); /* Segment-util profiling */
   print_jsobject_allocation_profile(); /* JS object allocation profiling */
 
 #ifdef JMEM_SEGMENTED_HEAP
   free_empty_segment_groups();
   free_initial_segment_group();
-
   JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments_count) == 0);
 #endif
   JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_blocks_size) == 0);
@@ -442,16 +443,6 @@ static void *jmem_heap_gc_and_alloc_block(
                                  with ERR_OUT_OF_MEMORY on out of memory */
     bool is_small_block)    /**< is small JSObject or not */
 {
-#ifdef JMEM_SEGMENTED_HEAP
-  // TODO: deprecate it!
-  // Disallow too large block bigger than two segments
-  if (size >= SEG_SEGMENT_SIZE * 2) {
-    printf("Requested size: %lu, but allowed maximum allocation size is: %lu\n",
-           (uint32_t)size, (uint32_t)SEG_SEGMENT_SIZE * 2);
-  }
-  JERRY_ASSERT(size < SEG_SEGMENT_SIZE * 2);
-#endif
-
   if (unlikely(size == 0)) {
     return NULL;
   }
@@ -489,19 +480,14 @@ static void *jmem_heap_gc_and_alloc_block(
   }
   // Segment Allocation before GC
 #ifdef JMEM_SEGMENTED_HEAP
-  /* Try one or two segments -> try to alloc a block */
-  bool is_two_segs = false;
-  if (size > SEG_SEGMENT_SIZE) {
-    is_two_segs = true;
-  }
   /* Segment utilization profiling */
   print_segment_utilization_profile_before_segalloc(size);
-  if (alloc_a_segment_group(is_two_segs) != NULL) {
+  if (alloc_a_segment_group(size) != NULL) {
     data_space_p =
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     JERRY_ASSERT(data_space_p != NULL);
-    profile_jsobject_set_object_birth_count(jmem_compress_pointer(
-        data_space_p)); /* JS object lifespan profiling */
+    profile_jsobject_set_object_birth_count(
+        jmem_compress_pointer(data_space_p)); /* JS object lifespan profiling */
     return data_space_p;
   }
 #endif /* JMEM_SEGMENTED_HEAP */
@@ -530,12 +516,12 @@ static void *jmem_heap_gc_and_alloc_block(
 #ifdef JMEM_SEGMENTED_HEAP
   /* Segment utilization profiling */
   print_segment_utilization_profile_before_segalloc(size);
-  if (alloc_a_segment_group(is_two_segs) != NULL) {
+  if (alloc_a_segment_group(size) != NULL) {
     data_space_p =
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     JERRY_ASSERT(data_space_p != NULL);
-    profile_jsobject_set_object_birth_count(jmem_compress_pointer(
-        data_space_p)); /* JS object lifespan profiling */
+    profile_jsobject_set_object_birth_count(
+        jmem_compress_pointer(data_space_p)); /* JS object lifespan profiling */
   }
   return data_space_p;
 #endif /* JMEM_SEGMENTED_HEAP */
@@ -561,7 +547,8 @@ static void *jmem_heap_gc_and_alloc_block(
 inline void *__attr_hot___ __attr_always_inline___
 jmem_heap_alloc_block(const size_t size) /**< required memory size */
 {
-  return jmem_heap_gc_and_alloc_block(size, false, false);
+  void *ret = jmem_heap_gc_and_alloc_block(size, false, false);
+  return ret;
 } /* jmem_heap_alloc_block */
 
 /**
@@ -580,7 +567,8 @@ inline void *__attr_hot___ __attr_always_inline___
 jmem_heap_alloc_block_null_on_error(
     const size_t size) /**< required memory size */
 {
-  return jmem_heap_gc_and_alloc_block(size, true, false);
+  void *ret = jmem_heap_gc_and_alloc_block(size, true, false);
+  return ret;
 } /* jmem_heap_alloc_block_null_on_error */
 
 /**
@@ -646,6 +634,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
       (size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT * JMEM_ALIGNMENT;
 
   /* Update prev. */
+  // TODO: address 조건은 만족하지만 서로 다른 segment group인 경우?
   if (jmem_heap_get_region_end(prev_p) == block_p) {
     /* Can be merged. */
     prev_p->size += (uint32_t)aligned_size;
@@ -763,7 +752,8 @@ void __attr_hot___ jmem_heap_free_block(
 
 inline void *__attr_hot___ __attr_always_inline___
 jmem_heap_alloc_block_small_object(const size_t size) {
-  return jmem_heap_gc_and_alloc_block(size, false, true);
+  void *ret = jmem_heap_gc_and_alloc_block(size, false, true);
+  return ret;
 }
 inline void __attr_hot___ __attr_always_inline___
 jmem_heap_free_block_small_object(void *ptr, const size_t size) {

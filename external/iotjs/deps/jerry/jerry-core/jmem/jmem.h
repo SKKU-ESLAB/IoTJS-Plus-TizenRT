@@ -52,8 +52,12 @@
  * Segment information
  */
 typedef struct {
-  size_t total_size;
+  // number of segments in segment group (valid only in leading segment of the group)
+  uint32_t group_num_segments;
+
+  // Occupied size of segment
   size_t occupied_size;
+
 } jmem_segment_t;
 #endif /* defined(JMEM_SEGMENTED_HEAP) */
 /*******************************************************/

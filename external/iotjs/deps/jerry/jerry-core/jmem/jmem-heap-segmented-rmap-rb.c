@@ -47,7 +47,12 @@ seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
   return (seg_rmap_node_t *)NULL;
 }
 
-int segment_rmap_insert(rb_root *root, seg_rmap_node_t *node_to_insert) {
+int segment_rmap_insert(rb_root *root, uint8_t *segment_area, uint32_t sidx) {
+  seg_rmap_node_t *node_to_insert =
+      (seg_rmap_node_t *)MALLOC(sizeof(seg_rmap_node_t));
+  node_to_insert->base_addr = segment_area;
+  node_to_insert->sidx = sidx;
+
   rb_node **_new = &(root->rb_node), *parent = NULL;
 
   while (*_new) {

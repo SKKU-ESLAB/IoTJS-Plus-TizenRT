@@ -19,6 +19,7 @@
 #include "jrt.h"
 
 extern uint8_t *sidx_to_addr(uint32_t sidx);
+// TODO: sddr -> base_addr
 extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out);
 
 #endif /* !defined(JMEM_HEAP_SEGMENTED_TRANSLATION_H) */

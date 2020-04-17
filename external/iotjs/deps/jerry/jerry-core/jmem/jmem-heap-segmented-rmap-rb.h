@@ -17,23 +17,24 @@
 #define JMEM_HEAP_SEGMENTED_RB_H
 
 #include "jmem-config.h"
-#include "jrt.h"
 #include "jmem-heap-segmented-rmap-rb-node.h"
+#include "jrt.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
 #ifdef SEG_RMAP_BINSEARCH
 
-#define container_of(ptr, type, member)                                        \
+#define container_of(ptr, type, member) \
   ((type *)(((char *)(ptr)) - ((char *)(&((type *)0)->member))))
 
 typedef struct _seg_node {
   rb_node node;
   uint8_t *base_addr;
-  uint32_t seg_idx;
+  uint32_t sidx;
 } seg_rmap_node_t;
 
 extern seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr);
-extern int segment_rmap_insert(rb_root *root, seg_rmap_node_t *node);
+extern int segment_rmap_insert(rb_root *root, uint8_t *segment_area,
+                               uint32_t sidx);
 extern void segment_rmap_remove(rb_root *root, uint8_t *base_addr);
 
 extern void rb_init_node(rb_node *rb);
@@ -52,8 +53,10 @@ extern rb_node *rb_last(const rb_root *root);
 extern rb_node *rb_prev(const rb_node *node);
 extern rb_node *rb_next(const rb_node *node);
 
-#define RB_ROOT                                                                \
-  (rb_root) { NULL, }
+#define RB_ROOT \
+  (rb_root) {   \
+    NULL,       \
+  }
 #define rb_entry(ptr, type, member) container_of(ptr, type, member)
 
 #define RB_EMPTY_ROOT(root) ((root)->rb_node == NULL)
@@ -64,13 +67,13 @@ extern rb_node *rb_next(const rb_node *node);
 #define rb_color(r) ((r)->rb_parent_color & (unsigned long)1)
 #define rb_is_red(r) (!rb_color(r))
 #define rb_is_black(r) rb_color(r)
-#define rb_set_red(r)                                                          \
-  do {                                                                         \
-    (r)->rb_parent_color &= (unsigned long)~1;                                 \
+#define rb_set_red(r)                          \
+  do {                                         \
+    (r)->rb_parent_color &= (unsigned long)~1; \
   } while (0)
-#define rb_set_black(r)                                                        \
-  do {                                                                         \
-    (r)->rb_parent_color |= (unsigned long)1;                                  \
+#define rb_set_black(r)                       \
+  do {                                        \
+    (r)->rb_parent_color |= (unsigned long)1; \
   } while (0)
 
 #endif /* SEG_RMAP_BINSEARCH */

@@ -18,6 +18,7 @@
 #include "jcontext.h"
 #include "jmem-heap-segmented-rmap-rb.h"
 #include "jmem.h"
+#include "jmem-config.h"
 
 #define JMEM_HEAP_GET_OFFSET_FROM_PTR(p, seg_ptr) \
   ((uint32_t)((uint8_t *)(p) - (uint8_t *)(seg_ptr)))
@@ -69,11 +70,10 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
 #else  /* SEG_RMAP_BINSEARCH */
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
-  sidx = node->seg_idx;
+  sidx = node->sidx;
   saddr = node->base_addr;
 #endif /* !SEG_RMAP_BINSEARCH */
 
   *saddr_out = saddr;
-
   return sidx;
 }

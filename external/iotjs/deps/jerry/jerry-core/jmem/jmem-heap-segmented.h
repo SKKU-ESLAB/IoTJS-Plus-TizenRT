@@ -22,7 +22,7 @@
 
 #ifdef JMEM_SEGMENTED_HEAP
 extern void init_segmented_heap(void);
-extern void *alloc_a_segment_group(bool is_two_segs);
+extern void *alloc_a_segment_group(size_t required_size);
 extern void free_empty_segment_groups(void);
 extern void free_initial_segment_group(void);
 #endif /* JMEM_SEGMENTED_HEAP */
