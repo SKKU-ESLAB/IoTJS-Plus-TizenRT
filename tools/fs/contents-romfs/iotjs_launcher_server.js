@@ -10,25 +10,32 @@ function http_handler(req, res) {
   var reqBody = '';
   var url = req.url;
 
-  req.on('data', function(chunk) {
+  req.on('data', function (chunk) {
     reqBody += chunk;
   });
 
-  var endHandler = function() {
+  var endHandler = function () {
     var isCloseServer = false;
     var resBody = '';
     var errorMsg = '';
+    var message = "";
+    var messageResCode = 200;
     if (req.method == 'GET') {
-      if (url == '/deleteAll') {
-        if (fs.existsSync('/mnt/total_size.log')) fs.unlinkSync('/mnt/total_size.log');
-        if (fs.existsSync('/mnt/segment_utilization.log'))
-          fs.unlinkSync('/mnt/segment_utilization.log');
-        if (fs.existsSync('/mnt/time.log')) fs.unlinkSync('/mnt/time.log');
-        if (fs.existsSync('/mnt/object_lifespan.log')) fs.unlinkSync('/mnt/object_lifespan.log');
-        if (fs.existsSync('/mnt/object_allocation.log'))
-          fs.unlinkSync('/mnt/object_allocation.log');
-        resBody = 'Delete all the logs successfully!';
-        res.writeHead(200, {'Content-Length': resBody.length});
+      if (url.indexOf('/command/') >= 0) {
+
+        if (url == '/command/deleteAll') {
+          if (fs.existsSync('/mnt/total_size.log')) fs.unlinkSync('/mnt/total_size.log');
+          if (fs.existsSync('/mnt/segment_utilization.log'))
+            fs.unlinkSync('/mnt/segment_utilization.log');
+          if (fs.existsSync('/mnt/time.log')) fs.unlinkSync('/mnt/time.log');
+          if (fs.existsSync('/mnt/object_lifespan.log')) fs.unlinkSync('/mnt/object_lifespan.log');
+          if (fs.existsSync('/mnt/object_allocation.log'))
+            fs.unlinkSync('/mnt/object_allocation.log');
+          message = "Delete all the logs successfully!";
+        } else if (url == '/command/reboot') {
+          isCloseServer = true;
+          message = "Reboot!";
+        }
       } else {
         var isHtml = false;
         var filePath = undefined;
@@ -45,15 +52,15 @@ function http_handler(req, res) {
           filePath = '/mnt' + url;  // others in mnt
         }
         if (!fs.existsSync(filePath)) {
-          resBody = 'Not found file: ' + filePath;
-          res.writeHead(404, {'Content-Length': resBody.length});
+          message = "Not found file: " + filePath;
+          messageResCode = 404;
         } else {
           resBody = fs.readFileSync(filePath).toString();
           var host = req.headers.Host;
           if (isHtml && (host !== undefined)) {
             resBody = resBody.replace(/IPADDR/gi, host);
           }
-          res.writeHead(200, {'Content-Length': resBody.length});
+          res.writeHead(200, { 'Content-Length': resBody.length });
         }
       }
     } else if (req.method == 'POST') {
@@ -91,23 +98,23 @@ function http_handler(req, res) {
         }
       }
       fs.closeSync(fd);
-
-      resBody = fs.readFileSync('/rom/install_finished.html').toString();
-      resBody = resBody.replace(/IPADDR/gi, host);
-      res.writeHead(200, {'Content-Length': resBody.length});
+      message = "Install finished!";
     } else {
-      resBody = 'Not allowed URL: ' + filePath;
-      res.writeHead(403, {'Content-Length': resBody.length});
+      message = "Not allowed URL: " + filePath;
+      messageResCode = 403;
     }
 
-    if (url == '/close.html') {
-      isCloseServer = true;
+    if (message.length > 0) {
+      resBody = fs.readFileSync('/rom/message.html').toString();
+      resBody = resBody.replace(/MESSAGE/gi, message);
+      res.writeHead(messageResCode, { 'Content-Length': resBody.length });
+      console.log(message);
     }
 
     if (resBody.length > 0) {
       res.write(resBody);
     }
-    res.end(function() {
+    res.end(function () {
       if (isCloseServer) {
         console.log('close the server... reboot this device...');
         server.close();
@@ -121,7 +128,7 @@ function http_handler(req, res) {
 
 function app_main() {
   server = http.createServer(http_handler);
-  server.listen(httpServerPort, function() {
+  server.listen(httpServerPort, function () {
     console.log('\n\nIoT.js Launcher: installer server starts: port=' + httpServerPort);
   });
 }

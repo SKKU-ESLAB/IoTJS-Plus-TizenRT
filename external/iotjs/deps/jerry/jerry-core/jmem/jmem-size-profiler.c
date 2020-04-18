@@ -34,9 +34,8 @@ inline void __attr_always_inline___ init_size_profiler(void) {
   FILE *fp1 = fopen(PROF_TOTAL_SIZE_FILENAME, "w");
   fprintf(fp1,
           "Timestamp (s), Blocks Size (B), Full-bitwidth Pointer Overhead (B), "
-          "Over-provision Overhead (B), Allocated Heap Size (B), "
-          "System Allocator Metadata Size (B), Segment Metadata Size (B), "
-          "Total Size (B)\n");
+          "Allocated Heap Size (B), System Allocator Metadata Size (B), "
+          "Segment Metadata Size (B)\n");
   fflush(fp1);
   fclose(fp1);
   JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_sec = 0;
@@ -116,18 +115,14 @@ inline void __attr_always_inline___ __print_total_size_profile(void) {
   uint32_t full_bw_oh =
       (uint32_t)JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead);
   uint32_t alloc_heap_size = (uint32_t)JERRY_CONTEXT(jmem_allocated_heap_size);
-  uint32_t overprovision_oh = alloc_heap_size - blocks_size - full_bw_oh;
   uint32_t sysalloc_meta_size =
       (uint32_t)JERRY_CONTEXT(jmem_system_allocator_metadata_size);
   uint32_t segment_meta_size =
       (uint32_t)JERRY_CONTEXT(jmem_segment_allocator_metadata_size);
-  uint32_t total_size =
-      alloc_heap_size + sysalloc_meta_size + segment_meta_size;
 
-  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n",
-          js_uptime.tv_sec, js_uptime.tv_usec, blocks_size, full_bw_oh,
-          overprovision_oh, alloc_heap_size, sysalloc_meta_size,
-          segment_meta_size, total_size);
+  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
+          js_uptime.tv_usec, blocks_size, full_bw_oh, alloc_heap_size,
+          sysalloc_meta_size, segment_meta_size);
   fflush(fp);
   fclose(fp);
 #endif
