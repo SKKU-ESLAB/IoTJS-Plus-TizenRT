@@ -216,9 +216,11 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
 #endif /* defined(JMEM_DYNAMIC_HEPA_EMUL) */
 #ifdef JMEM_SEGMENTED_HEAP
   // Update segment occupied size (segment heap)
-  JERRY_HEAP_CONTEXT(
-      segments[JERRY_HEAP_CONTEXT(first).next_offset / SEG_SEGMENT_SIZE])
-      .occupied_size += JMEM_ALIGNMENT;
+  uint32_t block_offset = JERRY_HEAP_CONTEXT(first).next_offset;
+  uint32_t sidx = block_offset / SEG_SEGMENT_SIZE;
+  jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
+  segment_header->occupied_size += JMEM_ALIGNMENT;
+  JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
 #endif /* defined(JMEM_SEGMENTED_HEAP) */
   JMEM_HEAP_STAT_ALLOC_ITER();
 
@@ -297,24 +299,30 @@ static inline void *jmem_heap_alloc_block_internal_slow(
 
       // Update segment occupied size (segment heap)
 #ifdef JMEM_SEGMENTED_HEAP
-      uint32_t start_segment = current_offset / SEG_SEGMENT_SIZE;
-      uint32_t end_segment =
-          (current_offset + (uint32_t)required_size - JMEM_ALIGNMENT) /
-          SEG_SEGMENT_SIZE;
-      if (start_segment == end_segment) {
-        // Update metadata of single segment
-        JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size +=
-            required_size;
-      } else {
-        // Update metadata of double segment
-        JERRY_ASSERT(start_segment + 1 == end_segment);
-        uint32_t first_size =
-            SEG_SEGMENT_SIZE - current_offset % SEG_SEGMENT_SIZE;
-        JERRY_ASSERT(required_size > first_size);
-        uint32_t following_size = (uint32_t)required_size - first_size;
-        JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size += first_size;
-        JERRY_HEAP_CONTEXT(segments[end_segment]).occupied_size +=
-            following_size;
+      int size_to_alloc = (int)required_size;
+      uint32_t block_start_offset = current_offset;
+      uint32_t block_end_offset =
+          block_start_offset + (uint32_t)size_to_alloc - JMEM_ALIGNMENT;
+      uint32_t fragment_start_offset = block_start_offset;
+      while (size_to_alloc > 0) {
+        uint32_t sidx = fragment_start_offset / SEG_SEGMENT_SIZE;
+        uint32_t segment_end_offset =
+            (sidx + 1) * SEG_SEGMENT_SIZE - JMEM_ALIGNMENT;
+        uint32_t fragment_end_offset;
+        if (block_end_offset < segment_end_offset) {
+          fragment_end_offset = block_end_offset;
+        } else {
+          fragment_end_offset = segment_end_offset;
+        }
+        uint32_t size_to_alloc_in_segment =
+            fragment_end_offset - fragment_start_offset + JMEM_ALIGNMENT;
+
+        jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
+        segment_header->occupied_size += size_to_alloc_in_segment;
+        JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
+        size_to_alloc -= (int)size_to_alloc_in_segment;
+        JERRY_ASSERT(size_to_alloc >= 0);
+        fragment_start_offset = fragment_end_offset + JMEM_ALIGNMENT;
       }
 #endif
 
@@ -436,14 +444,16 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
  * because of there is not enough memory
  */
 static void *jmem_heap_gc_and_alloc_block(
-    const size_t size,      /**< required memory size */
-    bool ret_null_on_error, /**< indicates whether return null or terminate
-                                 with ERR_OUT_OF_MEMORY on out of memory */
-    bool is_small_block)    /**< is small JSObject or not */
+    const size_t required_size, /**< required memory size */
+    bool ret_null_on_error,     /**< indicates whether return null or terminate
+                                     with ERR_OUT_OF_MEMORY on out of memory */
+    bool is_small_block)        /**< is small JSObject or not */
 {
-  if (unlikely(size == 0)) {
+  if (unlikely(required_size == 0)) {
     return NULL;
   }
+  size_t size =
+      (required_size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT * JMEM_ALIGNMENT;
 
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   // GC before each alloc: not enabled in most cases
@@ -632,7 +642,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
       (size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT * JMEM_ALIGNMENT;
 
   /* Update prev. */
-  // TODO: address 조건은 만족하지만 서로 다른 segment group인 경우?
+  // TODO: What if address condition meets but seg-groups are different?
   if (jmem_heap_get_region_end(prev_p) == block_p) {
     /* Can be merged. */
     prev_p->size += (uint32_t)aligned_size;
@@ -654,23 +664,30 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   JERRY_CONTEXT(jmem_heap_list_skip_p) = prev_p;
 
 #ifdef JMEM_SEGMENTED_HEAP
-  uint32_t start_segment = block_offset / SEG_SEGMENT_SIZE;
-  uint32_t end_segment =
-      (block_offset + (uint32_t)aligned_size - JMEM_ALIGNMENT) /
-      SEG_SEGMENT_SIZE;
-  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size > 0);
-  JERRY_ASSERT(JERRY_HEAP_CONTEXT(segments[end_segment]).occupied_size > 0);
-  if (start_segment == end_segment) {
-    // Update metadata of single segment
-    JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size -= aligned_size;
-  } else {
-    // Update metadata of double segment
-    JERRY_ASSERT(start_segment + 1 == end_segment);
-    uint32_t first_size = SEG_SEGMENT_SIZE - block_offset % SEG_SEGMENT_SIZE;
-    JERRY_ASSERT(aligned_size > first_size);
-    uint32_t following_size = (uint32_t)aligned_size - first_size;
-    JERRY_HEAP_CONTEXT(segments[start_segment]).occupied_size -= first_size;
-    JERRY_HEAP_CONTEXT(segments[end_segment]).occupied_size -= following_size;
+  int size_to_free = (int)aligned_size;
+  uint32_t block_start_offset = block_offset;
+  uint32_t block_end_offset =
+      block_start_offset + (uint32_t)size_to_free - JMEM_ALIGNMENT;
+  uint32_t fragment_start_offset = block_start_offset;
+  while (size_to_free > 0) {
+    uint32_t sidx = fragment_start_offset / SEG_SEGMENT_SIZE;
+    uint32_t segment_end_offset =
+        (sidx + 1) * SEG_SEGMENT_SIZE - JMEM_ALIGNMENT;
+    uint32_t fragment_end_offset;
+    if (block_end_offset < segment_end_offset) {
+      fragment_end_offset = block_end_offset;
+    } else {
+      fragment_end_offset = segment_end_offset;
+    }
+    uint32_t size_to_free_in_segment =
+        fragment_end_offset - fragment_start_offset + JMEM_ALIGNMENT;
+
+    jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
+    segment_header->occupied_size -= size_to_free_in_segment;
+    JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
+    size_to_free -= (int)size_to_free_in_segment;
+    JERRY_ASSERT(size_to_free >= 0);
+    fragment_start_offset = fragment_end_offset + JMEM_ALIGNMENT;
   }
 #endif
 

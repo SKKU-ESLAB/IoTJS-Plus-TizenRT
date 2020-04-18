@@ -19,8 +19,8 @@
 #include "config.h"
 
 /* Segmented heap allocation configs */
-#define SEG_SEGMENT_SIZE 8192
-#define SEG_SEGMENT_SHIFT 13
+#define SEG_SEGMENT_SIZE 1024
+#define SEG_SEGMENT_SHIFT 10
 
 
 /* Heap allocation type */

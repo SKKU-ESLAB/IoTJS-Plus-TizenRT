@@ -75,7 +75,8 @@ static uint32_t __find_new_segment_group_region(
 }
 
 static uint32_t get_required_num_segments(size_t required_size) {
-  return ((uint32_t)required_size + SEG_SEGMENT_SIZE - 1) / SEG_SEGMENT_SIZE;
+  return ((uint32_t)required_size + SEG_SEGMENT_SIZE - JMEM_ALIGNMENT) /
+         SEG_SEGMENT_SIZE;
 }
 
 static void *alloc_a_segment_group_internal(size_t required_size,
@@ -141,7 +142,7 @@ void *alloc_a_segment_group(size_t required_size) {
   uint32_t start_sidx;
   uint8_t *segment_group_area =
       (uint8_t *)alloc_a_segment_group_internal(required_size, &start_sidx);
-  if(segment_group_area == NULL)
+  if (segment_group_area == NULL)
     return NULL;
   jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[start_sidx]);
   uint32_t required_num_segments = segment_header->group_num_segments;
@@ -182,12 +183,14 @@ void free_empty_segment_groups(void) {
 
     // Check if the segment group is empty
     bool is_free_segment_group = true;
-    uint32_t end_sidx = start_sidx + segment_group_header->group_num_segments - 1;
+    uint32_t end_sidx =
+        start_sidx + segment_group_header->group_num_segments - 1;
     for (uint32_t sidx = start_sidx; sidx <= end_sidx; sidx++) {
       jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
       if (segment_header->occupied_size > 0)
         is_free_segment_group = false;
     }
+
     if (!is_free_segment_group)
       continue;
 

@@ -174,6 +174,6 @@ inline void __attr_always_inline___ profile_gc_end(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   _stop_watch(&JERRY_CONTEXT(timeval_gc), &JERRY_CONTEXT(gc_time));
-  printf("GC done: %u\n", JERRY_CONTEXT(gc_count));
+  printf("GC done (%u)\n", JERRY_CONTEXT(gc_count));
 #endif
 }
