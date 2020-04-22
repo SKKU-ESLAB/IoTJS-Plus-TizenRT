@@ -239,6 +239,8 @@ void free_empty_segment_groups(void) {
         // Update segment reverse map tree
         segment_rmap_remove(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root),
                             segment_area);
+#else
+        JERRY_UNUSED(segment_area);
 #endif /* defined(SEG_RMAP_BINSEARCH) */
 
         // Update segment base table
