@@ -3,6 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
+                "${workspaceFolder}/src/modules",
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/deps/jerry/jerry-core"
             ],

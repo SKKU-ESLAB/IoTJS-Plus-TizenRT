@@ -14,9 +14,13 @@
  */
 
 #include "iotjs_def.h"
+#include "jerry-board-config.h"
 
 #include <stdlib.h>
+
+#ifdef PROF_MODE_ARTIK053
 #include <sys/boardctl.h>
+#endif
 
 // This function should be able to print utf8 encoded string
 // as utf8 is internal string representation in Jerryscript
@@ -48,16 +52,20 @@ JHANDLER_FUNCTION(Stderr) {
   Print(jhandler, stderr);
 }
 
+#ifdef PROF_MODE_ARTIK053
 JHANDLER_FUNCTION(Reboot) {
   boardctl(BOARDIOC_RESET, EXIT_SUCCESS);
 }
+#endif
 
 iotjs_jval_t InitConsole() {
   iotjs_jval_t console = iotjs_jval_create_object();
 
   iotjs_jval_set_method(&console, IOTJS_MAGIC_STRING_STDOUT, Stdout);
   iotjs_jval_set_method(&console, IOTJS_MAGIC_STRING_STDERR, Stderr);
+#ifdef PROF_MODE_ARTIK053
   iotjs_jval_set_method(&console, IOTJS_MAGIC_STRING_REBOOT, Reboot);
+#endif
 
   return console;
 }

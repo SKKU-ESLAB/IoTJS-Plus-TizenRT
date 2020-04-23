@@ -1,4 +1,5 @@
 /* Copyright 2014-2016 Samsung Electronics Co., Ltd.
+ * Copyright 2016-2020 Gyeonghwan Hong, Eunsoo Park, Sungkyunkwan University
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +17,7 @@
 #ifndef JMEM_CONFIG_H
 #define JMEM_CONFIG_H
 
+#include "jerry-board-config.h"
 #include "config.h"
 
 /* Segmented heap allocation configs */
@@ -73,8 +75,6 @@
 /* If config is defined, output is stored to the specified file.
  * Otherwise, output is printed to stdout.
  */
-#define PROF_MODE_ARTIK053
-
 #ifdef PROF_MODE_ARTIK053
 #define PROF_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
 #define PROF_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"

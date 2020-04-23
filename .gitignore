@@ -29,3 +29,4 @@ tags
 *.tmp.*
 *.log
 *.log.old
+external/iotjs/deps/jerry/jerry-core/include/jerry-board-config.h
