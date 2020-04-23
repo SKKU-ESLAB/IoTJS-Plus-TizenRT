@@ -30,6 +30,9 @@
 #include "jmem-size-profiler.h"
 #include "jmem-time-profiler.h"
 
+// Print GC occurance
+#define PRINT_GC_BEHAVIOR
+
 /** \addtogroup mem Memory allocation
  * @{
  *
@@ -457,6 +460,9 @@ static void *jmem_heap_gc_and_alloc_block(
 
 #ifdef JMEM_GC_BEFORE_EACH_ALLOC
   // GC before each alloc: not enabled in most cases
+#ifdef PRINT_GC_BEHAVIOR
+  printf("GC 0: before each alloc\n");
+#endif
   jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 #endif /* JMEM_GC_BEFORE_EACH_ALLOC */
 
@@ -471,6 +477,9 @@ static void *jmem_heap_gc_and_alloc_block(
 #endif /* defined(DE_SLAB) */
 #endif /* !defined(JMEM_STATIC_HEAP) && !defined(JMEM_SEGMENTED_HEAP) */
   if (allocated_size > JMEM_HEAP_SIZE) {
+#ifdef PRINT_GC_BEHAVIOR
+    printf("GC 1: expected over-size\n");
+#endif
     print_segment_utiliaztion_profile_before_gc(size); /* Seg-util profiling */
     jmem_run_free_unused_memory_callbacks(JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
     print_segment_utiliaztion_profile_after_gc(size); /* Seg-util profiling */
@@ -503,6 +512,10 @@ static void *jmem_heap_gc_and_alloc_block(
            JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW;
        severity <= JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH;
        severity = (jmem_free_unused_memory_severity_t)(severity + 1)) {
+#ifdef PRINT_GC_BEHAVIOR
+    printf("GC 2: failed due to fragmentation. retry to GC (severity=%d)\n",
+           (int)severity);
+#endif
     /* Garbage collection -> try to alloc a block */
     print_segment_utiliaztion_profile_before_gc(
         size); /* Segment utilization profiling */
