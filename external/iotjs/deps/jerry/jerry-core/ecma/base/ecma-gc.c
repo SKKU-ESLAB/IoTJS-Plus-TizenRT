@@ -38,8 +38,7 @@
 #include "ecma-promise-object.h"
 #endif
 
-#include "jmem-time-profiler.h"
-#include "jmem-jsobject-profiler.h"
+#include "jmem-profiler.h"
 
 /* TODO: Extract GC to a separate component */
 

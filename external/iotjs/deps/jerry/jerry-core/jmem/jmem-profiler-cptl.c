@@ -1,6 +1,4 @@
-/* Copyright 2014-2016 Samsung Electronics Co., Ltd.
- * Copyright 2016 University of Szeged.
- * Copyright 2016-2020 Gyeonghwan Hong, Eunsoo Park, Sungkyunkwan University
+/* Copyright 2016-2020 Gyeonghwan Hong, Sungkyunkwan University
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +13,5 @@
  * limitations under the License.
  */
 
-#ifndef JMEM_PROFILER_COMMON_H
-#define JMEM_PROFILER_COMMON_H
-
-#include "jcontext.h"
-#include "jmem-config.h"
-#include "jrt.h"
-
-#define CHECK_LOGGING_ENABLED()                                         \
-  if (!(JERRY_CONTEXT(jerry_init_flags) & ECMA_INIT_JMEM_LOGS_ENABLED)) \
-  return
-
-#endif /* !defined(JMEM_PROFILER_COMMON_H) */
+#include "jmem-profiler-common-internal.h"
+#include "jmem-profiler.h"

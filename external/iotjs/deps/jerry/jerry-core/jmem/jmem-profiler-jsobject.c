@@ -19,8 +19,8 @@
 #include <sys/time.h>
 
 #include "jcontext.h"
-#include "jmem-jsobject-profiler.h"
-#include "jmem-profiler-common.h"
+#include "jmem-profiler-common-internal.h"
+#include "jmem-profiler.h"
 #include "jmem.h"
 
 /* JS object lifespan profiling */
@@ -102,8 +102,7 @@ inline void __attr_always_inline___ print_jsobject_allocation_profile(void) {
   FILE *fp = fopen(PROF_JSOBJECT_ALLOCATION_FILENAME, "a");
 
   for (uint32_t index = 0;
-       index < PROF_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT;
-       index++) {
+       index < PROF_JSOBJECT_ALLOCATION__MAX_SIZE / JMEM_ALIGNMENT; index++) {
     fprintf(fp, "OA, %lu, %lu\n", (unsigned long)((index + 1) * JMEM_ALIGNMENT),
             (unsigned long)(JERRY_CONTEXT(jsobject_count[index])));
   }

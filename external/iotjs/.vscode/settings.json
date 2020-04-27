@@ -22,7 +22,6 @@
     "vector": "c",
     "utility": "c",
     "jmem-allocator-internal.h": "c",
-    "jmem-time-profiler.h": "c"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

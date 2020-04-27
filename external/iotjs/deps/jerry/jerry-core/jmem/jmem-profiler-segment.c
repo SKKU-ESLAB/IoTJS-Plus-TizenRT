@@ -16,31 +16,15 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#include "jmem-profiler-common.h"
-#include "jmem-size-profiler.h"
+#include "jmem-profiler-common-internal.h"
+#include "jmem-profiler.h"
 
-static void __get_js_uptime(struct timeval *js_uptime);
-static long __get_timeval_diff_usec(struct timeval *prior,
-                                    struct timeval *post);
-static void __print_total_size_profile(void);
 static void __print_segment_utilization_profile(const char *type,
                                                 size_t jsobject_size);
 
-inline void __attr_always_inline___ init_size_profiler(void) {
+inline void __attr_always_inline___ init_segment_profiler(void) {
 #if defined(JMEM_PROFILE)
   CHECK_LOGGING_ENABLED();
-  gettimeofday(&JERRY_CONTEXT(timeval_js_start), NULL);
-#if defined(PROF_TOTAL_SIZE__PERIOD_USEC)
-  FILE *fp1 = fopen(PROF_TOTAL_SIZE_FILENAME, "w");
-  fprintf(fp1,
-          "Timestamp (s), Blocks Size (B), Full-bitwidth Pointer Overhead (B), "
-          "Allocated Heap Size (B), System Allocator Metadata Size (B), "
-          "Segment Metadata Size (B)\n");
-  fflush(fp1);
-  fclose(fp1);
-  JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_sec = 0;
-  JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_usec = 0;
-#endif
 #if defined(PROF_SEGMENT_UTILIZATION__PERIOD_USEC)
   FILE *fp2 = fopen(PROF_SEGMENT_UTILIZATION_FILENAME, "w");
   fprintf(fp2, "Timestamp (s), JSObject Size (s)");
@@ -57,98 +41,26 @@ inline void __attr_always_inline___ init_size_profiler(void) {
 #endif
 }
 
-inline long __attr_always_inline___
-__get_timeval_diff_usec(struct timeval *prior, struct timeval *post) {
-  long timeval_diff_usec = (post->tv_sec - prior->tv_sec) * 1000 * 1000 +
-                           (post->tv_usec - prior->tv_usec);
-  return timeval_diff_usec;
-}
-
-inline void __attr_always_inline___ __get_js_uptime(struct timeval *js_uptime) {
-#if defined(JMEM_PROFILE)
-  gettimeofday(js_uptime, NULL);
-
-  if (js_uptime->tv_usec < JERRY_CONTEXT(timeval_js_start).tv_usec) {
-    js_uptime->tv_usec += 1000000;
-    js_uptime->tv_sec -= 1;
-  }
-  js_uptime->tv_usec -= JERRY_CONTEXT(timeval_js_start).tv_usec;
-  js_uptime->tv_sec -= JERRY_CONTEXT(timeval_js_start).tv_sec;
-#else
-  JERRY_UNUSED(js_uptime);
-#endif
-}
-
-/* Total size profiling */
-
-
-inline void __attr_always_inline___ print_total_size_profile_on_alloc(void) {
-#if defined(PROF_TOTAL_SIZE__PERIOD_USEC)
-  CHECK_LOGGING_ENABLED();
-  struct timeval js_uptime;
-  __get_js_uptime(&js_uptime);
-  long timeval_diff_in_usec =
-      __get_timeval_diff_usec(&JERRY_CONTEXT(jsuptime_recent_total_size_print),
-                              &js_uptime);
-  if (timeval_diff_in_usec > PROF_TOTAL_SIZE__PERIOD_USEC) {
-    JERRY_CONTEXT(jsuptime_recent_total_size_print) = js_uptime;
-    __print_total_size_profile();
-  }
-#else
-  __print_total_size_profile();
-#endif /* defined(PROF_TOTAL_SIZE__PERIOD_USEC) */
-}
-
-inline void __attr_always_inline___ print_total_size_profile_finally(void) {
-  CHECK_LOGGING_ENABLED();
-  __print_total_size_profile();
-}
-
-inline void __attr_always_inline___ __print_total_size_profile(void) {
-#if defined(JMEM_PROFILE) && defined(PROF_TOTAL_SIZE)
-  CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(PROF_TOTAL_SIZE_FILENAME, "a");
-
-  struct timeval js_uptime;
-  __get_js_uptime(&js_uptime);
-  uint32_t blocks_size = (uint32_t)JERRY_CONTEXT(jmem_heap_blocks_size);
-  uint32_t full_bw_oh =
-      (uint32_t)JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead);
-  uint32_t alloc_heap_size = (uint32_t)JERRY_CONTEXT(jmem_allocated_heap_size);
-  uint32_t sysalloc_meta_size =
-      (uint32_t)JERRY_CONTEXT(jmem_system_allocator_metadata_size);
-  uint32_t segment_meta_size =
-      (uint32_t)JERRY_CONTEXT(jmem_segment_allocator_metadata_size);
-
-  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
-          js_uptime.tv_usec, blocks_size, full_bw_oh, alloc_heap_size,
-          sysalloc_meta_size, segment_meta_size);
-  fflush(fp);
-  fclose(fp);
-#endif
-}
-
-/* Segment utilization profiling */
 inline void __attr_always_inline___
 print_segment_utilization_profile_after_free(size_t jsobject_size) {
 #if defined(PROF_SEGMENT_UTILIZATION__AFTER_FREE_BLOCK)
 #if defined(PROF_SEGMENT_UTILIZATION__PERIOD_USEC)
   CHECK_LOGGING_ENABLED();
   struct timeval js_uptime;
-  __get_js_uptime(&js_uptime);
+  get_js_uptime(&js_uptime);
   long timeval_diff_in_usec =
-      __get_timeval_diff_usec(&JERRY_CONTEXT(jsuptime_recent_segutil_print),
-                              &js_uptime);
+      get_timeval_diff_usec(&JERRY_CONTEXT(jsuptime_recent_segutil_print),
+                            &js_uptime);
   if (timeval_diff_in_usec > PROF_SEGMENT_UTILIZATION__PERIOD_USEC) {
     JERRY_CONTEXT(jsuptime_recent_segutil_print) = js_uptime;
     __print_segment_utilization_profile("AFB", jsobject_size);
   }
-#else
+#else  /* defined(PROF_SEGMENT_UTILIZATION__PERIOD_USEC) */
   __print_segment_utilization_profile("AFB", jsobject_size);
-#endif /* defined(PROF_SEGMENT_UTILIZATION__PERIOD_USEC) */
-#else
+#endif /* !defined(PROF_SEGMENT_UTILIZATION__PERIOD_USEC) */
+#else  /* defined(PROF_SEGMENT_UTILIZATION__AFTER_FREE_BLOCK) */
   JERRY_UNUSED(jsobject_size);
-#endif
+#endif /* !defined(PROF_SEGMENT_UTILIZATION__AFTER_FREE_BLOCK) */
 }
 
 inline void __attr_always_inline___
@@ -193,7 +105,7 @@ __print_segment_utilization_profile(const char *header, size_t jsobject_size) {
     defined(PROF_SEGMENT_UTILIZATION)
   CHECK_LOGGING_ENABLED();
   struct timeval js_uptime;
-  __get_js_uptime(&js_uptime);
+  get_js_uptime(&js_uptime);
 
   FILE *fp = fopen(PROF_SEGMENT_UTILIZATION_FILENAME, "a");
   fprintf(fp, "%s %lu, %lu.%06lu", header, (unsigned long)jsobject_size,
@@ -216,16 +128,18 @@ __print_segment_utilization_profile(const char *header, size_t jsobject_size) {
     } else {
       fprintf(fp, ", -");
     }
-#endif
+#endif /* defined(PROF_SEGMENT_UTILIZATION__ABSOLUTE) */
   }
   fprintf(fp, "\n");
 
   fflush(fp);
   fclose(fp);
-#else
+#else  /* defined(JMEM_SEGMENTED_HEAP) && defined(JMEM_PROFILE) && \
+        * defined(PROF_SEGMENT_UTILIZATION)                        \
+        */
   JERRY_UNUSED(header);
   JERRY_UNUSED(jsobject_size);
-#endif /* defined(JMEM_SEGMENTED_HEAP) &&defined(JMEM_PROFILE) && \
-        * defined(PROF_SEGMENT_UTILIZATION)                       \
+#endif /* !defined(JMEM_SEGMENTED_HEAP) || !defined(JMEM_PROFILE) || \
+        * !defined(PROF_SEGMENT_UTILIZATION)                         \
         */
 }

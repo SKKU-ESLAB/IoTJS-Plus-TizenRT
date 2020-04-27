@@ -15,20 +15,28 @@
  * limitations under the License.
  */
 
-#ifndef JMEM_GC_PROFILER_H
-#define JMEM_GC_PROFILER_H
+#ifndef JMEM_PROFILER_COMMON_H
+#define JMEM_PROFILER_COMMON_H
 
+#include "jcontext.h"
 #include "jmem-config.h"
 #include "jrt.h"
 
-/* JS object lifespan profiling */
-extern void profile_jsobject_inc_total_count(void);
-extern void profile_jsobject_set_object_birth_time(uintptr_t compressed_pointer);
-extern void profile_jsobject_set_object_birth_count(uintptr_t compressed_pointer);
-extern void profile_jsobject_print_object_lifespan(uintptr_t compressed_pointer);
+#define CHECK_LOGGING_ENABLED()                                         \
+  if (!(JERRY_CONTEXT(jerry_init_flags) & ECMA_INIT_JMEM_LOGS_ENABLED)) \
+  return
 
-/* JS object allocation profiling */
-extern void profile_jsobject_inc_allocation(size_t jsobject_size);
-extern void print_jsobject_allocation_profile(void);
+/* jmem-profiler-common.c */
+extern void get_js_uptime(struct timeval *js_uptime);
+extern long get_timeval_diff_usec(struct timeval *prior, struct timeval *post);
 
-#endif /* !defined(JMEM_GC_PROFILER_H) */
+/* jmem-profiler-size.c */
+extern void init_size_profiler(void);
+
+/* jmem-profiler-segment.c */
+extern void init_segment_profiler(void);
+
+/* jmem-profiler-time.c */
+extern void init_time_profiler(void);
+
+#endif /* !defined(JMEM_PROFILER_COMMON_H) */

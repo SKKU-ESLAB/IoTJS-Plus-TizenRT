@@ -26,9 +26,7 @@
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
 #include "jmem-heap-dynamic-emul-slab.h"
-#include "jmem-jsobject-profiler.h"
-#include "jmem-size-profiler.h"
-#include "jmem-time-profiler.h"
+#include "jmem-profiler.h"
 
 // Print GC occurance
 #define PRINT_GC_BEHAVIOR
@@ -163,9 +161,7 @@ void jmem_heap_init(void) {
   jmem_heap_init_size_metrics();
 #endif /* !defined(JERRY_SYSTEM_ALLOCATOR) */
 
-  /* Initialize profiling */
-  init_size_profiler(); /* Total size profiling */
-  init_time_profiler(); /* Time profiling */
+  init_profilers(); /* Initialize profilers */
   JMEM_HEAP_STAT_INIT();
 } /* jmem_heap_init */
 

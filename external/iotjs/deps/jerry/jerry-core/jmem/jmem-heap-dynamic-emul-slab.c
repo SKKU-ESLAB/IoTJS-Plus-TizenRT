@@ -15,7 +15,7 @@
 
 #include "jmem-heap-dynamic-emul-slab.h"
 #include "jcontext.h"
-#include "jmem-size-profiler.h"
+#include "jmem-profiler.h"
 
 #if defined(JMEM_DYNAMIC_HEAP_EMUL) && defined(DE_SLAB)
 
