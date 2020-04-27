@@ -16,9 +16,9 @@
 #include "jmem-heap-segmented-translation.h"
 
 #include "jcontext.h"
+#include "jmem-config.h"
 #include "jmem-heap-segmented-rmap-rb.h"
 #include "jmem.h"
-#include "jmem-config.h"
 
 #define JMEM_HEAP_GET_OFFSET_FROM_PTR(p, seg_ptr) \
   ((uint32_t)((uint8_t *)(p) - (uint8_t *)(seg_ptr)))
@@ -61,6 +61,16 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   uint8_t *saddr = NULL;
   uint32_t sidx;
 
+#ifdef SEG_RMAP_CACHING
+  // Caching
+  uint8_t *curr_addr = JERRY_HEAP_CONTEXT(recent_base_addr);
+  intptr_t result = (intptr_t)addr - (intptr_t)curr_addr;
+  if (result < (intptr_t)SEG_SEGMENT_SIZE && result >= 0) {
+    *saddr_out = curr_addr;
+    return JERRY_HEAP_CONTEXT(recent_sidx);
+  }
+#endif
+
 #ifndef SEG_RMAP_BINSEARCH
   for (sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     saddr = JERRY_HEAP_CONTEXT(area[sidx]);
@@ -73,6 +83,11 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   sidx = node->sidx;
   saddr = node->base_addr;
 #endif /* !SEG_RMAP_BINSEARCH */
+
+#ifdef SEG_RMAP_CACHING
+  JERRY_HEAP_CONTEXT(recent_sidx) = sidx;
+  JERRY_HEAP_CONTEXT(recent_base_addr) = saddr;
+#endif
 
   *saddr_out = saddr;
   return sidx;

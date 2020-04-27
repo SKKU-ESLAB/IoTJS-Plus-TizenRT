@@ -39,6 +39,7 @@
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
 #define SEG_RMAP_BINSEARCH // binary search for reverse map
+#define SEG_RMAP_CACHING // caching in reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment

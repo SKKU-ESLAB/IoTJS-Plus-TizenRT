@@ -300,6 +300,10 @@ typedef struct
   /* JS heap area on heap area (dynamically allocated) */
   uint8_t *area[SEG_NUM_SEGMENTS]; // Segment base table
 #ifdef SEG_RMAP_BINSEARCH
+#ifdef SEG_RMAP_CACHING
+  uint8_t *recent_base_addr;
+  uint32_t recent_sidx;
+#endif
   rb_root segment_rmap_rb_root; // Segment reverse map tree
 #endif /* SEG_RMAP_BINSEARCH */
   jmem_segment_t segments[SEG_NUM_SEGMENTS]; // Segment header
