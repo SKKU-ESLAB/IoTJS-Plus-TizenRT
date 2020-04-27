@@ -39,4 +39,22 @@ extern void init_segment_profiler(void);
 /* jmem-profiler-time.c */
 extern void init_time_profiler(void);
 
+/* Profiler output configs */
+/* If config is defined, output is stored to the specified file.
+ * Otherwise, output is printed to stdout.
+ */
+#ifdef PROF_MODE_ARTIK053
+#define PROF_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
+#define PROF_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
+#define PROF_TIME_FILENAME "/mnt/time.log"
+#define PROF_JSOBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
+#define PROF_JSOBJECT_ALLOCATION_FILENAME "/mnt/object_allocation.log"
+#else
+#define PROF_TOTAL_SIZE_FILENAME "total_size.log"
+#define PROF_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
+#define PROF_TIME_FILENAME "time.log"
+#define PROF_JSOBJECT_LIFESPAN_FILENAME "object_lifespan.log"
+#define PROF_JSOBJECT_ALLOCATION_FILENAME "object_allocation.log"
+#endif
+
 #endif /* !defined(JMEM_PROFILER_COMMON_H) */

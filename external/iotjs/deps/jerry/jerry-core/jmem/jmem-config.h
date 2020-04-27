@@ -38,8 +38,8 @@
 // no options
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
-#define SEG_RMAP_BINSEARCH // binary search for reverse map
-#define SEG_RMAP_CACHING // caching in reverse map
+#define SEG_RMAP_BINSEARCH         // binary search for reverse map
+#define SEG_RMAP_CACHING           // caching in reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment
@@ -71,23 +71,5 @@
 // #define PROF_JSOBJECT_LIFESPAN
 // #define PROF_JSOBJECT_ALLOCATION
 // #define PROF_JSOBJECT_ALLOCATION__MAX_SIZE 1024 // 8B ~ 1024B
-
-/* Profiler output configs */
-/* If config is defined, output is stored to the specified file.
- * Otherwise, output is printed to stdout.
- */
-#ifdef PROF_MODE_ARTIK053
-#define PROF_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
-#define PROF_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
-#define PROF_TIME_FILENAME "/mnt/time.log"
-#define PROF_JSOBJECT_LIFESPAN_FILENAME "/mnt/object_lifespan.log"
-#define PROF_JSOBJECT_ALLOCATION_FILENAME "/mnt/object_allocation.log"
-#else
-#define PROF_TOTAL_SIZE_FILENAME "total_size.log"
-#define PROF_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
-#define PROF_TIME_FILENAME "time.log"
-#define PROF_JSOBJECT_LIFESPAN_FILENAME "object_lifespan.log"
-#define PROF_JSOBJECT_ALLOCATION_FILENAME "object_allocation.log"
-#endif
 
 #endif /* !JMEM_CONFIG_H */

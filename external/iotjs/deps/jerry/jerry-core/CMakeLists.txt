@@ -83,6 +83,9 @@ set(INCLUDE_CORE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/jcontext"
     "${CMAKE_CURRENT_SOURCE_DIR}/jmem"
+    "${CMAKE_CURRENT_SOURCE_DIR}/jmem/dynamic"
+    "${CMAKE_CURRENT_SOURCE_DIR}/jmem/segmented"
+    "${CMAKE_CURRENT_SOURCE_DIR}/jmem/profiler"
     "${CMAKE_CURRENT_SOURCE_DIR}/jrt"
     "${CMAKE_CURRENT_SOURCE_DIR}/lit"
     "${CMAKE_CURRENT_SOURCE_DIR}/parser/js"
@@ -99,6 +102,9 @@ file(GLOB SOURCE_CORE_ECMA_BUILTINS_TYPEDARRAY  ecma/builtin-objects/typedarray/
 file(GLOB SOURCE_CORE_ECMA_OPERATIONS           ecma/operations/*.c)
 file(GLOB SOURCE_CORE_JCONTEXT                  jcontext/*.c)
 file(GLOB SOURCE_CORE_JMEM                      jmem/*.c)
+file(GLOB SOURCE_CORE_JMEM_DYNAMIC              jmem/dynamic/*.c)
+file(GLOB SOURCE_CORE_JMEM_SEGMENTED            jmem/segmented/*.c)
+file(GLOB SOURCE_CORE_JMEM_PROFILER             jmem/profiler/*.c)
 file(GLOB SOURCE_CORE_JRT                       jrt/*.c)
 file(GLOB SOURCE_CORE_LIT                       lit/*.c)
 file(GLOB SOURCE_CORE_PARSER_JS                 parser/js/*.c)
@@ -114,6 +120,9 @@ set(SOURCE_CORE_FILES
     ${SOURCE_CORE_ECMA_OPERATIONS}
     ${SOURCE_CORE_JCONTEXT}
     ${SOURCE_CORE_JMEM}
+    ${SOURCE_CORE_JMEM_DYNAMIC}
+    ${SOURCE_CORE_JMEM_SEGMENTED}
+    ${SOURCE_CORE_JMEM_PROFILER}
     ${SOURCE_CORE_JRT}
     ${SOURCE_CORE_LIT}
     ${SOURCE_CORE_PARSER_JS}

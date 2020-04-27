@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "jmem-heap-segmented-translation.h"
+#include "jmem-heap-segmented-cptl.h"
 
 #include "jcontext.h"
 #include "jmem-config.h"

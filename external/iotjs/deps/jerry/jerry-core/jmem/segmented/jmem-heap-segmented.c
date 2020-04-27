@@ -24,7 +24,7 @@
 #include "jmem-heap-segmented.h"
 
 #include "jmem-heap-segmented-rmap-rb.h"
-#include "jmem-heap-segmented-translation.h"
+#include "jmem-heap-segmented-cptl.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
 

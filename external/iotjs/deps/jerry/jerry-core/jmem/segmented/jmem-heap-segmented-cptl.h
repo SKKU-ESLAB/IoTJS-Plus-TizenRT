@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef JMEM_HEAP_SEGMENTED_TRANSLATION_H
-#define JMEM_HEAP_SEGMENTED_TRANSLATION_H
+#ifndef JMEM_HEAP_SEGMENTED_CPTL_H
+#define JMEM_HEAP_SEGMENTED_CPTL_H
 
 #include "jrt.h"
 
@@ -22,4 +22,4 @@ extern uint8_t *sidx_to_addr(uint32_t sidx);
 // TODO: sddr -> base_addr
 extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out);
 
-#endif /* !defined(JMEM_HEAP_SEGMENTED_TRANSLATION_H) */
+#endif /* !defined(JMEM_HEAP_SEGMENTED_CPTL_H) */
