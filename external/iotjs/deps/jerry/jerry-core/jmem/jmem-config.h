@@ -20,10 +20,12 @@
 #include "jerry-board-config.h"
 #include "config.h"
 
+/* Garbage collection type configs */
+// #define JMEM_LAZY_GC
+
 /* Segmented heap allocation configs */
 #define SEG_SEGMENT_SIZE 2048
 #define SEG_SEGMENT_SHIFT 11
-
 
 /* Heap allocation type */
 // 1) Real dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled

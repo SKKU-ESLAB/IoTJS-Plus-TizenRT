@@ -472,7 +472,12 @@ static void *jmem_heap_gc_and_alloc_block(
     allocated_size -= size;
 #endif /* defined(DE_SLAB) */
 #endif /* !defined(JMEM_STATIC_HEAP) && !defined(JMEM_SEGMENTED_HEAP) */
+
+#ifdef JMEM_LAZY_GC
   if (allocated_size > JMEM_HEAP_SIZE) {
+#else
+  if (allocated_size > JERRY_CONTEXT(jmem_heap_limit)) {
+#endif
 #ifdef PRINT_GC_BEHAVIOR
     printf("GC 1: expected over-size\n");
 #endif
