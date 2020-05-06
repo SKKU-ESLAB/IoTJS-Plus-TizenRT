@@ -29,7 +29,7 @@
 #include "jmem-profiler.h"
 
 // Print GC occurance
-#define PRINT_GC_BEHAVIOR
+// #define PRINT_GC_BEHAVIOR
 
 /** \addtogroup mem Memory allocation
  * @{

@@ -19,8 +19,10 @@
 #include "jmem-profiler-common-internal.h"
 #include "jmem-profiler.h"
 
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
 static void __check_watch(struct timeval *timer);
 static void __stop_watch(struct timeval *timer, struct timeval *t);
+#endif
 
 /* Time profiling */
 inline void __attr_always_inline___ init_time_profiler(void) {
@@ -149,11 +151,11 @@ inline void __attr_always_inline___ profile_gc_end(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
   CHECK_LOGGING_ENABLED();
   __stop_watch(&JERRY_CONTEXT(timeval_gc), &JERRY_CONTEXT(gc_time));
-  printf("GC done (%u)\n", JERRY_CONTEXT(gc_count));
 #endif
 }
 
 /* Internal functions */
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
 void __check_watch(struct timeval *timer) {
   gettimeofday(timer, NULL);
 }
@@ -178,3 +180,4 @@ void __stop_watch(struct timeval *timer, struct timeval *t) {
     t->tv_usec -= 1000000;
   }
 }
+#endif
