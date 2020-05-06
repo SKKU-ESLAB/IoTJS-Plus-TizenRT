@@ -40,6 +40,8 @@
 
 #include "jmem-profiler.h"
 
+// #define GC_ON_ZERO_REFCOUNT
+
 /* TODO: Extract GC to a separate component */
 
 /** \addtogroup ecma ECMA
@@ -124,10 +126,12 @@ ecma_gc_set_object_visited (ecma_object_t *object_p, /**< object */
 inline void
 ecma_init_gc_info (ecma_object_t *object_p) /**< object */
 {
+#ifndef GC_ON_ZERO_REFCOUNT
   JERRY_CONTEXT (ecma_gc_objects_number)++;
   JERRY_CONTEXT (ecma_gc_new_objects)++;
 
   JERRY_ASSERT (JERRY_CONTEXT (ecma_gc_new_objects) <= JERRY_CONTEXT (ecma_gc_objects_number));
+#endif
 
   JERRY_ASSERT (object_p->type_flags_refs < ECMA_OBJECT_REF_ONE);
   object_p->type_flags_refs = (uint16_t) (object_p->type_flags_refs | ECMA_OBJECT_REF_ONE);
@@ -163,6 +167,13 @@ ecma_deref_object (ecma_object_t *object_p) /**< object */
 {
   JERRY_ASSERT (object_p->type_flags_refs >= ECMA_OBJECT_REF_ONE);
   object_p->type_flags_refs = (uint16_t) (object_p->type_flags_refs - ECMA_OBJECT_REF_ONE);
+
+#ifdef GC_ON_ZERO_REFCOUNT
+  // GC on zero reference count
+  if(object_p->type_flags_refs < ECMA_OBJECT_REF_ONE) {
+    ecma_gc_sweep(object_p);
+  }
+#endif
 } /* ecma_deref_object */
 
 /**
@@ -447,7 +458,9 @@ void
 ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
 {
   JERRY_ASSERT (object_p != NULL
+  #ifndef GC_ON_ZERO_REFCOUNT
                 && !ecma_gc_is_object_visited (object_p)
+  #endif
                 && object_p->type_flags_refs < ECMA_OBJECT_REF_ONE);
 
   bool obj_is_not_lex_env = !ecma_is_lexical_environment (object_p);
@@ -503,8 +516,10 @@ ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
     }
   }
 
+#ifndef GC_ON_ZERO_REFCOUNT
   JERRY_ASSERT (JERRY_CONTEXT (ecma_gc_objects_number) > 0);
   JERRY_CONTEXT (ecma_gc_objects_number)--;
+#endif
 
   if (obj_is_not_lex_env)
   {
@@ -708,7 +723,9 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
   profile_jsobject_inc_total_count(); /* JS object lifespan profiling */
   profile_gc_start(); /* Time profiling */
 
+#ifndef GC_ON_ZERO_REFCOUNT
   JERRY_CONTEXT (ecma_gc_new_objects) = 0;
+#endif
 
   JERRY_ASSERT (JERRY_CONTEXT (ecma_gc_objects_lists) [ECMA_GC_COLOR_BLACK] == NULL);
 
@@ -845,6 +862,7 @@ ecma_free_unused_memory (jmem_free_unused_memory_severity_t severity) /**< sever
     JERRY_CONTEXT (ecma_prop_hashmap_alloc_last_is_hs_gc) = false;
 #endif /* !CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE */
 
+#ifndef GC_ON_ZERO_REFCOUNT
     /*
      * If there is enough newly allocated objects since last GC, probably it is worthwhile to start GC now.
      * Otherwise, probability to free sufficient space is considered to be low.
@@ -855,6 +873,7 @@ ecma_free_unused_memory (jmem_free_unused_memory_severity_t severity) /**< sever
     {
       ecma_gc_run (severity);
     }
+#endif
   }
   else
   {
