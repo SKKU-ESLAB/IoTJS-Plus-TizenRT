@@ -21,11 +21,42 @@
 #include "jmem-profiler.h"
 #include "jmem.h"
 
+#include "cptl-rmap-cache.h"
+
 #define JMEM_HEAP_GET_OFFSET_FROM_PTR(p, seg_ptr) \
   ((uint32_t)((uint8_t *)(p) - (uint8_t *)(seg_ptr)))
 
+// Initialize compressed pointer translation layer (CPTL)
+void init_cptl(void) {
+  // Initialize segment base table
+  for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
+    JERRY_HEAP_CONTEXT(area[sidx]) = (uint8_t *)NULL;
+  }
+
+  // Initialize reverse map
+#ifdef SEG_RMAP_BINSEARCH
+  JERRY_HEAP_CONTEXT(segment_rmap_rb_root).rb_node = NULL;
+#endif /* SEG_RMAP_BINSEARCH */
+
+#ifdef SEG_RMAP_CACHE
+  init_rmap_cache();
+#endif /* defined(SEG_RMAP_CACHE) */
+}
+
+// Address decompression (Compressed pointer -> full-bitwidth pointer)
+// * jmem.h
+inline jmem_heap_free_t *__attribute__((hot))
+cptl_decompress_pointer_internal(uint32_t u) {
+  if (u == JMEM_HEAP_END_OF_LIST_UINT32)
+    return JMEM_HEAP_END_OF_LIST;
+  return (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(u >> SEG_SEGMENT_SHIFT) +
+                              (uintptr_t)(u % SEG_SEGMENT_SIZE));
+}
+
+// Address compression (Full-bitwidth pointer -> compressed pointer)
+// * jmem.h
 inline uint32_t __attribute__((hot))
-jmem_heap_get_offset_from_addr_segmented(jmem_heap_free_t *addr) {
+cptl_compress_pointer_internal(jmem_heap_free_t *addr) {
   uint32_t sidx;
   uint8_t *saddr;
 
@@ -42,21 +73,19 @@ jmem_heap_get_offset_from_addr_segmented(jmem_heap_free_t *addr) {
   return (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(addr, saddr) +
                     (uint32_t)SEG_SEGMENT_SIZE * sidx);
 }
-inline jmem_heap_free_t *__attribute__((hot))
-jmem_heap_get_addr_from_offset_segmented(uint32_t u) {
-  if (u == JMEM_HEAP_END_OF_LIST_UINT32)
-    return JMEM_HEAP_END_OF_LIST;
-  return (jmem_heap_free_t *)((uintptr_t)JERRY_HEAP_CONTEXT(
-                                  area[u >> SEG_SEGMENT_SHIFT]) +
-                              (uintptr_t)(u % SEG_SEGMENT_SIZE));
-}
 
-/**
- * Addr <-> offset translation
- */
+// Raw function to access segment base table
+// * Segment index -> Segment base address(Full-bitwidth pointer)
+// * Core part of decompression
+// * jmem-heap-segmented-cptl.h
 inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
   return JERRY_HEAP_CONTEXT(area[sidx]);
 }
+
+// Raw function to access segment reverse map
+// * Full-bitwidth pointer -> Segment index
+// * Core part of compression
+// * jmem-heap-segmented-cptl.h
 inline uint32_t __attribute__((hot))
 addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   uint8_t *saddr = NULL;
@@ -64,15 +93,11 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
 
   profile_inc_rmc_access_count(); // CPTL reverse map caching profiling
 
-#ifdef SEG_RMAP_CACHING
-  // Caching
-  uint8_t *curr_addr = JERRY_HEAP_CONTEXT(recent_base_addr);
-  intptr_t result = (intptr_t)addr - (intptr_t)curr_addr;
-  if (result < (intptr_t)SEG_SEGMENT_SIZE && result >= 0) {
-    *saddr_out = curr_addr;
-    return JERRY_HEAP_CONTEXT(recent_sidx);
-  }
-#endif
+#ifdef SEG_RMAP_CACHE
+  uint32_t result_cache = access_and_check_rmap_cache(addr, saddr_out);
+  if (result_cache < SEG_NUM_SEGMENTS)
+    return result_cache;
+#endif /* defined(SEG_RMAP_CACHE) */
 
 #ifndef SEG_RMAP_BINSEARCH
   for (sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
@@ -80,17 +105,16 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
     if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE)
       break;
   }
-#else  /* SEG_RMAP_BINSEARCH */
+#else  /* defined(SEG_RMAP_BINSEARCH) */
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
   sidx = node->sidx;
   saddr = node->base_addr;
-#endif /* !SEG_RMAP_BINSEARCH */
+#endif /* !defined(SEG_RMAP_BINSEARCH) */
 
-#ifdef SEG_RMAP_CACHING
-  JERRY_HEAP_CONTEXT(recent_sidx) = sidx;
-  JERRY_HEAP_CONTEXT(recent_base_addr) = saddr;
-#endif
+#ifdef SEG_RMAP_CACHE
+  update_rmap_cache(saddr, sidx);
+#endif /* defined(SEG_RMAP_CACHE) */
 
   *saddr_out = saddr;
 

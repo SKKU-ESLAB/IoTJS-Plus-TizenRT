@@ -76,7 +76,7 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 #else /* !ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY || !JERRY_CPOINTER_32_BIT */
 
 #ifdef JMEM_SEGMENTED_HEAP
-  uint_ptr = (uintptr_t)JMEM_HEAP_GET_OFFSET_FROM_ADDR(pointer_p);
+  uint_ptr = (uintptr_t)JMEM_COMPRESS_POINTER_INTERNAL(pointer_p);
 #else /* JMEM_SEGMENTED_HEAP */
   const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
   uint_ptr -= heap_start;
@@ -121,7 +121,7 @@ jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompres
 
 #ifdef JMEM_SEGMENTED_HEAP
   uint_ptr <<= JMEM_ALIGNMENT_LOG;
-  uint_ptr = (uintptr_t)JMEM_HEAP_GET_ADDR_FROM_OFFSET((uint32_t)uint_ptr);
+  uint_ptr = (uintptr_t)JMEM_DECOMPRESS_POINTER_INTERNAL((uint32_t)uint_ptr);
 #else /* JMEM_SEGMENTED_HEAP */
   const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
   uint_ptr <<= JMEM_ALIGNMENT_LOG;

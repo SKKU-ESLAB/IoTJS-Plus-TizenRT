@@ -23,8 +23,8 @@
 
 #include "jmem-heap-segmented.h"
 
-#include "jmem-heap-segmented-rmap-rb.h"
 #include "jmem-heap-segmented-cptl.h"
+#include "jmem-heap-segmented-rmap-rb.h"
 
 #ifdef JMEM_SEGMENTED_HEAP
 
@@ -34,20 +34,14 @@ static void *alloc_a_segment_group_internal(size_t required_size,
 
 /* External functions */
 void init_segmented_heap(void) {
-  // Initialize segment base table and segment headers
-  {
-    uint32_t sidx;
-    for (sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
-      JERRY_HEAP_CONTEXT(area[sidx]) = (uint8_t *)NULL;
-      JERRY_HEAP_CONTEXT(segments[sidx]).occupied_size = 0;
-      JERRY_HEAP_CONTEXT(segments[sidx]).group_num_segments = 0;
-    }
+  // Initialize segment headers
+  for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
+    JERRY_HEAP_CONTEXT(segments[sidx]).occupied_size = 0;
+    JERRY_HEAP_CONTEXT(segments[sidx]).group_num_segments = 0;
   }
 
-  // Initialize segment reverse map
-#ifdef SEG_RMAP_BINSEARCH
-  JERRY_HEAP_CONTEXT(segment_rmap_rb_root).rb_node = NULL;
-#endif /* SEG_RMAP_BINSEARCH */
+  // Initialize compressed pointer translation layer (CPTL)
+  init_cptl();
 
   // Initialize first segment
   uint32_t start_sidx;
@@ -151,14 +145,14 @@ void *alloc_a_segment_group(size_t required_size) {
   jmem_heap_free_t *prev_p = &JERRY_HEAP_CONTEXT(first);
   uint32_t curr_offset = JERRY_HEAP_CONTEXT(first).next_offset;
   jmem_heap_free_t *current_p =
-      JMEM_HEAP_GET_ADDR_FROM_OFFSET(JERRY_HEAP_CONTEXT(first).next_offset);
+      JMEM_DECOMPRESS_POINTER_INTERNAL(JERRY_HEAP_CONTEXT(first).next_offset);
   uint32_t segment_group_offset =
       (uint32_t)start_sidx * (uint32_t)SEG_SEGMENT_SIZE;
   while (current_p != JMEM_HEAP_END_OF_LIST &&
          curr_offset < segment_group_offset) {
     prev_p = current_p;
     curr_offset = current_p->next_offset;
-    current_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET(curr_offset);
+    current_p = JMEM_DECOMPRESS_POINTER_INTERNAL(curr_offset);
   }
   jmem_heap_free_t *segment_group_region =
       (jmem_heap_free_t *)segment_group_area;
@@ -207,7 +201,8 @@ void free_empty_segment_groups(void) {
 
       // Update free region list
       uint32_t curr_offset = JERRY_HEAP_CONTEXT(first).next_offset;
-      jmem_heap_free_t *current_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET(curr_offset);
+      jmem_heap_free_t *current_p =
+          JMEM_DECOMPRESS_POINTER_INTERNAL(curr_offset);
       jmem_heap_free_t *prev_p = &JERRY_HEAP_CONTEXT(first);
       uint32_t segment_group_offset =
           (uint32_t)start_sidx * (uint32_t)SEG_SEGMENT_SIZE;
@@ -215,7 +210,7 @@ void free_empty_segment_groups(void) {
              curr_offset < segment_group_offset) {
         prev_p = current_p;
         curr_offset = current_p->next_offset;
-        current_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET(curr_offset);
+        current_p = JMEM_DECOMPRESS_POINTER_INTERNAL(curr_offset);
       }
       JERRY_ASSERT(curr_offset == segment_group_offset);
       prev_p->next_offset = current_p->next_offset;

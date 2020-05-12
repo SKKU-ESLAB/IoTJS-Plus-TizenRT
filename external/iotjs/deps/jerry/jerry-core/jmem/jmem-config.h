@@ -41,7 +41,7 @@
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
 #define SEG_RMAP_BINSEARCH         // binary search for reverse map
-#define SEG_RMAP_CACHING           // caching in reverse map
+#define SEG_RMAP_CACHE           // caching in reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment
@@ -52,6 +52,11 @@
 
 #endif
 
+/* Reverse map caching config */
+#ifdef SEG_RMAP_CACHE
+#define SEG_RMAP_CACHE_SIZE 16 // cache size (unit: # of entries)
+#define SEG_RMAP_CACHE_SET_SIZE 1 // TODO: set size (unit: # of entries)
+#endif
 
 /* Profiler configs */
 #define JMEM_PROFILE

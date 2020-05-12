@@ -13,22 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef JMEM_HEAP_SEGMENTED_CPTL_H
-#define JMEM_HEAP_SEGMENTED_CPTL_H
+#ifndef CPTL_RMAP_CACHE_H
+#define CPTL_RMAP_CACHE_H
 
 #include "jrt.h"
 
-// Initialize compressed pointer translation layer (CPTL)
-extern void init_cptl(void);
+extern void init_rmap_cache(void);
+extern uint32_t access_and_check_rmap_cache(uint8_t *addr, uint8_t **saddr_out);
+extern void update_rmap_cache(uint8_t *saddr, uint32_t sidx);
 
-// Raw function to access segment base table
-// * Segment index -> Segment base address(Full-bitwidth pointer)
-// * Core part of decompression
-extern uint8_t *sidx_to_addr(uint32_t sidx);
-
-// Raw function to access segment reverse map
-// * Full-bitwidth pointer -> Segment index
-// * Core part of compression
-extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out);
-
-#endif /* !defined(JMEM_HEAP_SEGMENTED_CPTL_H) */
+#endif /* !defined(CPTL_RMAP_CACHE_H) */

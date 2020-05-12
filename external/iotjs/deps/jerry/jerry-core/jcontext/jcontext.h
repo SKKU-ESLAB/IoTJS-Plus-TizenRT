@@ -307,9 +307,14 @@ typedef struct
   /* JS heap area on heap area (dynamically allocated) */
   uint8_t *area[SEG_NUM_SEGMENTS]; // Segment base table
 #ifdef SEG_RMAP_BINSEARCH
-#ifdef SEG_RMAP_CACHING
-  uint8_t *recent_base_addr;
-  uint32_t recent_sidx;
+#ifdef SEG_RMAP_CACHE
+#if SEG_RMAP_CACHE_SIZE == 1
+  uint8_t *rmc_single_base_addr;
+  uint32_t rmc_single_sidx;
+#else
+  uint8_t *rmc_table_base_addr[SEG_RMAP_CACHE_SIZE];
+  uint32_t rmc_table_sidx[SEG_RMAP_CACHE_SIZE];
+#endif
 #endif
   rb_root segment_rmap_rb_root; // Segment reverse map tree
 #endif /* SEG_RMAP_BINSEARCH */
