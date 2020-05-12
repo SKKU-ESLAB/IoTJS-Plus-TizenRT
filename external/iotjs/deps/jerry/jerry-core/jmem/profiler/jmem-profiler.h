@@ -23,6 +23,7 @@
 #include "jrt.h"
 
 extern void init_profilers(void);
+extern void finalize_profilers(void);
 
 /* jmem-profiler-size.c: size profiling */
 extern void print_total_size_profile_on_alloc(void);
@@ -65,5 +66,8 @@ extern void print_jsobject_allocation_profile(void);
 /* jmem-profiler-cptl.c: Compressed Pointer Translation Layer (CPTL) profiling
  */
 /* TODO: not yet implemented */
+extern void print_cptl_profile_rmc_hit_ratio(void);
+extern void profile_inc_rmc_access_count(void);
+extern void profile_inc_rmc_miss_count(void);
 
 #endif /* !defined(JMEM_PROFILER_H) */

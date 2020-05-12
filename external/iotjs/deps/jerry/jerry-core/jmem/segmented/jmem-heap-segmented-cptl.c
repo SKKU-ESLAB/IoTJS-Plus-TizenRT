@@ -18,6 +18,7 @@
 #include "jcontext.h"
 #include "jmem-config.h"
 #include "jmem-heap-segmented-rmap-rb.h"
+#include "jmem-profiler.h"
 #include "jmem.h"
 
 #define JMEM_HEAP_GET_OFFSET_FROM_PTR(p, seg_ptr) \
@@ -61,6 +62,8 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   uint8_t *saddr = NULL;
   uint32_t sidx;
 
+  profile_inc_rmc_access_count(); // CPTL reverse map caching profiling
+
 #ifdef SEG_RMAP_CACHING
   // Caching
   uint8_t *curr_addr = JERRY_HEAP_CONTEXT(recent_base_addr);
@@ -90,5 +93,7 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
 #endif
 
   *saddr_out = saddr;
+
+  profile_inc_rmc_miss_count(); // CPTL reverse map caching profiling
   return sidx;
 }

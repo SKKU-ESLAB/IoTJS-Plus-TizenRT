@@ -54,6 +54,10 @@ JHANDLER_FUNCTION(Stderr) {
 
 #ifdef PROF_MODE_ARTIK053
 JHANDLER_FUNCTION(Reboot) {
+  // jmem-profiler
+  jerry_will_cleanup(); // Final profiling result
+
+  // reboot the device in force
   boardctl(BOARDIOC_RESET, EXIT_SUCCESS);
 }
 #endif

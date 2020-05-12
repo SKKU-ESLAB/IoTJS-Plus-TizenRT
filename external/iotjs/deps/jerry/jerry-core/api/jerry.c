@@ -37,6 +37,9 @@
 #include "js-parser.h"
 #include "re-compiler.h"
 
+// jmem-profiler
+#include "jmem-profiler.h"
+
 JERRY_STATIC_ASSERT (sizeof (jerry_value_t) == sizeof (ecma_value_t),
                      size_of_jerry_value_t_must_be_equal_to_size_of_ecma_value_t);
 
@@ -168,6 +171,9 @@ jerry_cleanup (void)
 {
   jerry_assert_api_available ();
 
+  // jmem-profiler
+  jerry_will_cleanup(); // Final profiling result
+
 #ifdef JERRY_DEBUGGER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -188,6 +194,12 @@ jerry_cleanup (void)
   jmem_finalize ();
   jerry_make_api_unavailable ();
 } /* jerry_cleanup */
+
+// jmem-profiler
+void jerry_will_cleanup(void) {
+  // jmem-profiler-common.c
+  finalize_profilers();
+}
 
 /**
  * Retrieve a context data item, or create a new one.

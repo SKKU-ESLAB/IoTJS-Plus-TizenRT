@@ -31,6 +31,7 @@ function http_handler(req, res) {
           if (fs.existsSync('/mnt/object_lifespan.log')) fs.unlinkSync('/mnt/object_lifespan.log');
           if (fs.existsSync('/mnt/object_allocation.log'))
             fs.unlinkSync('/mnt/object_allocation.log');
+          if (fs.existsSync('/mnt/cptl.log')) fs.unlinkSync('/mnt/cptl.log');
           message = "Delete all the logs successfully!";
         } else if (url == '/command/reboot') {
           isCloseServer = true;
@@ -48,6 +49,8 @@ function http_handler(req, res) {
           isHtml = true;
         } else if (isHtml) {
           filePath = '/rom' + url;  // html in rom
+        } else if (url.indexOf('fabicon.ico') >= 0) {
+          filePath = '/rom' + url;  // fabicon in rom
         } else {
           filePath = '/mnt' + url;  // others in mnt
         }

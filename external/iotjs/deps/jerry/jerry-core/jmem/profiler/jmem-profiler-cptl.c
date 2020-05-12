@@ -15,3 +15,41 @@
 
 #include "jmem-profiler-common-internal.h"
 #include "jmem-profiler.h"
+
+void finalize_cptl_profiler(void) {
+#if defined(JMEM_PROFILE) && defined(PROF_CPTL)
+#if defined(SEG_RMAP_CACHING)
+  print_cptl_profile_rmc_hit_ratio();
+#endif
+#endif
+}
+
+inline void __attr_always_inline___ print_cptl_profile_rmc_hit_ratio(void) {
+#if defined(SEG_RMAP_CACHING) && defined(JMEM_PROFILE) && defined(PROF_CPTL)
+  CHECK_LOGGING_ENABLED();
+  FILE *fp = fopen(PROF_CPTL_FILENAME, "w");
+  float rmc_access_count_fp = (float)JERRY_CONTEXT(cptl_rmc_access_count);
+  float rmc_miss_count_fp = (float)JERRY_CONTEXT(cptl_rmc_miss_count);
+  float rmc_hit_ratio = 1.0f - (rmc_miss_count_fp / rmc_access_count_fp);
+
+  fprintf(fp, "Category, Value\n");
+  fprintf(fp, "RMC Hit Ratio, %2.3f\n", rmc_hit_ratio);
+  fprintf(fp, "RMC Miss Count, %u\n", JERRY_CONTEXT(cptl_rmc_miss_count));
+  fprintf(fp, "RMC Access Count, %u\n", JERRY_CONTEXT(cptl_rmc_access_count));
+
+  fflush(fp);
+  fclose(fp);
+#endif
+}
+
+inline void __attr_always_inline___ profile_inc_rmc_access_count(void) {
+#if defined(SEG_RMAP_CACHING) && defined(JMEM_PROFILE) && defined(PROF_CPTL)
+  JERRY_CONTEXT(cptl_rmc_access_count)++;
+#endif
+}
+
+inline void __attr_always_inline___ profile_inc_rmc_miss_count(void) {
+#if defined(SEG_RMAP_CACHING) && defined(JMEM_PROFILE) && defined(PROF_CPTL)
+  JERRY_CONTEXT(cptl_rmc_miss_count)++;
+#endif
+}

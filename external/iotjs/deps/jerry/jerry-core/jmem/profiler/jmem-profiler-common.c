@@ -29,6 +29,13 @@ inline void __attr_always_inline___ init_profilers(void) {
 #endif
 }
 
+inline void __attr_always_inline___ finalize_profilers(void) {
+#if defined(JMEM_PROFILE)
+  CHECK_LOGGING_ENABLED();
+  finalize_cptl_profiler();
+#endif
+}
+
 inline long __attr_always_inline___
 get_timeval_diff_usec(struct timeval *prior, struct timeval *post) {
   long timeval_diff_usec = (post->tv_sec - prior->tv_sec) * 1000 * 1000 +

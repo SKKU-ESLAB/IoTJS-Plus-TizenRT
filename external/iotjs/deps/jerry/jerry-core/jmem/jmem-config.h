@@ -55,7 +55,7 @@
 
 /* Profiler configs */
 #define JMEM_PROFILE
-/* jmem-size-profiler.c */
+/* jmem-profiler-size.c */
 #define PROF_TOTAL_SIZE
 #define PROF_TOTAL_SIZE__PERIOD_USEC (100 * 1000)
 // #define PROF_SEGMENT_UTILIZATION
@@ -66,12 +66,15 @@
 // #define PROF_SEGMENT_UTILIZATION__AFTER_GC
 // // #define PROF_SEGMENT_UTILIZATION__PERIOD_USEC (100 * 1000)
 
-/* jmem-time-profiler.c */
+/* jmem-profiler-time.c */
 #define PROF_TIME
 
-/* jmem-jsobject-profiler.c */
+/* jmem-profiler-jsobject.c */
 // #define PROF_JSOBJECT_LIFESPAN
 // #define PROF_JSOBJECT_ALLOCATION
 // #define PROF_JSOBJECT_ALLOCATION__MAX_SIZE 1024 // 8B ~ 1024B
+
+/* jmem-profiler-cptl.c */
+#define PROF_CPTL
 
 #endif /* !JMEM_CONFIG_H */

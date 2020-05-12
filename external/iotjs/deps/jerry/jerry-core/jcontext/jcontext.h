@@ -184,8 +184,15 @@ typedef struct
 #endif
 
 #ifdef PROF_JSOBJECT_ALLOCATION
+  /* JSObject allocation profiling */
   unsigned int jsobject_count[PROF_JSOBJECT_ALLOCATION__MAX_SIZE
                                 / JMEM_ALIGNMENT];
+#endif
+
+#ifdef PROF_CPTL
+  /* CPTL profiling */
+  unsigned int cptl_rmc_access_count;
+  unsigned int cptl_rmc_miss_count;
 #endif
 #endif /* defined(JMEM_PROFILE) */
 } jerry_context_t;

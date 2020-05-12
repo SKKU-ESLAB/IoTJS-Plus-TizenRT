@@ -87,13 +87,19 @@ static void iotjs_launcher_wifi_connect(void)
 	if (status != WIFI_MANAGER_SUCCESS) {
 		printf("error: wifi_manager_init (status=0x%x)\n", status);
 	}
+	strncpy(config.ssid, CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID, WIFIMGR_SSID_LEN);
 	config.ssid_length = strlen(CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID);
-	config.passphrase_length = strlen(CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS);
-	strncpy(config.ssid, CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_SSID, config.ssid_length + 1);
-	strncpy(config.passphrase, CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS, config.passphrase_length + 1);
-
-	config.ap_auth_type = (wifi_manager_ap_auth_type_e)CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH;
+	config.ssid[WIFIMGR_SSID_LEN] = '\0';
 	config.ap_crypto_type = (wifi_manager_ap_crypto_type_e)CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_CRYPTO;
+	config.ap_auth_type = (wifi_manager_ap_auth_type_e)CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_AUTH;
+	if(config.ap_auth_type != WIFI_MANAGER_AUTH_OPEN) {
+		strncpy(config.passphrase, CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS, WIFIMGR_PASSPHRASE_LEN);
+		config.passphrase[WIFIMGR_PASSPHRASE_LEN] = '\0';
+		config.passphrase_length = strlen(CONFIG_EXAMPLES_IOTJS_LAUNCHER_WIFI_PASS);
+	} else {
+		config.passphrase[0] = '\0';
+		config.passphrase_length = 0;
+	}
 
 	status = wifi_manager_connect_ap(&config);
 	if (status != WIFI_MANAGER_SUCCESS) {

@@ -438,6 +438,9 @@ jerry_instance_t *jerry_create_instance (uint32_t heap_size, jerry_instance_allo
  */
 void jerry_set_vm_exec_stop_callback (jerry_vm_exec_stop_callback_t stop_cb, void *user_p, uint32_t frequency);
 
+// jmem-profiler
+void jerry_will_cleanup(void);
+
 /**
  * @}
  */
