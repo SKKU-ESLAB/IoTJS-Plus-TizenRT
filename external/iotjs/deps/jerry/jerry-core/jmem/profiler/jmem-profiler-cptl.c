@@ -27,7 +27,7 @@ void finalize_cptl_profiler(void) {
 inline void __attr_always_inline___ print_cptl_profile_rmc_hit_ratio(void) {
 #if defined(SEG_RMAP_CACHE) && defined(JMEM_PROFILE) && defined(PROF_CPTL)
   CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(PROF_CPTL_FILENAME, "w");
+  FILE *fp = fopen(PROF_CPTL_FILENAME, "a");
   float rmc_access_count_fp = (float)JERRY_CONTEXT(cptl_rmc_access_count);
   float rmc_miss_count_fp = (float)JERRY_CONTEXT(cptl_rmc_miss_count);
   float rmc_hit_ratio = 1.0f - (rmc_miss_count_fp / rmc_access_count_fp);
