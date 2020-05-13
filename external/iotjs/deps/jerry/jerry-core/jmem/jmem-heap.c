@@ -224,6 +224,7 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
 #else
   JERRY_UNUSED(is_small_block);
 #endif /* defined(JMEM_DYNAMIC_HEPA_EMUL) */
+
 #ifdef JMEM_SEGMENTED_HEAP
   // Update segment occupied size (segment heap)
   uint32_t block_offset = JERRY_HEAP_CONTEXT(first).next_offset;
@@ -239,14 +240,12 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
     JERRY_HEAP_CONTEXT(first).next_offset = data_space_p->next_offset;
   } else {
     JERRY_ASSERT(data_space_p->size > JMEM_ALIGNMENT);
-    jmem_heap_free_t *remaining_p;
-    remaining_p = JMEM_DECOMPRESS_POINTER_INTERNAL(
-                      JERRY_HEAP_CONTEXT(first).next_offset) +
-                  1;
+    uint32_t remaining_offset = block_offset + JMEM_ALIGNMENT;
+    jmem_heap_free_t *remaining_p =
+        JMEM_DECOMPRESS_POINTER_INTERNAL(remaining_offset);
     remaining_p->size = data_space_p->size - JMEM_ALIGNMENT;
     remaining_p->next_offset = data_space_p->next_offset;
-    JERRY_HEAP_CONTEXT(first).next_offset =
-        JMEM_COMPRESS_POINTER_INTERNAL(remaining_p);
+    JERRY_HEAP_CONTEXT(first).next_offset = remaining_offset;
   }
 
   // Update fast path skipping pointer
