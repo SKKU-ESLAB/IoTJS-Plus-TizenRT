@@ -154,7 +154,7 @@ typedef struct
 #ifdef JMEM_PROFILE
   /* Total size profiling */
   struct timeval timeval_js_start;
-#ifdef PROF_TOTAL_SIZE__PERIOD_USEC
+#ifdef PROF_SIZE__PERIOD_USEC
   struct timeval jsuptime_recent_total_size_print;
 #endif
 #ifdef PROF_SEGMENT_UTILIZATION__PERIOD_USEC
@@ -189,11 +189,17 @@ typedef struct
                                 / JMEM_ALIGNMENT];
 #endif
 
-#ifdef PROF_CPTL
-  /* CPTL profiling */
+#ifdef PROF_CPTL_RMC_HIT_RATIO
+  /* CPTL reverse map cache hit ratio profiling */
   unsigned int cptl_rmc_access_count;
   unsigned int cptl_rmc_miss_count;
 #endif
+
+#ifdef PROF_CPTL_COMPRESSION_CALL_COUNT
+  /* CPTL compression call count profiling */
+  int cptl_compression_call_count[PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES];
+#endif
+
 #endif /* defined(JMEM_PROFILE) */
 } jerry_context_t;
 

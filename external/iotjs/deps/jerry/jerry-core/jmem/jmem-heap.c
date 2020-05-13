@@ -138,6 +138,7 @@ static inline void jmem_heap_init_first_free_region(void) {
   JERRY_HEAP_CONTEXT(first).size = 0;
   JERRY_HEAP_CONTEXT(first).next_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(region_p);
+  profile_inc_compression_call_count(1);
   JERRY_CONTEXT(jmem_heap_list_skip_p) = &JERRY_HEAP_CONTEXT(first);
 }
 
@@ -247,6 +248,7 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
     remaining_p->next_offset = data_space_p->next_offset;
     JERRY_HEAP_CONTEXT(first).next_offset =
         JMEM_COMPRESS_POINTER_INTERNAL(remaining_p);
+    profile_inc_compression_call_count(2);
   }
 
   // Update fast path skipping pointer
@@ -351,6 +353,7 @@ static inline void *jmem_heap_alloc_block_internal_slow(
         prev_p->next_offset = current_offset + (uint32_t)required_size;
 #else
         prev_p->next_offset = JMEM_COMPRESS_POINTER_INTERNAL(remaining_p);
+        profile_inc_compression_call_count(3);
 #endif
       }
       /* Block is an exact fit. */
@@ -629,8 +632,10 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 
 #ifdef JMEM_SEGMENTED_HEAP
   uint32_t boffset = JMEM_COMPRESS_POINTER_INTERNAL(block_p);
+  profile_inc_compression_call_count(4);
   uint32_t skip_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(JERRY_CONTEXT(jmem_heap_list_skip_p));
+  profile_inc_compression_call_count(5);
   bool is_skip_ok = boffset > skip_offset;
 #else  /* JMEM_SEGMENTED_HEAP */
   bool is_skip_ok = block_p > JERRY_CONTEXT(jmem_heap_list_skip_p);
@@ -648,6 +653,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   const uint32_t block_offset = boffset;
 #else  /* JMEM_SEGMENTED_HEAP */
   const uint32_t block_offset = JMEM_COMPRESS_POINTER_INTERNAL(block_p);
+  profile_inc_compression_call_count(6);
 #endif /* !JMEM_SEGMENTED_HEAP */
 
   /* Find position of region in the list. */
@@ -684,6 +690,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
     block_p->next_offset = next_p->next_offset;
   } else {
     block_p->next_offset = JMEM_COMPRESS_POINTER_INTERNAL(next_p);
+    profile_inc_compression_call_count(7);
   }
 
   JERRY_CONTEXT(jmem_heap_list_skip_p) = prev_p;

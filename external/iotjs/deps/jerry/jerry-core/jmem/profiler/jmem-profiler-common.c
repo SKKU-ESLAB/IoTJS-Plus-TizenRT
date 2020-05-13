@@ -26,6 +26,7 @@ inline void __attr_always_inline___ init_profilers(void) {
   init_size_profiler();
   init_segment_profiler();
   init_time_profiler();
+  init_cptl_profiler();
 #endif
 }
 

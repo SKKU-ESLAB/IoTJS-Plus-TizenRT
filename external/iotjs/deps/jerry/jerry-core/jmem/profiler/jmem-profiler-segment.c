@@ -102,7 +102,7 @@ print_segment_utilization_profile_finally(void) {
 inline void __attr_always_inline___
 __print_segment_utilization_profile(const char *header, size_t jsobject_size) {
 #if defined(JMEM_SEGMENTED_HEAP) && defined(JMEM_PROFILE) && \
-    defined(PROF_SEGMENT_UTILIZATION)
+    defined(PROF_SEGMENT)
   CHECK_LOGGING_ENABLED();
   struct timeval js_uptime;
   get_js_uptime(&js_uptime);
@@ -135,11 +135,11 @@ __print_segment_utilization_profile(const char *header, size_t jsobject_size) {
   fflush(fp);
   fclose(fp);
 #else  /* defined(JMEM_SEGMENTED_HEAP) && defined(JMEM_PROFILE) && \
-        * defined(PROF_SEGMENT_UTILIZATION)                        \
+        * defined(PROF_SEGMENT)                        \
         */
   JERRY_UNUSED(header);
   JERRY_UNUSED(jsobject_size);
 #endif /* !defined(JMEM_SEGMENTED_HEAP) || !defined(JMEM_PROFILE) || \
-        * !defined(PROF_SEGMENT_UTILIZATION)                         \
+        * !defined(PROF_SEGMENT)                         \
         */
 }

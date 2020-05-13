@@ -41,7 +41,7 @@
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
 #define SEG_RMAP_BINSEARCH         // binary search for reverse map
-#define SEG_RMAP_CACHE           // caching in reverse map
+#define SEG_RMAP_CACHE             // caching in reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment
@@ -54,32 +54,55 @@
 
 /* Reverse map caching config */
 #ifdef SEG_RMAP_CACHE
-#define SEG_RMAP_CACHE_SIZE 16 // cache size (unit: # of entries)
+#define SEG_RMAP_CACHE_SIZE 16    // cache size (unit: # of entries)
 #define SEG_RMAP_CACHE_SET_SIZE 1 // TODO: set size (unit: # of entries)
 #endif
 
 /* Profiler configs */
 #define JMEM_PROFILE
+
+#ifdef JMEM_PROFILE
+#define PROF_SIZE /* jmem-profiler-size.c */
+#define PROF_TIME /* jmem-profiler-time.c */
+#define PROF_CPTL /* jmem-profiler-cptl.c */
+// #define PROF_SEGMENT /* jmem-profiler-segment.c */
+// #define PROF_JSOBJECT   /* jmem-profiler-jsobject.c */
+
 /* jmem-profiler-size.c */
-#define PROF_TOTAL_SIZE
-#define PROF_TOTAL_SIZE__PERIOD_USEC (100 * 1000)
-// #define PROF_SEGMENT_UTILIZATION
-// #define PROF_SEGMENT_UTILIZATION__ABSOLUTE
-// // #define PROF_SEGMENT_UTILIZATION__AFTER_FREE_BLOCK
-// // #define PROF_SEGMENT_UTILIZATION__BEFORE_ADD_SEGMENT
-// #define PROF_SEGMENT_UTILIZATION__BEFORE_GC
-// #define PROF_SEGMENT_UTILIZATION__AFTER_GC
-// // #define PROF_SEGMENT_UTILIZATION__PERIOD_USEC (100 * 1000)
+#ifdef PROF_SIZE
+#define PROF_SIZE__PERIOD_USEC (100 * 1000)
+#endif /* defined(PROF_SIZE) */
 
-/* jmem-profiler-time.c */
-#define PROF_TIME
-
-/* jmem-profiler-jsobject.c */
-// #define PROF_JSOBJECT_LIFESPAN
-// #define PROF_JSOBJECT_ALLOCATION
-// #define PROF_JSOBJECT_ALLOCATION__MAX_SIZE 1024 // 8B ~ 1024B
+/* jmem-profiler-time.c: none */
 
 /* jmem-profiler-cptl.c */
-#define PROF_CPTL
+#ifdef PROF_CPTL
+#define PROF_CPTL_RMC_HIT_RATIO
+#define PROF_CPTL_COMPRESSION_CALL_COUNT
 
-#endif /* !JMEM_CONFIG_H */
+#ifdef PROF_CPTL_COMPRESSION_CALL_COUNT
+#define PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES 8
+#endif /* defined(PROF_CPTL_COMPRESSION_CALL_COUNT) */
+#endif /* defined(PROF_CPTL) */
+
+/* jmem-profiler-segment.c */
+#ifdef PROF_SEGMENT
+#define PROF_SEGMENT_UTILIZATION__ABSOLUTE
+// #define PROF_SEGMENT_UTILIZATION__AFTER_FREE_BLOCK
+// #define PROF_SEGMENT_UTILIZATION__BEFORE_ADD_SEGMENT
+#define PROF_SEGMENT_UTILIZATION__BEFORE_GC
+#define PROF_SEGMENT_UTILIZATION__AFTER_GC
+// #define PROF_SEGMENT_UTILIZATION__PERIOD_USEC (100 * 1000)
+#endif /* defined(PROF_SEGMENT) */
+
+/* jmem-profiler-jsobject.c */
+// #define PROF_JSOBJECT
+#ifdef PROF_JSOBJECT
+#define PROF_JSOBJECT_LIFESPAN
+#define PROF_JSOBJECT_ALLOCATION
+#define PROF_JSOBJECT_ALLOCATION__MAX_SIZE 1024
+#endif /* defined(PROF_JSOBJECT) */
+
+#endif /* defined(JMEM_PROFILE) */
+
+#endif /* !defined(JMEM_CONFIG_H) */

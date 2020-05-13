@@ -77,6 +77,7 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 
 #ifdef JMEM_SEGMENTED_HEAP
   uint_ptr = (uintptr_t)JMEM_COMPRESS_POINTER_INTERNAL(pointer_p);
+  profile_inc_compression_call_count(0);
 #else /* JMEM_SEGMENTED_HEAP */
   const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
   uint_ptr -= heap_start;
