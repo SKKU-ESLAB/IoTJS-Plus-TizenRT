@@ -625,6 +625,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   jmem_heap_free_t *block_p = (jmem_heap_free_t *)ptr;
   jmem_heap_free_t *prev_p;
   jmem_heap_free_t *next_p;
+  uint32_t next_cp;
 
 #ifdef JMEM_SEGMENTED_HEAP
   uint32_t boffset = JMEM_COMPRESS_POINTER_INTERNAL(block_p);
@@ -651,7 +652,8 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 
   /* Find position of region in the list. */
   while (prev_p->next_offset < block_offset) {
-    next_p = JMEM_DECOMPRESS_POINTER_INTERNAL(prev_p->next_offset);
+    next_cp = prev_p->next_offset;
+    next_p = JMEM_DECOMPRESS_POINTER_INTERNAL(next_cp);
     JERRY_ASSERT(jmem_is_heap_pointer(next_p));
 
     prev_p = next_p;
@@ -659,7 +661,8 @@ static void __attr_hot___ jmem_heap_free_block_internal(
     JMEM_HEAP_STAT_FREE_ITER();
   }
 
-  next_p = JMEM_DECOMPRESS_POINTER_INTERNAL(prev_p->next_offset);
+  next_cp = prev_p->next_offset;
+  next_p = JMEM_DECOMPRESS_POINTER_INTERNAL(next_cp);
 
   /* Realign size */
   const size_t aligned_size =
@@ -682,7 +685,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
     block_p->size += next_p->size;
     block_p->next_offset = next_p->next_offset;
   } else {
-    block_p->next_offset = JMEM_COMPRESS_POINTER_INTERNAL(next_p);
+    block_p->next_offset = next_cp;
   }
 
   JERRY_CONTEXT(jmem_heap_list_skip_p) = prev_p;

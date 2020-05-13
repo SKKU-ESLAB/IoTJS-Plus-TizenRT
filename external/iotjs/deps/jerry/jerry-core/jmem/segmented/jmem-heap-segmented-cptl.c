@@ -64,8 +64,7 @@ cptl_compress_pointer_internal(jmem_heap_free_t *addr) {
 
   if (addr == (uint8_t *)JMEM_HEAP_END_OF_LIST)
     return (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
-
-  if (addr == (uint8_t *)&JERRY_HEAP_CONTEXT(first))
+  else if (addr == (uint8_t *)&JERRY_HEAP_CONTEXT(first))
     return 0;
 
   sidx = addr_to_saddr_and_sidx((uint8_t *)addr, &saddr);
