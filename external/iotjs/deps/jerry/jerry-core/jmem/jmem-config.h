@@ -78,11 +78,6 @@
 /* jmem-profiler-cptl.c */
 #ifdef PROF_CPTL
 #define PROF_CPTL_RMC_HIT_RATIO
-#define PROF_CPTL_COMPRESSION_CALL_COUNT
-
-#ifdef PROF_CPTL_COMPRESSION_CALL_COUNT
-#define PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES 8
-#endif /* defined(PROF_CPTL_COMPRESSION_CALL_COUNT) */
 #endif /* defined(PROF_CPTL) */
 
 /* jmem-profiler-segment.c */

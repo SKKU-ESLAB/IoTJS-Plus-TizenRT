@@ -69,7 +69,4 @@ extern void print_cptl_profile_rmc_hit_ratio(void);
 extern void profile_inc_rmc_access_count(void);
 extern void profile_inc_rmc_miss_count(void);
 
-extern void print_cptl_compression_call_count(void);
-extern void profile_inc_compression_call_count(int type);
-
 #endif /* !defined(JMEM_PROFILER_H) */

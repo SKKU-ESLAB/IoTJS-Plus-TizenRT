@@ -26,11 +26,6 @@ void init_cptl_profiler(void) {
   JERRY_CONTEXT(cptl_rmc_miss_count) = 0;
 #endif
 
-#if defined(PROF_CPTL_COMPRESSION_CALL_COUNT)
-  for (int i = 0; i < PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES; i++) {
-    JERRY_CONTEXT(cptl_compression_call_count[i]) = 0;
-  }
-#endif
 #endif
 }
 
@@ -62,36 +57,5 @@ inline void __attr_always_inline___ profile_inc_rmc_access_count(void) {
 inline void __attr_always_inline___ profile_inc_rmc_miss_count(void) {
 #if defined(SEG_RMAP_CACHE) && defined(PROF_CPTL_RMC_HIT_RATIO)
   JERRY_CONTEXT(cptl_rmc_miss_count)++;
-#endif
-}
-
-inline void __attr_always_inline___ print_cptl_compression_call_count(void) {
-#if defined(JMEM_SEGMENTED_HEAP) && defined(PROF_CPTL_COMPRESSION_CALL_COUNT)
-  CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(PROF_CPTL_FILENAME, "a");
-
-  fprintf(fp, "Compression Call Type");
-  for (int i = 0; i < PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES; i++) {
-    fprintf(fp, ", %d", i);
-  }
-  fprintf(fp, "\n");
-  fprintf(fp, "Compression Call Count");
-  for (int i = 0; i < PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES; i++) {
-    fprintf(fp, ", %d", JERRY_CONTEXT(cptl_compression_call_count[i]));
-  }
-  fprintf(fp, "\n");
-
-  fflush(fp);
-  fclose(fp);
-#endif
-}
-
-inline void __attr_always_inline___
-profile_inc_compression_call_count(int type) {
-#if defined(JMEM_SEGMENTED_HEAP) && defined(PROF_CPTL_COMPRESSION_CALL_COUNT)
-  JERRY_ASSERT(type < PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES && type >= 0);
-  JERRY_CONTEXT(cptl_compression_call_count[type])++;
-#else
-  JERRY_UNUSED(type);
 #endif
 }

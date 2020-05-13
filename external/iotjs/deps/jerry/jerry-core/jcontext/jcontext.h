@@ -195,11 +195,6 @@ typedef struct
   unsigned int cptl_rmc_miss_count;
 #endif
 
-#ifdef PROF_CPTL_COMPRESSION_CALL_COUNT
-  /* CPTL compression call count profiling */
-  int cptl_compression_call_count[PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES];
-#endif
-
 #endif /* defined(JMEM_PROFILE) */
 } jerry_context_t;
 
