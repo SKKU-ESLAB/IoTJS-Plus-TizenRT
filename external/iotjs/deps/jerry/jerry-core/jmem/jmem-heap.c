@@ -183,10 +183,7 @@ void jmem_heap_init(void) {
  * Finalize heap
  */
 void jmem_heap_finalize(void) {
-  print_time_profile();                        /* Time profiling */
-  print_total_size_profile_finally();          /* Total size profiling */
-  print_segment_utilization_profile_finally(); /* Segment-util profiling */
-  print_jsobject_allocation_profile(); /* JS object allocation profiling */
+  finalize_profilers(); /* Finalize profilers */
 
 #ifdef JMEM_SEGMENTED_HEAP
   free_empty_segment_groups();

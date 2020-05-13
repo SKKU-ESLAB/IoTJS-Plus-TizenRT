@@ -197,8 +197,7 @@ jerry_cleanup (void)
 
 // jmem-profiler
 void jerry_will_cleanup(void) {
-  // jmem-profiler-common.c
-  finalize_profilers();
+  // TODO: not implemented
 }
 
 /**

@@ -32,7 +32,11 @@ inline void __attr_always_inline___ init_profilers(void) {
 inline void __attr_always_inline___ finalize_profilers(void) {
 #if defined(JMEM_PROFILE)
   CHECK_LOGGING_ENABLED();
-  finalize_cptl_profiler();
+  print_time_profile();                        /* Time profiling */
+  print_total_size_profile_finally();          /* Total size profiling */
+  print_segment_utilization_profile_finally(); /* Segment-util profiling */
+  print_jsobject_allocation_profile(); /* JS object allocation profiling */
+  print_cptl_profile_rmc_hit_ratio();  /* CPTL profiling */
 #endif
 }
 

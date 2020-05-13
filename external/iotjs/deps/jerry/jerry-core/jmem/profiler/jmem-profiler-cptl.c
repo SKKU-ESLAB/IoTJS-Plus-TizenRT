@@ -16,14 +16,6 @@
 #include "jmem-profiler-common-internal.h"
 #include "jmem-profiler.h"
 
-void finalize_cptl_profiler(void) {
-#if defined(JMEM_PROFILE) && defined(PROF_CPTL)
-#if defined(SEG_RMAP_CACHE)
-  print_cptl_profile_rmc_hit_ratio();
-#endif
-#endif
-}
-
 inline void __attr_always_inline___ print_cptl_profile_rmc_hit_ratio(void) {
 #if defined(SEG_RMAP_CACHE) && defined(JMEM_PROFILE) && defined(PROF_CPTL)
   CHECK_LOGGING_ENABLED();

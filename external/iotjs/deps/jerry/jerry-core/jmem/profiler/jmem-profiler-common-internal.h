@@ -39,9 +39,6 @@ extern void init_segment_profiler(void);
 /* jmem-profiler-time.c */
 extern void init_time_profiler(void);
 
-/* jmem-profiler-cptl.c */
-extern void finalize_cptl_profiler(void);
-
 /* Profiler output configs */
 /* If config is defined, output is stored to the specified file.
  * Otherwise, output is printed to stdout.
