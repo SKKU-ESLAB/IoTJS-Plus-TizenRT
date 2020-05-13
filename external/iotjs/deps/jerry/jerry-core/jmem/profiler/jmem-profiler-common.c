@@ -38,6 +38,7 @@ inline void __attr_always_inline___ finalize_profilers(void) {
   print_segment_utilization_profile_finally(); /* Segment-util profiling */
   print_jsobject_allocation_profile(); /* JS object allocation profiling */
   print_cptl_profile_rmc_hit_ratio();  /* CPTL profiling */
+  print_cptl_compression_call_count(); /* CPTL profiling */
 #endif
 }
 

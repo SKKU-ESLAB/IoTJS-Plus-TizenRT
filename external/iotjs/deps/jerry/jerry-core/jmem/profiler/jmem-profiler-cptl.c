@@ -70,18 +70,14 @@ inline void __attr_always_inline___ print_cptl_compression_call_count(void) {
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_CPTL_FILENAME, "a");
 
+  fprintf(fp, "Compression Call Type");
   for (int i = 0; i < PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES; i++) {
-    if (i > 0) {
-      fprintf(fp, ", ");
-    }
-    fprintf(fp, "%d", i);
+    fprintf(fp, ", %d", i);
   }
   fprintf(fp, "\n");
+  fprintf(fp, "Compression Call Count");
   for (int i = 0; i < PROF_CPTL_COMPRESSION_CALL_COUNT_TYPES; i++) {
-    if (i > 0) {
-      fprintf(fp, ", ");
-    }
-    fprintf(fp, "%d", JERRY_CONTEXT(cptl_compression_call_count[i]));
+    fprintf(fp, ", %d", JERRY_CONTEXT(cptl_compression_call_count[i]));
   }
   fprintf(fp, "\n");
 
