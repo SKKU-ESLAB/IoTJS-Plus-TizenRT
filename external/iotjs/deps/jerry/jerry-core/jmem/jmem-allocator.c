@@ -23,7 +23,6 @@
 
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
-#include "jmem-profiler.h"
 #include "jmem-heap-segmented.h"
 
 /**
@@ -61,8 +60,6 @@ jmem_finalize (void)
 inline jmem_cpointer_t __attr_pure___ __attr_always_inline___
 jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 {
-  profile_compression_start(); /* Time profiling */
-
   JERRY_ASSERT (pointer_p != NULL);
   JERRY_ASSERT (jmem_is_heap_pointer (pointer_p));
 
@@ -93,8 +90,6 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
   JERRY_ASSERT (uint_ptr != JMEM_CP_NULL);
 #endif /* ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY && JERRY_CPOINTER_32_BIT */
 
-  profile_compression_end(); /* Time profiling */
-
   return (jmem_cpointer_t) uint_ptr;
 } /* jmem_compress_pointer */
 
@@ -106,8 +101,6 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 inline void * __attr_pure___ __attr_always_inline___
 jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompress */
 {
-  profile_decompression_start(); /* Time profiling */
-
   JERRY_ASSERT (compressed_pointer != JMEM_CP_NULL);
 
   uintptr_t uint_ptr = compressed_pointer;
@@ -131,8 +124,6 @@ jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompres
 
   JERRY_ASSERT (jmem_is_heap_pointer ((void *) uint_ptr));
 #endif /* ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY && JERRY_CPOINTER_32_BIT */
-
-  profile_decompression_end(); /* Time profiling */
 
   return (void *) uint_ptr;
 } /* jmem_decompress_pointer */

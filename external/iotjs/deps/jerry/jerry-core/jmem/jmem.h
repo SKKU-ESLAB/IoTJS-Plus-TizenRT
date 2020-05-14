@@ -164,16 +164,16 @@ void jmem_heap_free_block_small_object (void *ptr, const size_t size);
 #else /* defined(ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) */
 #ifdef JMEM_SEGMENTED_HEAP
 /* jmem-heap-segmented-cptl.c */
-// Address decompression (Compressed pointer -> full-bitwidth pointer)
-extern jmem_heap_free_t *cptl_decompress_pointer_internal(uint32_t u);
-// Address compression (Full-bitwidth pointer -> compressed pointer)
 extern uint32_t cptl_compress_pointer_internal(jmem_heap_free_t *p);
-
+extern jmem_heap_free_t *cptl_decompress_pointer_internal(uint32_t u);
 #define JMEM_COMPRESS_POINTER_INTERNAL(p) cptl_compress_pointer_internal(p)
 #define JMEM_DECOMPRESS_POINTER_INTERNAL(u) cptl_decompress_pointer_internal(u)
 #else
-#define JMEM_COMPRESS_POINTER_INTERNAL(p) ((uint32_t) ((uint8_t *) (p) - JERRY_HEAP_CONTEXT (area)))
-#define JMEM_DECOMPRESS_POINTER_INTERNAL(u) ((jmem_heap_free_t *) (JERRY_HEAP_CONTEXT (area) + (u)))
+/* jmem-heap.c */
+extern uint32_t static_compress_pointer_internal(jmem_heap_free_t *p);
+extern jmem_heap_free_t *static_decompress_pointer_internal(uint32_t u);
+#define JMEM_COMPRESS_POINTER_INTERNAL(p) static_compress_pointer_internal(p)
+#define JMEM_DECOMPRESS_POINTER_INTERNAL(u) static_decompress_pointer_internal(u)
 #endif
 #endif /* !defined(ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) */
 /*******************************************************/

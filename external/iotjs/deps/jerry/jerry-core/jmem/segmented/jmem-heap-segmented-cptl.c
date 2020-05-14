@@ -43,34 +43,44 @@ void init_cptl(void) {
 #endif /* defined(SEG_RMAP_CACHE) */
 }
 
-// Address decompression (Compressed pointer -> full-bitwidth pointer)
-// * jmem.h
-inline jmem_heap_free_t *__attribute__((hot))
-cptl_decompress_pointer_internal(uint32_t u) {
-  if (u == JMEM_HEAP_END_OF_LIST_UINT32)
-    return JMEM_HEAP_END_OF_LIST;
-  return (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(u >> SEG_SEGMENT_SHIFT) +
-                              (uintptr_t)(u % SEG_SEGMENT_SIZE));
-}
 
 // Address compression (Full-bitwidth pointer -> compressed pointer)
 // * jmem.h
 inline uint32_t __attribute__((hot))
-cptl_compress_pointer_internal(jmem_heap_free_t *addr) {
+cptl_compress_pointer_internal(jmem_heap_free_t *p) {
+  uint32_t cp;
   uint32_t sidx;
   uint8_t *saddr;
+  JERRY_ASSERT(p != NULL);
 
-  JERRY_ASSERT(addr != NULL);
-
-  if (addr == (uint8_t *)JMEM_HEAP_END_OF_LIST)
-    return (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
-  else if (addr == (uint8_t *)&JERRY_HEAP_CONTEXT(first))
-    return 0;
-
-  sidx = addr_to_saddr_and_sidx((uint8_t *)addr, &saddr);
-
-  return (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(addr, saddr) +
+  profile_compression_start();
+  if (p == (uint8_t *)JMEM_HEAP_END_OF_LIST) {
+    cp = (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
+  } else if (p == (uint8_t *)&JERRY_HEAP_CONTEXT(first)) {
+    cp = 0;
+  } else {
+    sidx = addr_to_saddr_and_sidx((uint8_t *)p, &saddr);
+    cp = (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(p, saddr) +
                     (uint32_t)SEG_SEGMENT_SIZE * sidx);
+  }
+  profile_compression_end();
+  return cp;
+}
+
+// Address decompression (Compressed pointer -> full-bitwidth pointer)
+// * jmem.h
+inline jmem_heap_free_t *__attribute__((hot))
+cptl_decompress_pointer_internal(uint32_t cp) {
+  jmem_heap_free_t *p;
+  profile_decompression_start();
+  if (cp == JMEM_HEAP_END_OF_LIST_UINT32) {
+    p = JMEM_HEAP_END_OF_LIST;
+  } else {
+    p = (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(cp >> SEG_SEGMENT_SHIFT) +
+                             (uintptr_t)(cp % SEG_SEGMENT_SIZE));
+  }
+  profile_decompression_end();
+  return p;
 }
 
 // Raw function to access segment base table

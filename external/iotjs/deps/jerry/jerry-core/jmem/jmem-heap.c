@@ -832,6 +832,21 @@ bool jmem_is_heap_pointer(const void *pointer) /**< pointer */
 } /* jmem_is_heap_pointer */
 #endif /* !JERRY_NDEBUG */
 
+inline uint32_t __attr_always_inline___
+static_compress_pointer_internal(jmem_heap_free_t *p) {
+  profile_compression_start();
+  uint32_t cp = (uint32_t)(p) - (uint32_t)(JERRY_HEAP_CONTEXT(area));
+  profile_compression_end();
+  return cp;
+}
+inline jmem_heap_free_t __attr_always_inline___ *
+static_decompress_pointer_internal(uint32_t cp) {
+  profile_decompression_start();
+  jmem_heap_free_t *p = ((jmem_heap_free_t *)(JERRY_HEAP_CONTEXT(area) + (cp)));
+  profile_decompression_end();
+  return p;
+}
+
 #ifdef JMEM_STATS
 /**
  * Get heap memory usage statistics
