@@ -52,12 +52,6 @@ extern void print_segment_utilization_profile_finally(void);
 
 /* jmem-profiler-jsobject.c: JS object lifespan profiling*/
 extern void profile_jsobject_inc_total_count(void);
-extern void profile_jsobject_set_object_birth_time(
-    uintptr_t compressed_pointer);
-extern void profile_jsobject_set_object_birth_count(
-    uintptr_t compressed_pointer);
-extern void profile_jsobject_print_object_lifespan(
-    uintptr_t compressed_pointer);
 
 /* jmem-profiler-jsobject.c: JS object allocation profiling */
 extern void profile_jsobject_inc_allocation(size_t jsobject_size);
