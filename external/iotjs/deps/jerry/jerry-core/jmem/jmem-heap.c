@@ -225,9 +225,9 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
   JERRY_UNUSED(is_small_block);
 #endif /* defined(JMEM_DYNAMIC_HEPA_EMUL) */
 
+  uint32_t block_offset = JERRY_HEAP_CONTEXT(first).next_offset;
 #ifdef JMEM_SEGMENTED_HEAP
   // Update segment occupied size (segment heap)
-  uint32_t block_offset = JERRY_HEAP_CONTEXT(first).next_offset;
   uint32_t sidx = block_offset / SEG_SEGMENT_SIZE;
   jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
   segment_header->occupied_size += JMEM_ALIGNMENT;
