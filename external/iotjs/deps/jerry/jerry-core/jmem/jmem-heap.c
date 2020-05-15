@@ -499,10 +499,6 @@ static void *jmem_heap_gc_and_alloc_block(
       jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
   if (likely(data_space_p != NULL)) {
     print_total_size_profile_on_alloc(); /* Total size profiling */
-#ifndef JERRY_SYSTEM_ALLOCATOR
-    profile_jsobject_set_object_birth_time(
-        jmem_compress_pointer(data_space_p)); /* JS object lifespan profiling */
-#endif
     profile_jsobject_inc_allocation(size); /* JS object allocation profiling */
     return data_space_p;
   }
@@ -514,8 +510,6 @@ static void *jmem_heap_gc_and_alloc_block(
     data_space_p =
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     JERRY_ASSERT(data_space_p != NULL);
-    profile_jsobject_set_object_birth_count(
-        jmem_compress_pointer(data_space_p)); /* JS object lifespan profiling */
     return data_space_p;
   }
 #endif /* JMEM_SEGMENTED_HEAP */
@@ -537,8 +531,6 @@ static void *jmem_heap_gc_and_alloc_block(
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     if (likely(data_space_p != NULL)) {
       print_total_size_profile_on_alloc(); /* Total size profiling */
-      profile_jsobject_set_object_birth_time(jmem_compress_pointer(
-          data_space_p)); /* JS object lifespan profiling */
       profile_jsobject_inc_allocation(
           size); /* JS object allocation profiling */
       return data_space_p;
@@ -552,8 +544,6 @@ static void *jmem_heap_gc_and_alloc_block(
     data_space_p =
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
     JERRY_ASSERT(data_space_p != NULL);
-    profile_jsobject_set_object_birth_count(
-        jmem_compress_pointer(data_space_p)); /* JS object lifespan profiling */
     return data_space_p;
   }
 #endif /* JMEM_SEGMENTED_HEAP */
@@ -628,6 +618,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   uint32_t next_cp;
 
 #ifdef JMEM_SEGMENTED_HEAP
+  // TODO: 
   uint32_t boffset = JMEM_COMPRESS_POINTER_INTERNAL(block_p);
   uint32_t skip_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(JERRY_CONTEXT(jmem_heap_list_skip_p));
@@ -758,8 +749,6 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   print_segment_utilization_profile_after_free(size); /* Segment
                                                     utilization profiling */
 
-  profile_jsobject_print_object_lifespan(
-      jmem_compress_pointer(ptr)); /* JS object lifespan profiling */
   profile_free_end();              /* Time profiling */
 
 #else  /* JERRY_SYSTEM_ALLOCATOR */

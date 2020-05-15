@@ -31,52 +31,6 @@ inline void __attr_always_inline___ profile_jsobject_inc_total_count(void) {
 #endif
 }
 
-inline void __attr_always_inline___
-profile_jsobject_set_object_birth_time(uintptr_t compressed_pointer) {
-#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
-  CHECK_LOGGING_ENABLED();
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  JERRY_HEAP_CONTEXT(gc_obj_birth)
-  [compressed_pointer] = JERRY_HEAP_CONTEXT(gc_total_count);
-  JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][0] = tv.tv_sec;
-  JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][1] = tv.tv_usec;
-#else
-  JERRY_UNUSED(compressed_pointer);
-#endif
-}
-
-inline void __attr_always_inline___
-profile_jsobject_set_object_birth_count(uintptr_t compressed_pointer) {
-#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
-  CHECK_LOGGING_ENABLED();
-  JERRY_HEAP_CONTEXT(gc_obj_birth)
-  [compressed_pointer] = JERRY_HEAP_CONTEXT(gc_total_count);
-#else
-  JERRY_UNUSED(compressed_pointer);
-#endif
-}
-
-inline void __attr_always_inline___
-profile_jsobject_print_object_lifespan(uintptr_t compressed_pointer) {
-#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
-  CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(PROF_JSOBJECT_LIFESPAN_FILENAME, "a");
-
-  fprintf(fp, "OL, %u, %u, %lu.%lu\n", compressed_pointer,
-          JERRY_HEAP_CONTEXT(gc_total_count) -
-              JERRY_HEAP_CONTEXT(gc_obj_birth)[compressed_pointer],
-          JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][0],
-          JERRY_HEAP_CONTEXT(gc_obj_birth_time)[compressed_pointer][1]);
-  JERRY_HEAP_CONTEXT(gc_obj_birth)[compressed_pointer] = 0;
-
-  fflush(fp);
-  fclose(fp);
-#else
-  JERRY_UNUSED(compressed_pointer);
-#endif
-}
-
 /* JS object allocation profiling */
 inline void __attr_always_inline___
 profile_jsobject_inc_allocation(size_t jsobject_size) {
