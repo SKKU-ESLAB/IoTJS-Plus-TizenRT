@@ -34,3 +34,7 @@ TAGS
 # config files
 *.config
 !build.config
+
+# build_batched
+build_batched_jmem_configs
+out

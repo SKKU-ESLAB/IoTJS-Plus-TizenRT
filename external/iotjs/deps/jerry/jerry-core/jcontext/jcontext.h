@@ -306,8 +306,14 @@ typedef struct
   jmem_heap_free_t first; /**< first node in free region list */
 #ifdef JMEM_SEGMENTED_HEAP
   /* JS heap area on heap area (dynamically allocated) */
-  uint8_t *area[SEG_NUM_SEGMENTS]; // Segment base table
-#ifdef SEG_RMAP_BINSEARCH
+  // segment base table
+  uint8_t *area[SEG_NUM_SEGMENTS];
+
+  // segment headers
+  jmem_segment_t segments[SEG_NUM_SEGMENTS];
+  uint32_t segments_count;
+
+  // reverse map cache
 #ifdef SEG_RMAP_CACHE
 #if SEG_RMAP_CACHE_SIZE == 1
   uint8_t *rmc_single_base_addr;
@@ -317,10 +323,12 @@ typedef struct
   uint32_t rmc_table_sidx[SEG_RMAP_CACHE_SIZE];
 #endif
 #endif
+
+  // reverse map tree
+#ifdef SEG_RMAP_BINSEARCH
   rb_root segment_rmap_rb_root; // Segment reverse map tree
 #endif /* SEG_RMAP_BINSEARCH */
-  jmem_segment_t segments[SEG_NUM_SEGMENTS]; // Segment header
-  uint32_t segments_count; // Segment count
+
 #ifdef PROF_JSOBJECT_LIFESPAN
   unsigned gc_total_count = 0;
   unsigned gc_obj_birth[65536];
