@@ -24,6 +24,7 @@
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
 #include "jmem-heap-segmented.h"
+#include "jmem-profiler.h"
 
 /**
  * Initialize memory allocators.
@@ -75,10 +76,10 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
 #ifdef JMEM_SEGMENTED_HEAP
   uint_ptr = (uintptr_t)JMEM_COMPRESS_POINTER_INTERNAL(pointer_p);
 #else /* JMEM_SEGMENTED_HEAP */
-  const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
-  uint_ptr -= heap_start;
+  profile_compression_start();
+  uint_ptr -= (uintptr_t) &JERRY_HEAP_CONTEXT (first);
+  profile_compression_end();
 #endif /* !JMEM_SEGMENTED_HEAP */
-
   uint_ptr >>= JMEM_ALIGNMENT_LOG;
 #endif
 
@@ -111,14 +112,13 @@ jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompres
 #if defined (ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY) && defined (JERRY_CPOINTER_32_BIT)
   JERRY_ASSERT (uint_ptr % JMEM_ALIGNMENT == 0);
 #else /* !ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY || !JERRY_CPOINTER_32_BIT */
-
-#ifdef JMEM_SEGMENTED_HEAP
   uint_ptr <<= JMEM_ALIGNMENT_LOG;
+#ifdef JMEM_SEGMENTED_HEAP
   uint_ptr = (uintptr_t)JMEM_DECOMPRESS_POINTER_INTERNAL((uint32_t)uint_ptr);
 #else /* JMEM_SEGMENTED_HEAP */
-  const uintptr_t heap_start = (uintptr_t) &JERRY_HEAP_CONTEXT (first);
-  uint_ptr <<= JMEM_ALIGNMENT_LOG;
-  uint_ptr += heap_start;
+  profile_decompression_start();
+  uint_ptr += (uintptr_t) &JERRY_HEAP_CONTEXT (first);
+  profile_decompression_end();
 #endif /* !JMEM_SEGMENTED_HEAP */
 #endif
 
