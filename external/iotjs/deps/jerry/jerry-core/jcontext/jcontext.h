@@ -163,7 +163,7 @@ typedef struct
 
 #ifdef PROF_TIME
   /* Time profiling */
-  struct timeval timeval_start;
+  struct timeval timeval_uptime;
   struct timeval timeval_alloc;
   struct timeval timeval_free;
   struct timeval timeval_compression;

@@ -62,9 +62,9 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-#define PROF_SIZE /* jmem-profiler-size.c */
+// #define PROF_SIZE /* jmem-profiler-size.c */
 #define PROF_TIME /* jmem-profiler-time.c */
-#define PROF_CPTL /* jmem-profiler-cptl.c */
+// #define PROF_CPTL /* jmem-profiler-cptl.c */
 // #define PROF_SEGMENT /* jmem-profiler-segment.c */
 // #define PROF_JSOBJECT   /* jmem-profiler-jsobject.c */
 
@@ -73,7 +73,14 @@
 #define PROF_SIZE__PERIOD_USEC (100 * 1000)
 #endif /* defined(PROF_SIZE) */
 
-/* jmem-profiler-time.c: none */
+/* jmem-profiler-time.c */
+#ifdef PROF_TIME
+#define PROF_TIME__ALLOC
+#define PROF_TIME__FREE
+#define PROF_TIME__COMPRESSION
+#define PROF_TIME__DECOMPRESSION
+#define PROF_TIME__GC
+#endif /* defined(PROF_TIME) */
 
 /* jmem-profiler-cptl.c */
 #ifdef PROF_CPTL
