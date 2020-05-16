@@ -618,7 +618,6 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   uint32_t next_cp;
 
 #ifdef JMEM_SEGMENTED_HEAP
-  // TODO: 
   uint32_t boffset = JMEM_COMPRESS_POINTER_INTERNAL(block_p);
   uint32_t skip_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(JERRY_CONTEXT(jmem_heap_list_skip_p));
@@ -660,7 +659,6 @@ static void __attr_hot___ jmem_heap_free_block_internal(
       (size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT * JMEM_ALIGNMENT;
 
   /* Update prev. */
-  // TODO: What if address condition meets but seg-groups are different?
   if (jmem_heap_get_region_end(prev_p) == block_p) {
     /* Can be merged. */
     prev_p->size += (uint32_t)aligned_size;
