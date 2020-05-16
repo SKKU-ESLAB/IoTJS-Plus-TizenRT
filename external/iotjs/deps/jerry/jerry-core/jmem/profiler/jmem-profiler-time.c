@@ -57,7 +57,9 @@ void print_time_profile(void) {
   total_time.tv_usec = 0;
   __stop_watch(&JERRY_CONTEXT(timeval_uptime), &total_time);
 
+#ifdef PROF_TIME__PRINT_HEADER
   fprintf(fp, "Category, Total, Alloc, Free, Compression, Decompression, GC\n");
+#endif /* defined(PROF_TIME__PRINT_HEADER) */
   fprintf(fp, "Count, 0, %u, %u, %u, %u, %u\n", JERRY_CONTEXT(alloc_count),
           JERRY_CONTEXT(free_count), JERRY_CONTEXT(compression_count),
           JERRY_CONTEXT(decompression_count), JERRY_CONTEXT(gc_count));

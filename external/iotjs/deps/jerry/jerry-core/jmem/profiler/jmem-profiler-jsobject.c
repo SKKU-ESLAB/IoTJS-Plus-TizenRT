@@ -23,14 +23,6 @@
 #include "jmem-profiler.h"
 #include "jmem.h"
 
-/* JS object lifespan profiling */
-inline void __attr_always_inline___ profile_jsobject_inc_total_count(void) {
-#if defined(JMEM_PROFILE) && defined(PROF_JSOBJECT_LIFESPAN)
-  CHECK_LOGGING_ENABLED();
-  JERRY_HEAP_CONTEXT(gc_total_count)++;
-#endif
-}
-
 /* JS object allocation profiling */
 inline void __attr_always_inline___
 profile_jsobject_inc_allocation(size_t jsobject_size) {

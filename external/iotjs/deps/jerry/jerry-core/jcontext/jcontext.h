@@ -195,6 +195,10 @@ typedef struct
   unsigned int cptl_rmc_miss_count;
 #endif
 
+#ifdef PROF_COUNT
+  int prof_count[PROF_COUNT__MAX_TYPES];
+#endif
+
 #endif /* defined(JMEM_PROFILE) */
 } jerry_context_t;
 
@@ -305,20 +309,17 @@ typedef struct
 {
   jmem_heap_free_t first; /**< first node in free region list */
 #ifdef JMEM_SEGMENTED_HEAP
-  /* JS heap area on heap area (dynamically allocated) */
-  // segment base table
-  uint8_t *area[SEG_NUM_SEGMENTS];
-
-  // segment headers
-  jmem_segment_t segments[SEG_NUM_SEGMENTS];
-  uint32_t segments_count;
+  // Segmented heap
+  uint8_t *area[SEG_NUM_SEGMENTS]; // segment base table
+  jmem_segment_t segments[SEG_NUM_SEGMENTS]; // segment headers
+  uint32_t segments_count; // the number of segments
 
   // reverse map cache
 #ifdef SEG_RMAP_CACHE
-#if SEG_RMAP_CACHE_SIZE == 1
+#if SEG_RMAP_CACHE_SIZE == 1 // single-entry cache
   uint8_t *rmc_single_base_addr;
   uint32_t rmc_single_sidx;
-#else
+#else // multi-entry cache
   uint8_t *rmc_table_base_addr[SEG_RMAP_CACHE_SIZE];
   uint32_t rmc_table_sidx[SEG_RMAP_CACHE_SIZE];
 #endif
@@ -329,12 +330,8 @@ typedef struct
   rb_root segment_rmap_rb_root; // Segment reverse map tree
 #endif /* SEG_RMAP_BINSEARCH */
 
-#ifdef PROF_JSOBJECT_LIFESPAN
-  unsigned gc_total_count = 0;
-  unsigned gc_obj_birth[65536];
-  long gc_obj_birth_time[65536][2];
-#endif /* PROF_JSOBJECT_LIFESPAN */
 #else  /* JMEM_SEGMENTED_HEAP */
+  // Static heap
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */
 #endif /* !JMEM_SEGMENTED_HEAP */
 } jmem_heap_t;

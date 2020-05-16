@@ -50,17 +50,18 @@ extern void print_segment_utiliaztion_profile_before_gc(size_t jsobject_size);
 extern void print_segment_utiliaztion_profile_after_gc(size_t jsobject_size);
 extern void print_segment_utilization_profile_finally(void);
 
-/* jmem-profiler-jsobject.c: JS object lifespan profiling*/
-extern void profile_jsobject_inc_total_count(void);
-
 /* jmem-profiler-jsobject.c: JS object allocation profiling */
-extern void profile_jsobject_inc_allocation(size_t jsobject_size);
 extern void print_jsobject_allocation_profile(void);
+extern void profile_jsobject_inc_allocation(size_t jsobject_size);
 
 /* jmem-profiler-cptl.c: Compressed Pointer Translation Layer (CPTL) profiling
  */
 extern void print_cptl_profile_rmc_hit_ratio(void);
 extern void profile_inc_rmc_access_count(void);
 extern void profile_inc_rmc_miss_count(void);
+
+/* jmem-profiler-count.c : Count profiling for investigation */
+extern void print_count_profile(void);
+extern void profile_inc_count_of_a_type(int type);
 
 #endif /* !defined(JMEM_PROFILER_H) */

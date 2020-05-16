@@ -720,7 +720,6 @@ ecma_gc_sweep (ecma_object_t *object_p) /**< object to free */
 void
 ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
 {
-  profile_jsobject_inc_total_count(); /* JS object lifespan profiling */
   profile_gc_start(); /* Time profiling */
 
 #ifndef GC_ON_ZERO_REFCOUNT
