@@ -21,5 +21,6 @@
 extern void init_rmap_cache(void);
 extern uint32_t access_and_check_rmap_cache(uint8_t *addr, uint8_t **saddr_out);
 extern void update_rmap_cache(uint8_t *saddr, uint32_t sidx);
+extern void invalidate_rmap_cache_entry(uint32_t sidx);
 
 #endif /* !defined(CPTL_RMAP_CACHE_H) */

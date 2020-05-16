@@ -29,7 +29,7 @@
 
 /* Heap allocation type */
 // 1) Real dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled
-// #define JMEM_SEGMENTED_HEAP // 2) Segmented heap
+#define JMEM_SEGMENTED_HEAP // 2) Segmented heap
 // #define JMEM_DYNAMIC_HEAP_EMUL // 3) Dynamic heap emulation
 // 4) Static heap - else
 
@@ -64,7 +64,7 @@
 #ifdef JMEM_PROFILE
 // #define PROF_SIZE /* jmem-profiler-size.c */
 #define PROF_TIME /* jmem-profiler-time.c */
-// #define PROF_CPTL /* jmem-profiler-cptl.c */
+#define PROF_CPTL /* jmem-profiler-cptl.c */
 // #define PROF_SEGMENT /* jmem-profiler-segment.c */
 // #define PROF_JSOBJECT   /* jmem-profiler-jsobject.c */
 

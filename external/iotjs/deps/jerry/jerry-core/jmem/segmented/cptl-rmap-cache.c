@@ -36,9 +36,9 @@ void init_rmap_cache(void) {
   JERRY_HEAP_CONTEXT(rmc_single_sidx) = SEG_NUM_SEGMENTS;
 #else  /* SEG_RMAP_CACHE_SIZE == 1 */
   // Case 2. Multi-entry cache
-  for (int i = 0; i < SEG_RMAP_CACHE_SIZE; i++) {
-    JERRY_HEAP_CONTEXT(rmc_table_base_addr[i]) = NULL;
-    JERRY_HEAP_CONTEXT(rmc_table_sidx[i]) = SEG_NUM_SEGMENTS;
+  for (int tag = 0; tag < SEG_RMAP_CACHE_SIZE; tag++) {
+    JERRY_HEAP_CONTEXT(rmc_table_base_addr[tag]) = NULL;
+    JERRY_HEAP_CONTEXT(rmc_table_sidx[tag]) = SEG_NUM_SEGMENTS;
   }
 #endif /* SEG_RMAP_CACHE_SIZE != 1 */
 #endif /* defined(SEG_RMAP_CACHE) */
@@ -106,5 +106,33 @@ inline void __attr_always_inline___ update_rmap_cache(uint8_t *saddr,
   // It will never be called
   JERRY_UNUSED(saddr);
   JERRY_UNUSED(sidx);
+#endif /* !defined(SEG_RMAP_CACHE) */
+}
+
+inline void __attr_always_inline___ invalidate_rmap_cache_entry(uint32_t sidx) {
+// Access, check and invalidate reverse map cache
+#ifdef SEG_RMAP_CACHE
+#if SEG_RMAP_CACHE_SIZE == 1
+  // Case 1. Singleton cache
+  if (JERRY_HEAP_CONTEXT(rmc_single_sidx) == sidx) {
+    JERRY_HEAP_CONTEXT(rmc_single_base_addr) = 0;
+    JERRY_HEAP_CONTEXT(rmc_single_sidx) = 0;
+  }
+#elif SEG_RMAP_CACHE_SET_SIZE == 1 /* SEG_RMAP_CACHE_SIZE == 1 */
+  // Case 2. Multi-entry cache (Direct-mapped)
+  for (int tag = 0; tag < SEG_RMAP_CACHE_SIZE; tag++) {
+    if (JERRY_HEAP_CONTEXT(rmc_table_sidx[tag]) == sidx) {
+      JERRY_HEAP_CONTEXT(rmc_table_base_addr[tag]) = 0;
+      JERRY_HEAP_CONTEXT(rmc_table_sidx[tag]) = 0;
+    }
+  }
+#else  /* SEG_RMAP_CACHE_SIZE != 1 && SEG_RMAP_CACHE_SET_SIZE == 1 */
+  // Case 3. Multi-entry cache (Set-associative or Fully-associative)
+  // TODO: not yet implemented
+#endif /* SEG_RMAP_CACHE_SIZE != && SEG_RMAP_CACHE_SET_SIZE == 1 */
+#else  /* defined(SEG_RMAP_CACHE) */
+  // It will never be called
+  JERRY_UNUSED(addr);
+  return NULL;
 #endif /* !defined(SEG_RMAP_CACHE) */
 }

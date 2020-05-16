@@ -23,6 +23,7 @@
 
 #include "jmem-heap-segmented.h"
 
+#include "cptl-rmap-cache.h"
 #include "jmem-heap-segmented-cptl.h"
 #include "jmem-heap-segmented-rmap-rb.h"
 
@@ -236,6 +237,11 @@ void free_empty_segment_groups(void) {
                             segment_area);
 #else
         JERRY_UNUSED(segment_area);
+#endif /* defined(SEG_RMAP_BINSEARCH) */
+
+#ifdef SEG_RMAP_CACHE
+        // Invalidate reverse map cache entry
+        invalidate_rmap_cache_entry(sidx);
 #endif /* defined(SEG_RMAP_BINSEARCH) */
 
         // Update segment base table
