@@ -132,7 +132,7 @@ inline void __attr_always_inline___ invalidate_rmap_cache_entry(uint32_t sidx) {
 #endif /* SEG_RMAP_CACHE_SIZE != && SEG_RMAP_CACHE_SET_SIZE == 1 */
 #else  /* defined(SEG_RMAP_CACHE) */
   // It will never be called
-  JERRY_UNUSED(addr);
+  JERRY_UNUSED(sidx);
   return NULL;
 #endif /* !defined(SEG_RMAP_CACHE) */
 }
