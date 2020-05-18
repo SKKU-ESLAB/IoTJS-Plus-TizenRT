@@ -195,6 +195,10 @@ typedef struct
   unsigned int cptl_rmc_miss_count;
 #endif
 
+#ifdef PROF_CPTL_ACCESS
+  unsigned int cptl_access_count;
+#endif
+
 #ifdef PROF_COUNT
   int prof_count[PROF_COUNT__MAX_TYPES];
 #endif

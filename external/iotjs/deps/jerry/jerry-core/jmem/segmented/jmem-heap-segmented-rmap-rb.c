@@ -25,7 +25,13 @@
 
 #ifdef JMEM_SEGMENTED_HEAP
 #ifdef SEG_RMAP_BINSEARCH
+
+#if defined(PROF_CPTL_ACCESS)
+extern seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr,
+                                            int *depth_out) {
+#else
 seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
+#endif
   rb_node *node = root->rb_node;
 
   while (node) {
@@ -42,6 +48,9 @@ seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
     } else {
       return (seg_rmap_node_t *)node;
     }
+#if defined(PROF_CPTL_ACCESS)
+    *depth_out = *depth_out + 1;
+#endif
   }
 
   return (seg_rmap_node_t *)NULL;
@@ -76,7 +85,13 @@ int segment_rmap_insert(rb_root *root, uint8_t *segment_area, uint32_t sidx) {
 }
 
 void segment_rmap_remove(rb_root *root, uint8_t *addr) {
+#if defined(PROF_CPTL_ACCESS)
+  int depth;
+  seg_rmap_node_t *node_to_free = segment_rmap_lookup(root, addr, &depth);
+  JERRY_UNUSED(depth);
+#else
   seg_rmap_node_t *node_to_free = segment_rmap_lookup(root, addr);
+#endif
   JERRY_ASSERT(addr == node_to_free->base_addr);
 
   if (node_to_free)

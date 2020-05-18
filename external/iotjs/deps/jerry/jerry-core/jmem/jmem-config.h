@@ -40,7 +40,7 @@
 // no options
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
-#define SEG_RMAP_BINSEARCH         // binary search for reverse map
+// #define SEG_RMAP_BINSEARCH         // binary search for reverse map
 #define SEG_RMAP_CACHE             // caching in reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
@@ -62,12 +62,12 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-// #define PROF_SIZE /* jmem-profiler-size.c */
-#define PROF_TIME /* jmem-profiler-time.c */
-#define PROF_CPTL /* jmem-profiler-cptl.c */
-// #define PROF_SEGMENT /* jmem-profiler-segment.c */
-// #define PROF_JSOBJECT   /* jmem-profiler-jsobject.c */
-#define PROF_COUNT /* jmem-profiler-count.c */
+// #define PROF_SIZE
+#define PROF_TIME
+#define PROF_CPTL // It may degrade performance harshly
+// #define PROF_SEGMENT // It may degrade performance harshly
+// #define PROF_JSOBJECT // It may degrade performance
+// #define PROF_COUNT // It may degrade performance
 
 /* jmem-profiler-size.c */
 #ifdef PROF_SIZE
@@ -78,16 +78,17 @@
 #ifdef PROF_TIME
 // #define PROF_TIME__PRINT_HEADER
 
-#define PROF_TIME__ALLOC
-#define PROF_TIME__FREE
-#define PROF_TIME__COMPRESSION
-#define PROF_TIME__DECOMPRESSION
+#define PROF_TIME__ALLOC // It may degrade performance harshly
+#define PROF_TIME__FREE // It may degrade performance harshly
+#define PROF_TIME__COMPRESSION // It may degrade performance harshly
+#define PROF_TIME__DECOMPRESSION // It may degrade performance harshly
 #define PROF_TIME__GC
 #endif /* defined(PROF_TIME) */
 
 /* jmem-profiler-cptl.c */
 #ifdef PROF_CPTL
-#define PROF_CPTL_RMC_HIT_RATIO
+// #define PROF_CPTL_RMC_HIT_RATIO
+// #define PROF_CPTL_ACCESS
 #endif /* defined(PROF_CPTL) */
 
 /* jmem-profiler-segment.c */

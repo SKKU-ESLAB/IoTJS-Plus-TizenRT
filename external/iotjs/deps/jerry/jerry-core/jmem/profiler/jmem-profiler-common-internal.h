@@ -55,6 +55,7 @@ extern void init_count_profile(void);
 #define PROF_TIME_FILENAME "/mnt/time.log"
 #define PROF_JSOBJECT_ALLOCATION_FILENAME "/mnt/object_allocation.log"
 #define PROF_CPTL_FILENAME "/mnt/cptl.log"
+#define PROF_CPTL_ACCESS_FILENAME "/mnt/cptl_access.log"
 #define PROF_COUNT_FILENAME "/mnt/count.log"
 #else
 #define PROF_TOTAL_SIZE_FILENAME "total_size.log"
@@ -62,6 +63,7 @@ extern void init_count_profile(void);
 #define PROF_TIME_FILENAME "time.log"
 #define PROF_JSOBJECT_ALLOCATION_FILENAME "object_allocation.log"
 #define PROF_CPTL_FILENAME "cptl.log"
+#define PROF_CPTL_ACCESS_FILENAME "cptl_access.log"
 #define PROF_COUNT_FILENAME "count.log"
 #endif
 

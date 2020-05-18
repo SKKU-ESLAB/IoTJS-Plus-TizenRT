@@ -88,7 +88,9 @@ cptl_decompress_pointer_internal(uint32_t cp) {
 // * Core part of decompression
 // * jmem-heap-segmented-cptl.h
 inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
-  return JERRY_HEAP_CONTEXT(area[sidx]);
+  uint8_t *addr = JERRY_HEAP_CONTEXT(area[sidx]);
+  print_cptl_access(sidx, -1); // CPTL access profiling
+  return addr;
 }
 
 // Raw function to access segment reverse map
@@ -97,26 +99,43 @@ inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
 // * jmem-heap-segmented-cptl.h
 inline uint32_t __attribute__((hot))
 addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
-  uint8_t *saddr = NULL;
   uint32_t sidx;
+  uint8_t *saddr = NULL;
+  int depth = 0;
 
   profile_inc_rmc_access_count(); // CPTL reverse map caching profiling
 
+  // Fast path
 #ifdef SEG_RMAP_CACHE
-  uint32_t result_cache = access_and_check_rmap_cache(addr, saddr_out);
-  if (result_cache < SEG_NUM_SEGMENTS)
-    return result_cache;
+  sidx = access_and_check_rmap_cache(addr, saddr_out);
+  if (sidx < SEG_NUM_SEGMENTS) {
+    print_cptl_access(sidx, depth); // CPTL access profiling
+    return sidx;
+  }
 #endif /* defined(SEG_RMAP_CACHE) */
 
+  // Slow path
+  depth++;
 #ifndef SEG_RMAP_BINSEARCH
+  // Linear search
   for (sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     saddr = JERRY_HEAP_CONTEXT(area[sidx]);
     if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE)
       break;
+#if defined(PROF_CPTL_ACCESS)
+    depth++;
+#endif
   }
-#else  /* defined(SEG_RMAP_BINSEARCH) */
+#else /* defined(SEG_RMAP_BINSEARCH) */
+  // Binary search
+#if defined(PROF_CPTL_ACCESS)
+  seg_rmap_node_t *node =
+      segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr,
+                          &depth);
+#else
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
+#endif
   sidx = node->sidx;
   saddr = node->base_addr;
 #endif /* !defined(SEG_RMAP_BINSEARCH) */
@@ -127,6 +146,7 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
 
   *saddr_out = saddr;
 
-  profile_inc_rmc_miss_count(); // CPTL reverse map caching profiling
+  profile_inc_rmc_miss_count();   // CPTL reverse map caching profiling
+  print_cptl_access(sidx, depth); // CPTL access profiling
   return sidx;
 }

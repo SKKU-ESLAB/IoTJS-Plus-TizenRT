@@ -59,6 +59,7 @@ extern void profile_jsobject_inc_allocation(size_t jsobject_size);
 extern void print_cptl_profile_rmc_hit_ratio(void);
 extern void profile_inc_rmc_access_count(void);
 extern void profile_inc_rmc_miss_count(void);
+extern void print_cptl_access(uint32_t sidx, int type_depth);
 
 /* jmem-profiler-count.c : Count profiling for investigation */
 extern void print_count_profile(void);

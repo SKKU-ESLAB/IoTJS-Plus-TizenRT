@@ -32,7 +32,12 @@ typedef struct _seg_node {
   uint32_t sidx;
 } seg_rmap_node_t;
 
+#if defined(PROF_CPTL_ACCESS)
+extern seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr,
+                                            int *depth_out);
+#else
 extern seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr);
+#endif
 extern int segment_rmap_insert(rb_root *root, uint8_t *segment_area,
                                uint32_t sidx);
 extern void segment_rmap_remove(rb_root *root, uint8_t *base_addr);

@@ -26,6 +26,15 @@ void init_cptl_profiler(void) {
   JERRY_CONTEXT(cptl_rmc_miss_count) = 0;
 #endif
 
+#if defined(PROF_CPTL_ACCESS)
+  JERRY_CONTEXT(cptl_access_count) = 0;
+
+  FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "w");
+  fprintf(fp, "CPTL Access Number, Segment Index, Type/Depth\n");
+  fflush(fp);
+  fclose(fp);
+#endif
+
 #endif
 }
 
@@ -57,5 +66,20 @@ inline void __attr_always_inline___ profile_inc_rmc_access_count(void) {
 inline void __attr_always_inline___ profile_inc_rmc_miss_count(void) {
 #if defined(SEG_RMAP_CACHE) && defined(PROF_CPTL_RMC_HIT_RATIO)
   JERRY_CONTEXT(cptl_rmc_miss_count)++;
+#endif
+}
+
+inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
+                                                      int type_depth) {
+  // type_depth: -1 = decompression, 0 = compression hit, 1~ = compression miss
+#if defined(PROF_CPTL_ACCESS)
+  CHECK_LOGGING_ENABLED();
+  FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "a");
+  fprintf(fp, "%u, %u, %d\n", JERRY_CONTEXT(cptl_access_count)++, sidx, type_depth);
+  fflush(fp);
+  fclose(fp);
+#else
+  JERRY_UNUSED(sidx);
+  JERRY_UNUSED(type_depth);
 #endif
 }
