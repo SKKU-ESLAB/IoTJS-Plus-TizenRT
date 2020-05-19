@@ -40,7 +40,7 @@
 // no options
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
-// #define SEG_RMAP_BINSEARCH         // binary search for reverse map
+#define SEG_RMAP_BINSEARCH         // binary search for reverse map
 #define SEG_RMAP_CACHE             // caching in reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
@@ -63,7 +63,7 @@
 
 #ifdef JMEM_PROFILE
 // #define PROF_SIZE
-#define PROF_TIME
+// #define PROF_TIME
 #define PROF_CPTL // It may degrade performance harshly
 // #define PROF_SEGMENT // It may degrade performance harshly
 // #define PROF_JSOBJECT // It may degrade performance
@@ -88,7 +88,7 @@
 /* jmem-profiler-cptl.c */
 #ifdef PROF_CPTL
 // #define PROF_CPTL_RMC_HIT_RATIO
-// #define PROF_CPTL_ACCESS
+#define PROF_CPTL_ACCESS
 #endif /* defined(PROF_CPTL) */
 
 /* jmem-profiler-segment.c */
@@ -110,6 +110,8 @@
 /* jmem-profiler-count.c */
 #ifdef PROF_COUNT
 #define PROF_COUNT__MAX_TYPES 10
+
+#define PROF_COUNT__COMPRESSION_CALLERS
 #endif
 
 #endif /* defined(JMEM_PROFILE) */

@@ -30,7 +30,7 @@ void init_cptl_profiler(void) {
   JERRY_CONTEXT(cptl_access_count) = 0;
 
   FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "w");
-  fprintf(fp, "CPTL Access Number, Segment Index, Type/Depth\n");
+  fprintf(fp, "CPTL Access Number, Segment Index, Type/Depth, Same Segment\n");
   fflush(fp);
   fclose(fp);
 #endif
@@ -75,7 +75,19 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
 #if defined(PROF_CPTL_ACCESS)
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "a");
-  fprintf(fp, "%u, %u, %d\n", JERRY_CONTEXT(cptl_access_count)++, sidx, type_depth);
+  uint32_t recent_sidx = 0;
+  if (type_depth < 0) {
+    // decompression
+    recent_sidx = JERRY_CONTEXT(cptl_access_recent_decompression_sidx);
+    JERRY_CONTEXT(cptl_access_recent_decompression_sidx) = sidx;
+  } else {
+    // compression
+    recent_sidx = JERRY_CONTEXT(cptl_access_recent_compression_sidx);
+    JERRY_CONTEXT(cptl_access_recent_compression_sidx) = sidx;
+  }
+  int is_same_segment = (recent_sidx == sidx) ? 1 : 0;
+  fprintf(fp, "%u, %u, %d, %d\n", JERRY_CONTEXT(cptl_access_count)++, sidx,
+          type_depth, is_same_segment);
   fflush(fp);
   fclose(fp);
 #else

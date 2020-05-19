@@ -85,6 +85,10 @@ ecma_gc_set_object_next (ecma_object_t *object_p, /**< object */
 {
   JERRY_ASSERT (object_p != NULL);
 
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+  profile_inc_count_of_a_type(2); // compression callers
+#endif
+
   ECMA_SET_POINTER (object_p->gc_next_cp, next_object_p);
 } /* ecma_gc_set_object_next */
 

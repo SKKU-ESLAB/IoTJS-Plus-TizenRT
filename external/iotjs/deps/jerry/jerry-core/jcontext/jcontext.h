@@ -197,6 +197,8 @@ typedef struct
 
 #ifdef PROF_CPTL_ACCESS
   unsigned int cptl_access_count;
+  uint32_t cptl_access_recent_compression_sidx;
+  uint32_t cptl_access_recent_decompression_sidx;
 #endif
 
 #ifdef PROF_COUNT

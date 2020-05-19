@@ -19,6 +19,7 @@
 #include "ecma-globals.h"
 #include "jmem.h"
 #include "lit-strings.h"
+#include "jmem-profiler.h"
 
 /** \addtogroup ecma ECMA
  * @{
@@ -48,7 +49,14 @@
  * Set value of compressed pointer so that it will correspond
  * to specified non_compressed_pointer.
  */
-#define ECMA_SET_POINTER(field, non_compressed_pointer) JMEM_CP_SET_POINTER (field, non_compressed_pointer)
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+#define ECMA_SET_POINTER(field, non_compressed_pointer) \
+profile_inc_count_of_a_type(3); /* compression callers */ \
+JMEM_CP_SET_POINTER (field, non_compressed_pointer)
+#else
+#define ECMA_SET_POINTER(field, non_compressed_pointer) \
+JMEM_CP_SET_POINTER (field, non_compressed_pointer)
+#endif
 
 /**
  * Convert ecma-string's contents to a cesu-8 string and put it into a buffer.

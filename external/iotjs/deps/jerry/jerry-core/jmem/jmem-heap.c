@@ -138,6 +138,9 @@ static inline void jmem_heap_init_first_free_region(void) {
   JERRY_HEAP_CONTEXT(first).size = 0;
   JERRY_HEAP_CONTEXT(first).next_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(region_p);
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+  profile_inc_count_of_a_type(1); // compression callers
+#endif
   JERRY_CONTEXT(jmem_heap_list_skip_p) = &JERRY_HEAP_CONTEXT(first);
 }
 
@@ -498,7 +501,7 @@ static void *jmem_heap_gc_and_alloc_block(
   void *data_space_p =
       jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
   if (likely(data_space_p != NULL)) {
-    print_total_size_profile_on_alloc(); /* Total size profiling */
+    print_total_size_profile_on_alloc();   /* Total size profiling */
     profile_jsobject_inc_allocation(size); /* JS object allocation profiling */
     return data_space_p;
   }
@@ -619,9 +622,15 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 
 #ifdef JMEM_SEGMENTED_HEAP
   uint32_t boffset = JMEM_COMPRESS_POINTER_INTERNAL(block_p);
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+  profile_inc_count_of_a_type(1); // compression callers
+#endif
   uint32_t skip_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(JERRY_CONTEXT(jmem_heap_list_skip_p));
   bool is_skip_ok = boffset > skip_offset;
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+  profile_inc_count_of_a_type(1); // compression callers
+#endif
 #else  /* JMEM_SEGMENTED_HEAP */
   bool is_skip_ok = block_p > JERRY_CONTEXT(jmem_heap_list_skip_p);
 #endif /* !JMEM_SEGMENTED_HEAP */
@@ -747,7 +756,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   print_segment_utilization_profile_after_free(size); /* Segment
                                                     utilization profiling */
 
-  profile_free_end();              /* Time profiling */
+  profile_free_end(); /* Time profiling */
 
 #else  /* JERRY_SYSTEM_ALLOCATOR */
   JERRY_UNUSED(is_small_object);

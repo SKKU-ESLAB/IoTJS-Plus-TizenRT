@@ -32,7 +32,7 @@ inline void __attr_always_inline___ init_count_profile(void) {
 inline void __attr_always_inline___ print_count_profile(void) {
 #if defined(PROF_COUNT)
   CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(PROF_COUNT_FILENAME, "w");
+  FILE *fp = fopen(PROF_COUNT_FILENAME, "a");
   for (int type = 0; type < PROF_COUNT__MAX_TYPES; type++) {
     if (type > 0) {
       fprintf(fp, ",");

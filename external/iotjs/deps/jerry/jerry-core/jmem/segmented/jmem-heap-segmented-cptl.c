@@ -64,6 +64,10 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
                     (uint32_t)SEG_SEGMENT_SIZE * sidx);
   }
   profile_compression_end();
+
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+  profile_inc_count_of_a_type(0); // compression callers
+#endif
   return cp;
 }
 
