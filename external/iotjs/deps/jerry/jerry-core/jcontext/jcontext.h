@@ -199,6 +199,8 @@ typedef struct
   unsigned int cptl_access_count;
   uint32_t cptl_access_recent_compression_sidx;
   uint32_t cptl_access_recent_decompression_sidx;
+  uint32_t cptl_access_sameseg_compression_count;
+  uint32_t cptl_access_sameseg_decompression_count;
 #endif
 
 #ifdef PROF_COUNT

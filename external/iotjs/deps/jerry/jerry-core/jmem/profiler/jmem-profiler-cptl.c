@@ -76,16 +76,26 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "a");
   uint32_t recent_sidx = 0;
+  int is_same_segment = 0;
   if (type_depth < 0) {
     // decompression
     recent_sidx = JERRY_CONTEXT(cptl_access_recent_decompression_sidx);
     JERRY_CONTEXT(cptl_access_recent_decompression_sidx) = sidx;
+    is_same_segment = (recent_sidx == sidx) ? 1 : 0;
+    if (is_same_segment) {
+      JERRY_CONTEXT(cptl_access_sameseg_decompression_count)++;
+      is_same_segment = JERRY_CONTEXT(cptl_access_sameseg_decompression_count);
+    }
   } else {
     // compression
     recent_sidx = JERRY_CONTEXT(cptl_access_recent_compression_sidx);
     JERRY_CONTEXT(cptl_access_recent_compression_sidx) = sidx;
+    is_same_segment = (recent_sidx == sidx) ? 1 : 0;
+    if (is_same_segment) {
+      JERRY_CONTEXT(cptl_access_sameseg_compression_count)++;
+      is_same_segment = JERRY_CONTEXT(cptl_access_sameseg_compression_count);
+    }
   }
-  int is_same_segment = (recent_sidx == sidx) ? 1 : 0;
   fprintf(fp, "%u, %u, %d, %d\n", JERRY_CONTEXT(cptl_access_count)++, sidx,
           type_depth, is_same_segment);
   fflush(fp);
