@@ -76,7 +76,7 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "a");
   uint32_t recent_sidx = 0;
-  int is_same_segment = 0;
+  uint32_t is_same_segment = 0;
   if (type_depth < 0) {
     // decompression
     recent_sidx = JERRY_CONTEXT(cptl_access_recent_decompression_sidx);
@@ -96,7 +96,7 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
       is_same_segment = JERRY_CONTEXT(cptl_access_sameseg_compression_count);
     }
   }
-  fprintf(fp, "%u, %u, %d, %d\n", JERRY_CONTEXT(cptl_access_count)++, sidx,
+  fprintf(fp, "%u, %u, %d, %u\n", JERRY_CONTEXT(cptl_access_count)++, sidx,
           type_depth, is_same_segment);
   fflush(fp);
   fclose(fp);

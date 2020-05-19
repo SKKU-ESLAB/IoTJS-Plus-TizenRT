@@ -627,10 +627,10 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 #endif
   uint32_t skip_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(JERRY_CONTEXT(jmem_heap_list_skip_p));
-  bool is_skip_ok = boffset > skip_offset;
-#ifdef PROF_COUNT__COMPRESSION_CALLERS
+  #ifdef PROF_COUNT__COMPRESSION_CALLERS
   profile_inc_count_of_a_type(1); // compression callers
 #endif
+  bool is_skip_ok = boffset > skip_offset;
 #else  /* JMEM_SEGMENTED_HEAP */
   bool is_skip_ok = block_p > JERRY_CONTEXT(jmem_heap_list_skip_p);
 #endif /* !JMEM_SEGMENTED_HEAP */

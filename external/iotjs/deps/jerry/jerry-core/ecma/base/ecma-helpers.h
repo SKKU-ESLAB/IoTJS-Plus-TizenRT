@@ -51,7 +51,7 @@
  */
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
 #define ECMA_SET_POINTER(field, non_compressed_pointer) \
-profile_inc_count_of_a_type(3); /* compression callers */ \
+profile_inc_count_of_a_type(6); /* compression callers */ \
 JMEM_CP_SET_POINTER (field, non_compressed_pointer)
 #else
 #define ECMA_SET_POINTER(field, non_compressed_pointer) \
