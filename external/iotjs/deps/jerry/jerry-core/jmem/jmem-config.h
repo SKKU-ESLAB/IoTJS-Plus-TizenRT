@@ -89,6 +89,7 @@
 #ifdef PROF_CPTL
 // #define PROF_CPTL_RMC_HIT_RATIO
 #define PROF_CPTL_ACCESS
+#define PROF_CPTL_ACCESS_LRU_LOOKUP_LENGTH 2
 #endif /* defined(PROF_CPTL) */
 
 /* jmem-profiler-segment.c */
