@@ -85,6 +85,8 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
     if (is_same_segment) {
       JERRY_CONTEXT(cptl_access_sameseg_decompression_count)++;
       is_same_segment = JERRY_CONTEXT(cptl_access_sameseg_decompression_count);
+    } else {
+      JERRY_CONTEXT(cptl_access_sameseg_decompression_count) = 0;
     }
   } else {
     // compression
@@ -94,6 +96,8 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
     if (is_same_segment) {
       JERRY_CONTEXT(cptl_access_sameseg_compression_count)++;
       is_same_segment = JERRY_CONTEXT(cptl_access_sameseg_compression_count);
+    } else {
+      JERRY_CONTEXT(cptl_access_sameseg_compression_count) = 0;
     }
   }
   fprintf(fp, "%u, %u, %d, %u\n", JERRY_CONTEXT(cptl_access_count)++, sidx,
