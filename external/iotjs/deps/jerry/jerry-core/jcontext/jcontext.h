@@ -197,12 +197,14 @@ typedef struct
 
 #ifdef PROF_CPTL_ACCESS
   unsigned int cptl_access_count;
-  uint32_t cptl_access_lru_success_count_comp;
-  uint32_t cptl_access_lru_success_count_decomp;
-  int cptl_access_lru_table_comp[PROF_CPTL_ACCESS_LRU_LOOKUP_LENGTH];
-  int cptl_access_lru_table_decomp[PROF_CPTL_ACCESS_LRU_LOOKUP_LENGTH];
-  int cptl_access_lru_ages_comp[PROF_CPTL_ACCESS_LRU_LOOKUP_LENGTH];
-  int cptl_access_lru_ages_decomp[PROF_CPTL_ACCESS_LRU_LOOKUP_LENGTH];
+  uint32_t cptl_access_hit_count_comp;
+  uint32_t cptl_access_hit_count_decomp;
+  int cptl_access_set_entries_comp[PROF_CPTL_ACCESS_SET_SIZE];
+  int cptl_access_set_entries_decomp[PROF_CPTL_ACCESS_SET_SIZE];
+  int cptl_access_set_ages_comp[PROF_CPTL_ACCESS_SET_SIZE];
+  int cptl_access_set_ages_decomp[PROF_CPTL_ACCESS_SET_SIZE];
+  int cptl_access_set_header_comp;
+  int cptl_access_set_header_decomp;
 #endif
 
 #ifdef PROF_COUNT
