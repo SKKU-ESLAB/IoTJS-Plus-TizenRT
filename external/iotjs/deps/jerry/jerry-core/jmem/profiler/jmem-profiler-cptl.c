@@ -105,7 +105,7 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
     }
 #endif
     if (hit_index < 0) {
-      // Evict an entry from LRU table
+      // Evict an entry
 #ifdef PROF_CPTL_ACCESS_LRU
       // LRU
       int max_age = -1;
@@ -160,7 +160,7 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
     }
 #endif
     if (hit_index < 0) {
-      // Evict an entry from LRU table
+      // Evict an entry
 #ifdef PROF_CPTL_ACCESS_LRU
       // LRU
       int max_age = -1;
