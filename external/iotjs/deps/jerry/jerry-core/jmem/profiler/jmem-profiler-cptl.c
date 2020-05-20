@@ -36,6 +36,8 @@ void init_cptl_profiler(void) {
     JERRY_CONTEXT(cptl_access_set_ages_comp[i]) = -1;
     JERRY_CONTEXT(cptl_access_set_ages_decomp[i]) = -1;
   }
+  JERRY_CONTEXT(cptl_access_set_header_comp) = 0;
+  JERRY_CONTEXT(cptl_access_set_header_decomp) = 0;
 
   FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "w");
   // Same segment: old(legacy) name of lru cache success count
@@ -84,23 +86,28 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
 #if defined(PROF_CPTL_ACCESS)
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_CPTL_ACCESS_FILENAME, "a");
-  uint32_t lru_success_count = 0;
+  uint32_t consec_hit_count = 0;
   if (type_depth < 0) {
     // Decompression
     // Check set entries
-    int lru_success_index = -1;
+    int hit_index = -1;
     for (int i = 0; i < PROF_CPTL_ACCESS_SET_SIZE; i++) {
       if ((int)sidx == JERRY_CONTEXT(cptl_access_set_entries_decomp[i])) {
-        lru_success_index = i;
+        hit_index = i;
         break;
       }
     }
-    // Update LRU table
-    if (lru_success_index >= 0) {
+    // Update entry table
+#ifdef PROF_CPTL_ACCESS_LRU
+    if (hit_index >= 0) {
       // Just update ages
-      JERRY_CONTEXT(cptl_access_set_ages_decomp[lru_success_index]) = 0;
-    } else {
+      JERRY_CONTEXT(cptl_access_set_ages_decomp[hit_index]) = 0;
+    }
+#endif
+    if (hit_index < 0) {
       // Evict an entry from LRU table
+#ifdef PROF_CPTL_ACCESS_LRU
+      // LRU
       int max_age = -1;
       int max_age_index = 0;
       for (int i = 0; i < PROF_CPTL_ACCESS_SET_SIZE; i++) {
@@ -111,36 +118,51 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
       }
       JERRY_CONTEXT(cptl_access_set_entries_decomp[max_age_index]) = (int)sidx;
       JERRY_CONTEXT(cptl_access_set_ages_decomp[max_age_index]) = 0;
+#else
+      // FIFO
+      int header_index = JERRY_CONTEXT(cptl_access_set_header_decomp);
+      JERRY_CONTEXT(cptl_access_set_entries_decomp[header_index]) = (int)sidx;
+      JERRY_CONTEXT(cptl_access_set_header_decomp) =
+          (header_index + 1) % PROF_CPTL_ACCESS_SET_SIZE;
+#endif
     }
+
+#ifdef PROF_CPTL_ACCESS_LRU
     // Update ages
     for (int i = 0; i < PROF_CPTL_ACCESS_SET_SIZE; i++) {
       JERRY_CONTEXT(cptl_access_set_ages_decomp[i])++;
     }
+#endif
 
-    // Update LRU search success count
-    if (lru_success_index >= 0) {
+    // Update consecutive hit count
+    if (hit_index >= 0) {
       JERRY_CONTEXT(cptl_access_hit_count_decomp)++;
     } else {
       JERRY_CONTEXT(cptl_access_hit_count_decomp) = 0;
     }
-    lru_success_count = JERRY_CONTEXT(cptl_access_hit_count_decomp);
+    consec_hit_count = JERRY_CONTEXT(cptl_access_hit_count_decomp);
 
   } else {
     // Compression
-    // Check LRU table
-    int lru_success_index = -1;
+    // Check set entries
+    int hit_index = -1;
     for (int i = 0; i < PROF_CPTL_ACCESS_SET_SIZE; i++) {
       if ((int)sidx == JERRY_CONTEXT(cptl_access_set_entries_comp[i])) {
-        lru_success_index = i;
+        hit_index = i;
         break;
       }
     }
-    // Update LRU table
-    if (lru_success_index >= 0) {
+    // Update entry table
+#ifdef PROF_CPTL_ACCESS_LRU
+    if (hit_index >= 0) {
       // Just update ages
-      JERRY_CONTEXT(cptl_access_set_ages_comp[lru_success_index]) = 0;
-    } else {
+      JERRY_CONTEXT(cptl_access_set_ages_comp[hit_index]) = 0;
+    }
+#endif
+    if (hit_index < 0) {
       // Evict an entry from LRU table
+#ifdef PROF_CPTL_ACCESS_LRU
+      // LRU
       int max_age = -1;
       int max_age_index = 0;
       for (int i = 0; i < PROF_CPTL_ACCESS_SET_SIZE; i++) {
@@ -151,22 +173,32 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
       }
       JERRY_CONTEXT(cptl_access_set_entries_comp[max_age_index]) = (int)sidx;
       JERRY_CONTEXT(cptl_access_set_ages_comp[max_age_index]) = 0;
+#else
+      // FIFO
+      int header_index = JERRY_CONTEXT(cptl_access_set_header_comp);
+      JERRY_CONTEXT(cptl_access_set_entries_comp[header_index]) = (int)sidx;
+      JERRY_CONTEXT(cptl_access_set_header_comp) =
+          (header_index + 1) % PROF_CPTL_ACCESS_SET_SIZE;
+#endif
     }
+
+#ifdef PROF_CPTL_ACCESS_LRU
     // Update ages
     for (int i = 0; i < PROF_CPTL_ACCESS_SET_SIZE; i++) {
       JERRY_CONTEXT(cptl_access_set_ages_comp[i])++;
     }
+#endif
 
-    // Update LRU search success count
-    if (lru_success_index >= 0) {
+    // Update consecutive hit count
+    if (hit_index >= 0) {
       JERRY_CONTEXT(cptl_access_hit_count_comp)++;
     } else {
       JERRY_CONTEXT(cptl_access_hit_count_comp) = 0;
     }
-    lru_success_count = JERRY_CONTEXT(cptl_access_hit_count_comp);
+    consec_hit_count = JERRY_CONTEXT(cptl_access_hit_count_comp);
   }
   fprintf(fp, "%u, %u, %d, %u\n", JERRY_CONTEXT(cptl_access_count)++, sidx,
-          type_depth, lru_success_count);
+          type_depth, consec_hit_count);
   fflush(fp);
   fclose(fp);
 #else
