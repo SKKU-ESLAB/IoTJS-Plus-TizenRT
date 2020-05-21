@@ -54,8 +54,9 @@
 
 /* Reverse map caching config */
 #ifdef SEG_RMAP_CACHE
-#define SEG_RMAP_CACHE_SIZE 16    // cache size (unit: # of entries)
-#define SEG_RMAP_CACHE_SET_SIZE 1 // TODO: set size (unit: # of entries)
+#define SEG_RMAP_CACHE_SIZE 2     // cache size (unit: # of entries)
+#define SEG_RMAP_CACHE_SET_SIZE 2 // set size (unit: # of entries)
+#define SEG_RMAP_CACHE_WAYS (SEG_RMAP_CACHE_SIZE / SEG_RMAP_CACHE_SET_SIZE)
 #endif
 
 /* Profiler configs */

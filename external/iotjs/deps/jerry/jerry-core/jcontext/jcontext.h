@@ -337,6 +337,21 @@ typedef struct
 #else // multi-entry cache
   uint8_t *rmc_table_base_addr[SEG_RMAP_CACHE_SIZE];
   uint32_t rmc_table_sidx[SEG_RMAP_CACHE_SIZE];
+
+  // Internal variable used by access_and_check_rmap_cache() and update_rmap_cache().
+#if (SEG_RMAP_CACHE_SIZE > SEG_RMAP_CACHE_SET_SIZE)
+  // Direct-mapped cache or set-associative cache
+  uint32_t rmc_tag;
+
+#if (SEG_RMAP_CACHE_SET_SIZE != 1)
+  // Set-associative cache
+  uint32_t rmc_table_eviction_headers[SEG_RMAP_CACHE_WAYS];
+#endif
+#elif (SEG_RMAP_CACHE_SIZE == SEG_RMAP_CACHE_SET_SIZE)
+  // Fully-associative cache
+  uint32_t rmc_table_eviction_header;
+#endif
+
 #endif
 #endif
 
