@@ -89,8 +89,12 @@
 #ifdef PROF_CPTL
 // #define PROF_CPTL_RMC_HIT_RATIO
 #define PROF_CPTL_ACCESS
-#define PROF_CPTL_ACCESS_SET_SIZE 2
-#define PROF_CPTL_ACCESS_LRU // LRU or FIFO
+// #define PROF_CPTL_ACCESS_SIMUL
+
+#ifdef PROF_CPTL_ACCESS_SIMUL
+#define PROF_CPTL_ACCESS_SIMUL_SET_SIZE 2
+#define PROF_CPTL_ACCESS_SIMUL_LRU // LRU or FIFO
+#endif
 #endif /* defined(PROF_CPTL) */
 
 /* jmem-profiler-segment.c */

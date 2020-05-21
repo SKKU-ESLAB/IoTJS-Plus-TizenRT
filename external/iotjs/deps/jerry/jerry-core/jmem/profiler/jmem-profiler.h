@@ -63,6 +63,6 @@ extern void print_cptl_access(uint32_t sidx, int type_depth);
 
 /* jmem-profiler-count.c : Count profiling for investigation */
 extern void print_count_profile(void);
-extern void profile_inc_count_of_a_type(int type);
+extern void profile_inc_count_of_a_type(int type_miss_penalty);
 
 #endif /* !defined(JMEM_PROFILER_H) */
