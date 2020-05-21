@@ -78,9 +78,9 @@
 #ifdef PROF_TIME
 // #define PROF_TIME__PRINT_HEADER
 
-#define PROF_TIME__ALLOC // It may degrade performance harshly
-#define PROF_TIME__FREE // It may degrade performance harshly
-#define PROF_TIME__COMPRESSION // It may degrade performance harshly
+#define PROF_TIME__ALLOC         // It may degrade performance harshly
+#define PROF_TIME__FREE          // It may degrade performance harshly
+#define PROF_TIME__COMPRESSION   // It may degrade performance harshly
 #define PROF_TIME__DECOMPRESSION // It may degrade performance harshly
 #define PROF_TIME__GC
 #endif /* defined(PROF_TIME) */
@@ -89,7 +89,7 @@
 #ifdef PROF_CPTL
 // #define PROF_CPTL_RMC_HIT_RATIO
 #define PROF_CPTL_ACCESS
-// #define PROF_CPTL_ACCESS_SIMUL
+// #define PROF_CPTL_ACCESS_SIMUL // sidx + de-/comp + hit/miss + miss penalty
 
 #ifdef PROF_CPTL_ACCESS_SIMUL
 #define PROF_CPTL_ACCESS_SIMUL_SET_SIZE 2
