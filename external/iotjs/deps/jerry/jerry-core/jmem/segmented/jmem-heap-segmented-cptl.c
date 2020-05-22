@@ -106,14 +106,12 @@ static inline uint32_t binary_search(uint8_t *addr, uint8_t **saddr_out) {
 }
 #else /* defined(SEG_RMAP_BINSEARCH) */
 static inline uint32_t linear_search(uint8_t *addr, uint8_t **saddr_out) {
-
   for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(area[sidx]);
-    if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) 
+    if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE)
       *saddr_out = saddr;
-      return sidx; 
-    }
+    return sidx;
   }
   return SEG_NUM_SEGMENTS; // It should never be called.
 }
