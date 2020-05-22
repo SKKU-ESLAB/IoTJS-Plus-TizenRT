@@ -106,15 +106,16 @@ static inline uint32_t binary_search(uint8_t *addr, uint8_t **saddr_out) {
 }
 #else /* defined(SEG_RMAP_BINSEARCH) */
 static inline uint32_t linear_search(uint8_t *addr, uint8_t **saddr_out) {
-  uint32_t sidx;
-  for (sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
+
+  for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(area[sidx]);
-    if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE)
-      break; // It should be called at least once.
+    if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) 
+      *saddr_out = saddr;
+      return sidx; 
+    }
   }
-  *saddr_out = saddr;
-  return sidx;
+  return SEG_NUM_SEGMENTS; // It should never be called.
 }
 
 #if defined(SEG_RMAP_2LEVEL_SEARCH)
@@ -158,7 +159,7 @@ static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
 inline uint32_t __attribute__((hot))
 addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx;
-  CLEAR_DEPTH();
+  CLEAR_LOOKUP_DEPTH();
 
   profile_inc_rmc_access_count(); // CPTL reverse map caching profiling
 

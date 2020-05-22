@@ -222,9 +222,9 @@ typedef struct
 // It is hard-coded with several macros because updating and accessing depth variable can degrade CPTL performance even when CPTL access profiling is not turned on.
 #if defined(PROF_CPTL_ACCESS)
 #define CLEAR_LOOKUP_DEPTH() JERRY_CONTEXT(compression_lookup_depth) = 0
-#define GET_DEPTH() JERRY_CONTEXT(compression_lookup_depth)
+#define GET_LOOKUP_DEPTH() JERRY_CONTEXT(compression_lookup_depth)
 #define INCREASE_LOOKUP_DEPTH() \
-  JERRY_CONTEXT(compression_lookup_depth) = GET_DEPTH() + 1
+  JERRY_CONTEXT(compression_lookup_depth) = GET_LOOKUP_DEPTH() + 1
 #else
 #define CLEAR_DEPTH()
 #define INCREASE_DEPTH()

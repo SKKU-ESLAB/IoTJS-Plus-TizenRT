@@ -101,7 +101,7 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
 #endif
 
   if(type_miss_penalty >= 0) {
-    type_miss_penalty = INCREASE_LOOKUP_DEPTH();
+    type_miss_penalty = GET_LOOKUP_DEPTH();
   }
 
   fprintf(fp, "%u, %u, %d, %u\n", JERRY_CONTEXT(cptl_access_count)++, sidx,
