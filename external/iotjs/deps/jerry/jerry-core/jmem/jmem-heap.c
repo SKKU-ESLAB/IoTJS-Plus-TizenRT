@@ -92,32 +92,44 @@ static void jmem_heap_stat_free_iter(void);
 static inline void jmem_heap_print_allocator_type(void) {
 /* Print allocator type */
 #if defined(JERRY_SYSTEM_ALLOCATOR)
-  printf("Dynamic allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
-#elif defined(JMEM_SEGMENTED_HEAP) /* JERRY_SYSTEM_ALLOCATOR */
-  printf("Segmented allocation // Segment size: %dB * %d\n", SEG_SEGMENT_SIZE,
+  printf("Dynamic allocation\n");
+#elif defined(JMEM_SEGMENTED_HEAP) /* defined(JERRY_SYSTEM_ALLOCATOR) */
+  printf("Segmented allocation (Segment size: %dB * %d)\n", SEG_SEGMENT_SIZE,
          SEG_NUM_SEGMENTS);
-#ifdef SEG_RMAP_CACHE
+#if defined(SEG_RMAP_CACHE)
+  printf(">> Fast path: reverse map cache\n");
 #if SEG_RMAP_CACHE_SET_SIZE == 1
-  printf(
-      "Reverse map cache // cache size: %d entries"
-      " // direct-mapped\n",
-      SEG_RMAP_CACHE_SIZE);
+  printf("   (Direct-mapped, cache size: %d)\n", SEG_RMAP_CACHE_SIZE);
+#elif SEG_RMAP_CACHE_SIZE == SEG_RMAP_CACHE_SET_SIZE
+  printf("   (Fully-associative, cache size: %d)\n", SEG_RMAP_CACHE_SIZE);
+#elif SEG_RMAP_CACHE_SIZE > SEG_RMAP_CACHE_SET_SIZE
+  printf("   (%d-way associative, cache size: %d, set size: %d)\n",
+         SEG_RMAP_CACHE_WAYS, SEG_RMAP_CACHE_SIZE, SEG_RMAP_CACHE_SET_SIZE);
 #else
-  printf(
-      "Reverse map cache // cache size: %d entries"
-      " // set: %d entries/way * %d ways\n",
-      SEG_RMAP_CACHE_SIZE, SEG_RMAP_CACHE_SET_SIZE,
-      (SEG_RMAP_CACHE_SIZE / SEG_RMAP_CACHE_SET_SIZE));
+  printf("   (Invalid setting, cache size: %d, set size: %d)\n",
+         SEG_RMAP_CACHE_SIZE, SEG_RMAP_CACHE_SET_SIZE);
+#endif /* SEG_RMAP_CACHE_SET_SIZE, SEG_RMAP_CACHE_SET_SIZE */
+#else  /* defined(SEG_RMAP_CACHE) */
+  printf(">> Fast path: none\n");
+#endif /* !defined(SEG_RMAP_CACHE) */
+
+#if defined(SEG_RMAP_BINSEARCH)
+  printf(">> Slow path: binary search\n");
+#elif defined(SEG_RMAP_2LEVEL_SEARCH)
+  printf(">> Slow path: 2-level search (FIFO cache size: %d)\n",
+         SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE);
+#else
+  printf(">> Slow path: linear search\n");
 #endif
-#endif
+
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) /* JMEM_SEGMENTED_HEAP */
-  printf("Emulated dynamic allocation // JS heap area size: %dB\n",
+  printf("Emulated dynamic allocation (JS heap area size: %dB)\n",
          JMEM_HEAP_AREA_SIZE);
 #if defined(DE_SLAB)
-  printf("Slab enabled\n");
+  printf(">> Slab enabled\n");
 #endif
 #else /* JMEM_DYNAMIC_HEAP_EMUL */
-  printf("Static allocation // JS heap area size: %dB\n", JMEM_HEAP_AREA_SIZE);
+  printf("Static allocation (JS heap area size: %dB)\n", JMEM_HEAP_AREA_SIZE);
 #endif
 }
 
@@ -627,7 +639,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 #endif
   uint32_t skip_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(JERRY_CONTEXT(jmem_heap_list_skip_p));
-  #ifdef PROF_COUNT__COMPRESSION_CALLERS
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
   profile_inc_count_of_a_type(1); // compression callers
 #endif
   bool is_skip_ok = boffset > skip_offset;

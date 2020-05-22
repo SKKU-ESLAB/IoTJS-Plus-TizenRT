@@ -197,6 +197,7 @@ typedef struct
 
 #ifdef PROF_CPTL_ACCESS
   unsigned int cptl_access_count;
+  unsigned int compression_lookup_depth;
 #endif
 
 #ifdef PROF_CPTL_ACCESS_SIMUL
@@ -216,6 +217,18 @@ typedef struct
 
 #endif /* defined(JMEM_PROFILE) */
 } jerry_context_t;
+
+// Hard-coding for CPTL access profiling
+// It is hard-coded with several macros because updating and accessing depth variable can degrade CPTL performance even when CPTL access profiling is not turned on.
+#if defined(PROF_CPTL_ACCESS)
+#define CLEAR_LOOKUP_DEPTH() JERRY_CONTEXT(compression_lookup_depth) = 0
+#define GET_DEPTH() JERRY_CONTEXT(compression_lookup_depth)
+#define INCREASE_LOOKUP_DEPTH() \
+  JERRY_CONTEXT(compression_lookup_depth) = GET_DEPTH() + 1
+#else
+#define CLEAR_DEPTH()
+#define INCREASE_DEPTH()
+#endif
 
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
 /**
@@ -330,7 +343,7 @@ typedef struct
   uint32_t segments_count; // the number of segments
 
   // reverse map cache
-#ifdef SEG_RMAP_CACHE
+#if defined(SEG_RMAP_CACHE)
 #if SEG_RMAP_CACHE_SIZE == 1 // single-entry cache
   uint8_t *rmc_single_base_addr;
   uint32_t rmc_single_sidx;
@@ -350,20 +363,27 @@ typedef struct
 #elif (SEG_RMAP_CACHE_SIZE == SEG_RMAP_CACHE_SET_SIZE)
   // Fully-associative cache
   uint32_t rmc_table_eviction_header;
-#endif
+#endif /* SEG_RMAP_CACHE_SIZE, SEG_RMAP_CACHE_SET_SIZE */
 
-#endif
-#endif
+#endif /* SEG_RMAP_CACHE_SIZE != 1 */
+#endif /* defined(SEG_RMAP_CACHE) */
 
+#if defined(SEG_RMAP_BINSEARCH)
   // reverse map tree
-#ifdef SEG_RMAP_BINSEARCH
   rb_root segment_rmap_rb_root; // Segment reverse map tree
-#endif /* SEG_RMAP_BINSEARCH */
+#endif /* defined(SEG_RMAP_BINSEARCH) */
 
-#else  /* JMEM_SEGMENTED_HEAP */
+#if defined(SEG_RMAP_2LEVEL_SEARCH)
+  // 2-level search
+  uint8_t *fc_table_base_addr[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
+  uint32_t fc_table_sidx[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
+  uint32_t fc_table_eviction_header;
+#endif
+
+#else  /* defined(JMEM_SEGMENTED_HEAP) */
   // Static heap
   uint8_t area[JMEM_HEAP_AREA_SIZE]; /**< heap area */
-#endif /* !JMEM_SEGMENTED_HEAP */
+#endif /* !defined(JMEM_SEGMENTED_HEAP) */
 } jmem_heap_t;
 
 /**

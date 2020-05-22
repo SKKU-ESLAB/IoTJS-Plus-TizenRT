@@ -97,6 +97,60 @@ inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
   return addr;
 }
 
+#if defined(SEG_RMAP_BINSEARCH)
+static inline uint32_t binary_search(uint8_t *addr, uint8_t **saddr_out) {
+  seg_rmap_node_t *node =
+      segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
+  *saddr_out = node->base_addr;
+  return node->sidx;
+}
+#else /* defined(SEG_RMAP_BINSEARCH) */
+static inline uint32_t linear_search(uint8_t *addr, uint8_t **saddr_out) {
+  uint32_t sidx;
+  for (sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
+    INCREASE_LOOKUP_DEPTH();
+    uint8_t *saddr = JERRY_HEAP_CONTEXT(area[sidx]);
+    if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE)
+      break; // It should be called at least once.
+  }
+  *saddr_out = saddr;
+  return sidx;
+}
+
+#if defined(SEG_RMAP_2LEVEL_SEARCH)
+static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
+  uint32_t sidx = SEG_NUM_SEGMENTS;
+  // 1st-level search: FIFO cache search
+  for (uint32_t i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
+    INCREASE_LOOKUP_DEPTH();
+    uint8_t *saddr = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
+    if (saddr != NULL &&
+        (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
+      // FIFO cache saerch succeeds
+      sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
+      break; // It should be called at least once.
+    }
+  }
+
+  if (sidx >= SEG_NUM_SEGMENTS) {
+    // FIFO cache search fails
+    // 2nd-level search: linear search
+    sidx = linear_search(addr, saddr_out);
+
+    // Update FIFO cache
+    uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
+    JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = addr;
+    JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
+
+    JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
+        (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+  }
+
+  return sidx;
+}
+#endif /* defined(SEG_RMAP_2LEVEL_SEARCH) */
+#endif /* !defined(SEG_RMAP_BINSEARCH) */
+
 // Raw function to access segment reverse map
 // * Full-bitwidth pointer -> Segment index
 // * Core part of compression
@@ -104,8 +158,7 @@ inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
 inline uint32_t __attribute__((hot))
 addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx;
-  uint8_t *saddr = NULL;
-  int depth = 0;
+  CLEAR_DEPTH();
 
   profile_inc_rmc_access_count(); // CPTL reverse map caching profiling
 
@@ -113,44 +166,28 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
 #ifdef SEG_RMAP_CACHE
   sidx = access_and_check_rmap_cache(addr, saddr_out);
   if (sidx < SEG_NUM_SEGMENTS) {
-    print_cptl_access(sidx, depth); // CPTL access profiling
+    print_cptl_access(sidx, 0); // CPTL access profiling
     return sidx;
   }
 #endif /* defined(SEG_RMAP_CACHE) */
 
   // Slow path
-  depth++;
-#ifndef SEG_RMAP_BINSEARCH
-  // Linear search
-  for (sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
-    saddr = JERRY_HEAP_CONTEXT(area[sidx]);
-    if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE)
-      break;
-#if defined(PROF_CPTL_ACCESS)
-    depth++;
-#endif
-  }
-#else /* defined(SEG_RMAP_BINSEARCH) */
+#if defined(SEG_RMAP_BINSEARCH)
   // Binary search
-#if defined(PROF_CPTL_ACCESS)
-  seg_rmap_node_t *node =
-      segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr,
-                          &depth);
-#else
-  seg_rmap_node_t *node =
-      segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
-#endif
-  sidx = node->sidx;
-  saddr = node->base_addr;
-#endif /* !defined(SEG_RMAP_BINSEARCH) */
+  sidx = binary_search(addr, saddr_out);
+#elif defined(SEG_RMAP_2LEVEL_SEARCH) /* defined(SEG_RMAP_BINSEARCH) */
+  sidx = two_level_search(addr, saddr_out);
+  // 2-level search
+#else  /* !defined(SEG_RMAP_BINSEARCH) && defined(SEG_RMAP_2LEVEL_SEARCH) */
+  // Linear search
+  sidx = linear_search(addr, saddr_out);
+#endif /* !defined(SEG_RMAP_BINSEARCH) && !defined(SEG_RMAP_2LEVEL_SEARCH) */
 
 #ifdef SEG_RMAP_CACHE
-  update_rmap_cache(saddr, sidx);
+  update_rmap_cache(*saddr_out, sidx);
 #endif /* defined(SEG_RMAP_CACHE) */
 
-  *saddr_out = saddr;
-
-  profile_inc_rmc_miss_count();   // CPTL reverse map caching profiling
-  print_cptl_access(sidx, depth); // CPTL access profiling
+  profile_inc_rmc_miss_count(); // CPTL reverse map caching profiling
+  print_cptl_access(sidx, 0);   // CPTL access profiling
   return sidx;
 }
