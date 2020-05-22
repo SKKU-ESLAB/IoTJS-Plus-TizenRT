@@ -38,6 +38,14 @@ void init_cptl(void) {
   JERRY_HEAP_CONTEXT(segment_rmap_rb_root).rb_node = NULL;
 #endif /* SEG_RMAP_BINSEARCH */
 
+  // Initialize FIFO cache
+#ifdef SEG_RMAP_2LEVEL_SEARCH
+  for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
+    JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = SEG_NUM_SEGMENTS;
+  }
+  JERRY_HEAP_CONTEXT(fc_table_eviction_header) = 0;
+#endif
+
 #ifdef SEG_RMAP_CACHE
   init_rmap_cache();
 #endif /* defined(SEG_RMAP_CACHE) */
