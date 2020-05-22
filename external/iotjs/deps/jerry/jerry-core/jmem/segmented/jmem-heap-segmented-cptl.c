@@ -152,9 +152,11 @@ static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
     uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
     JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
-    if (JERRY_HEAP_CONTEXT(fc_table_valid_count) <
-        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE - 1)
-      JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
+    JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
+    if (JERRY_HEAP_CONTEXT(fc_table_valid_count)
+        > SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
+      JERRY_HEAP_CONTEXT(fc_table_valid_count) = SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+    }
 
     JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
         (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
