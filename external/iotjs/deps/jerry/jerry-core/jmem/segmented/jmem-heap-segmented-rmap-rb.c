@@ -16,6 +16,7 @@
 #include "jmem-config.h"
 #include "jmem.h"
 #include "jrt.h"
+#include "jcontext.h"
 
 #include <stdlib.h>
 #define MALLOC(size) ((void *)malloc(size))
