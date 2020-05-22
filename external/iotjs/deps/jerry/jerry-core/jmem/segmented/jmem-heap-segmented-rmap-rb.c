@@ -78,13 +78,7 @@ int segment_rmap_insert(rb_root *root, uint8_t *segment_area, uint32_t sidx) {
 }
 
 void segment_rmap_remove(rb_root *root, uint8_t *addr) {
-#if defined(PROF_CPTL_ACCESS)
-  int depth;
-  seg_rmap_node_t *node_to_free = segment_rmap_lookup(root, addr, &depth);
-  JERRY_UNUSED(depth);
-#else
   seg_rmap_node_t *node_to_free = segment_rmap_lookup(root, addr);
-#endif
   JERRY_ASSERT(addr == node_to_free->base_addr);
 
   if (node_to_free)
