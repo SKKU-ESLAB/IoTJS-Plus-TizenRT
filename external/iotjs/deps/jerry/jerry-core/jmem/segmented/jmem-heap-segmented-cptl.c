@@ -138,6 +138,7 @@ static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
         (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
       // FIFO cache saerch succeeds
       sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
+      *saddr_out = saddr;
       break; // It should be called at least once.
     }
   }
@@ -152,7 +153,7 @@ static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
     JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
     if (JERRY_HEAP_CONTEXT(fc_table_valid_count) <
-        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE)
+        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE - 1)
       JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
 
     JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
