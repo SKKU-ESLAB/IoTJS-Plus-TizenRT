@@ -378,6 +378,7 @@ typedef struct
   uint8_t *fc_table_base_addr[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
   uint32_t fc_table_sidx[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
   uint32_t fc_table_eviction_header;
+  uint32_t fc_table_valid_count;
 #endif
 
 #else  /* defined(JMEM_SEGMENTED_HEAP) */

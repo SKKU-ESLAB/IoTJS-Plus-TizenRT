@@ -42,8 +42,10 @@ void init_cptl(void) {
 #ifdef SEG_RMAP_2LEVEL_SEARCH
   for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
     JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = SEG_NUM_SEGMENTS;
+    JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = NULL;
   }
   JERRY_HEAP_CONTEXT(fc_table_eviction_header) = 0;
+  JERRY_HEAP_CONTEXT(fc_table_valid_count) = 0;
 #endif
 
 #ifdef SEG_RMAP_CACHE
@@ -128,7 +130,7 @@ static inline uint32_t linear_search(uint8_t *addr, uint8_t **saddr_out) {
 static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx = SEG_NUM_SEGMENTS;
   // 1st-level search: FIFO cache search
-  for (uint32_t i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
+  for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count); i++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
     if (saddr != NULL &&
@@ -148,6 +150,9 @@ static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
     uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
     JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = addr;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
+    if (JERRY_HEAP_CONTEXT(fc_table_valid_count) <
+        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE)
+      JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
 
     JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
         (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
