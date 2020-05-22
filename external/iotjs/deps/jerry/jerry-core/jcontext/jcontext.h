@@ -226,8 +226,9 @@ typedef struct
 #define INCREASE_LOOKUP_DEPTH() \
   JERRY_CONTEXT(compression_lookup_depth) = GET_LOOKUP_DEPTH() + 1
 #else
-#define CLEAR_DEPTH()
-#define INCREASE_DEPTH()
+#define CLEAR_LOOKUP_DEPTH()
+#define GET_LOOKUP_DEPTH()
+#define INCREASE_LOOKUP_DEPTH()
 #endif
 
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
