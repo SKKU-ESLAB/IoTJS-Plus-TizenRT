@@ -108,18 +108,21 @@ inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
 }
 
 #if defined(SEG_RMAP_BINSEARCH)
-static inline uint32_t binary_search(uint8_t *addr, uint8_t **saddr_out) {
+static inline uint32_t __attr_always_inline___
+binary_search(uint8_t *addr, uint8_t **saddr_out) {
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
   *saddr_out = node->base_addr;
   return node->sidx;
 }
 #else /* defined(SEG_RMAP_BINSEARCH) */
-static inline uint32_t linear_search(uint8_t *addr, uint8_t **saddr_out) {
+static inline uint32_t __attr_always_inline___
+linear_search(uint8_t *addr, uint8_t **saddr_out) {
   for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(area[sidx]);
-    if (saddr != NULL && (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
+    if (saddr != NULL &&
+        (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
       *saddr_out = saddr;
       return sidx;
     }
@@ -128,14 +131,14 @@ static inline uint32_t linear_search(uint8_t *addr, uint8_t **saddr_out) {
 }
 
 #if defined(SEG_RMAP_2LEVEL_SEARCH)
-static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
+static inline uint32_t __attr_always_inline___
+two_level_search(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx = SEG_NUM_SEGMENTS;
   // 1st-level search: FIFO cache search
   for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count); i++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
-    if (saddr != NULL &&
-        (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
+    if ((uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
       // FIFO cache saerch succeeds
       sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
       *saddr_out = saddr;
@@ -153,9 +156,10 @@ static inline uint32_t two_level_search(uint8_t *addr, uint8_t **saddr_out) {
     JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
     JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
-    if (JERRY_HEAP_CONTEXT(fc_table_valid_count)
-        > SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
-      JERRY_HEAP_CONTEXT(fc_table_valid_count) = SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+    if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
+        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
+      JERRY_HEAP_CONTEXT(fc_table_valid_count) =
+          SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
     }
 
     JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
