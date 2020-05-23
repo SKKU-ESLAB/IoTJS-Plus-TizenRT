@@ -112,8 +112,12 @@ static inline uint32_t __attr_always_inline___
 binary_search(uint8_t *addr, uint8_t **saddr_out) {
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
-  *saddr_out = node->base_addr;
-  return node->sidx;
+  if(node == NULL) {
+    return SEG_NUM_SEGMENTS;
+  } else {
+    *saddr_out = node->base_addr;
+    return node->sidx;
+  }
 }
 #else /* defined(SEG_RMAP_BINSEARCH) */
 static inline uint32_t __attr_always_inline___
