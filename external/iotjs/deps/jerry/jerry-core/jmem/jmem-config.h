@@ -57,8 +57,8 @@
 
 /* Reverse map caching config */
 #ifdef SEG_RMAP_CACHE
-#define SEG_RMAP_CACHE_SIZE 2     // cache size (unit: # of entries)
-#define SEG_RMAP_CACHE_SET_SIZE 2 // set size (unit: # of entries)
+#define SEG_RMAP_CACHE_SIZE 16    // cache size (unit: # of entries)
+#define SEG_RMAP_CACHE_SET_SIZE 1 // set size (unit: # of entries)
 #define SEG_RMAP_CACHE_WAYS (SEG_RMAP_CACHE_SIZE / SEG_RMAP_CACHE_SET_SIZE)
 #endif /* defined(SEG_RMAP_CACHE) */
 
@@ -72,8 +72,8 @@
 
 #ifdef JMEM_PROFILE
 // #define PROF_SIZE
-// #define PROF_TIME
-#define PROF_CPTL // It may degrade performance harshly
+#define PROF_TIME
+// #define PROF_CPTL // It may degrade performance harshly
 // #define PROF_SEGMENT // It may degrade performance harshly
 // #define PROF_JSOBJECT // It may degrade performance
 // #define PROF_COUNT // It may degrade performance
@@ -87,11 +87,11 @@
 #ifdef PROF_TIME
 // #define PROF_TIME__PRINT_HEADER
 
-#define PROF_TIME__ALLOC         // It may degrade performance harshly
-#define PROF_TIME__FREE          // It may degrade performance harshly
+// #define PROF_TIME__ALLOC         // It may degrade performance harshly
+// #define PROF_TIME__FREE          // It may degrade performance harshly
 #define PROF_TIME__COMPRESSION   // It may degrade performance harshly
 #define PROF_TIME__DECOMPRESSION // It may degrade performance harshly
-#define PROF_TIME__GC
+// #define PROF_TIME__GC
 #endif /* defined(PROF_TIME) */
 
 /* jmem-profiler-cptl.c */

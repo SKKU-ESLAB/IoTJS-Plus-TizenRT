@@ -142,29 +142,27 @@ two_level_search(uint8_t *addr, uint8_t **saddr_out) {
       // FIFO cache saerch succeeds
       sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
       *saddr_out = saddr;
-      break; // It should be called at least once.
+      return sidx; // It should be called at least once.
     }
   }
 
-  if (sidx >= SEG_NUM_SEGMENTS) {
-    // FIFO cache search fails
-    // 2nd-level search: linear search
-    sidx = linear_search(addr, saddr_out);
+  // FIFO cache search fails
+  // 2nd-level search: linear search
+  sidx = linear_search(addr, saddr_out);
 
-    // Update FIFO cache
-    uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
-    JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
-    JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
-    JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
-    if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
-        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
-      JERRY_HEAP_CONTEXT(fc_table_valid_count) =
-          SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
-    }
-
-    JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
-        (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+  // Update FIFO cache
+  uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
+  JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
+  JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
+  JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
+  if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
+      SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
+    JERRY_HEAP_CONTEXT(fc_table_valid_count) =
+        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
   }
+
+  JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
+      (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
 
   return sidx;
 }
