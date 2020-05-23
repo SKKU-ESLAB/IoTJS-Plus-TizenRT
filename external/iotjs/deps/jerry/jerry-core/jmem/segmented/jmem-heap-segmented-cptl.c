@@ -168,6 +168,35 @@ two_level_search(uint8_t *addr, uint8_t **saddr_out) {
 
   return sidx;
 }
+
+inline void __attr_always_inline___ invalidate_fifo_cache_entry(uint32_t sidx) {
+  // Access, check and invalidate reverse map cache
+  uint8_t *new_fc_base_addr[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
+  uint32_t new_fc_sidx[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
+  int header = 0;
+
+  for (int i = 0; i < SEG_RMAP_CACHE_SIZE; i++) {
+    if (JERRY_HEAP_CONTEXT(rmc_table_sidx[i]) != sidx) {
+      new_fc_base_addr[header] = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
+      new_fc_sidx[header] = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
+      header++;
+    }
+  }
+
+  for (int i = 0; i < SEG_RMAP_CACHE_SIZE; i++) {
+    if (i < header) {
+      JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = new_fc_base_addr[i];
+      JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = fc_table_sidx[i];
+    } else {
+      JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = NULL;
+      JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = SEG_NUM_SEGMENTS;
+    }
+  }
+
+  int valid_index = header;
+  JERRY_HEAP_CONTEXT(fc_table_valid_count) = (uint32_t)valid_index;
+}
+
 #endif /* defined(SEG_RMAP_2LEVEL_SEARCH) */
 #endif /* !defined(SEG_RMAP_BINSEARCH) */
 

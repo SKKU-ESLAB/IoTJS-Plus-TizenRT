@@ -242,6 +242,9 @@ void free_empty_segment_groups(void) {
 #ifdef SEG_RMAP_CACHE
         // Invalidate reverse map cache entry
         invalidate_rmap_cache_entry(sidx);
+#ifdef SEG_RMAP_2LEVEL_SEARCH
+        invalidate_fifo_cache_entry(sidx);
+#endif
 #endif /* defined(SEG_RMAP_BINSEARCH) */
 
         // Update segment base table

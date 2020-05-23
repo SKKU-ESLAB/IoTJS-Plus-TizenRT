@@ -31,4 +31,6 @@ extern uint8_t *sidx_to_addr(uint32_t sidx);
 // * Core part of compression
 extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out);
 
+extern void invalidate_fifo_cache_entry(uint32_t sidx);
+
 #endif /* !defined(JMEM_HEAP_SEGMENTED_CPTL_H) */
