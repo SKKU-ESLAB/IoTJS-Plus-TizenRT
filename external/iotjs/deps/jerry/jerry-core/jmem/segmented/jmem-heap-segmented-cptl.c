@@ -176,7 +176,7 @@ inline void __attr_always_inline___ invalidate_fifo_cache_entry(uint32_t sidx) {
   int header = 0;
 
   for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
-    if (JERRY_HEAP_CONTEXT(rmc_table_sidx[i]) != sidx) {
+    if (JERRY_HEAP_CONTEXT(fc_table_sidx[i]) != sidx) {
       new_fc_base_addr[header] = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
       new_fc_sidx[header] = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
       header++;
