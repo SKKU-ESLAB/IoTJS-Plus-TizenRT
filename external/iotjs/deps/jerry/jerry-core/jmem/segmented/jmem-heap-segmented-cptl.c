@@ -186,7 +186,7 @@ inline void __attr_always_inline___ invalidate_fifo_cache_entry(uint32_t sidx) {
   for (int i = 0; i < SEG_RMAP_CACHE_SIZE; i++) {
     if (i < header) {
       JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = new_fc_base_addr[i];
-      JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = fc_table_sidx[i];
+      JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = new_fc_sidx[i];
     } else {
       JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = NULL;
       JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = SEG_NUM_SEGMENTS;
