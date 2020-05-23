@@ -151,18 +151,20 @@ two_level_search(uint8_t *addr, uint8_t **saddr_out) {
   sidx = linear_search(addr, saddr_out);
 
   // Update FIFO cache
-  uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
-  JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
-  JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
-  JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
-  if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
-      SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
-    JERRY_HEAP_CONTEXT(fc_table_valid_count) =
-        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
-  }
+  if (sidx < SEG_NUM_SEGMENTS) {
+    uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
+    JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
+    JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
+    JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
+    if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
+        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
+      JERRY_HEAP_CONTEXT(fc_table_valid_count) =
+          SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+    }
 
-  JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
-      (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+    JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
+        (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+  }
 
   return sidx;
 }
@@ -202,7 +204,9 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
 #endif /* !defined(SEG_RMAP_BINSEARCH) && !defined(SEG_RMAP_2LEVEL_SEARCH) */
 
 #ifdef SEG_RMAP_CACHE
-  update_rmap_cache(*saddr_out, sidx);
+  if (sidx < SEG_NUM_SEGMENTS) {
+    update_rmap_cache(*saddr_out, sidx);
+  }
 #endif /* defined(SEG_RMAP_CACHE) */
 
   profile_inc_rmc_miss_count(); // CPTL reverse map caching profiling
