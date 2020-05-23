@@ -64,14 +64,14 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   JERRY_ASSERT(p != NULL);
 
   profile_compression_start();
-  if (p == (uint8_t *)JMEM_HEAP_END_OF_LIST) {
-    cp = (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
+  sidx = addr_to_saddr_and_sidx((uint8_t *)p, &saddr);
+  if (sidx < SEG_NUM_SEGMENTS) {
+    cp = (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(p, saddr) +
+                    (uint32_t)SEG_SEGMENT_SIZE * sidx);
   } else if (p == (uint8_t *)&JERRY_HEAP_CONTEXT(first)) {
     cp = 0;
   } else {
-    sidx = addr_to_saddr_and_sidx((uint8_t *)p, &saddr);
-    cp = (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(p, saddr) +
-                    (uint32_t)SEG_SEGMENT_SIZE * sidx);
+    cp = (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
   }
   profile_compression_end();
 
