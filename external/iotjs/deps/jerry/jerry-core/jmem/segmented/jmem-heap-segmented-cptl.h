@@ -19,6 +19,7 @@
 #include "jrt.h"
 #include "jmem-config.h"
 
+#if defined(JMEM_SEGMENTED_HEAP)
 // Initialize compressed pointer translation layer (CPTL)
 extern void init_cptl(void);
 
@@ -36,5 +37,6 @@ extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr);
 #ifdef SEG_RMAP_2LEVEL_SEARCH
 extern void invalidate_fifo_cache_entry(uint32_t sidx);
 #endif
+#endif /* defined(JMEM_SEGMENTED_HEAP) */
 
 #endif /* !defined(JMEM_HEAP_SEGMENTED_CPTL_H) */

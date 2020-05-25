@@ -26,6 +26,7 @@
 #define JMEM_HEAP_GET_OFFSET_FROM_PTR(p, seg_ptr) \
   ((uint32_t)((uint8_t *)(p) - (uint8_t *)(seg_ptr)))
 
+#if defined(JMEM_SEGMENTED_HEAP)
 // Initialize compressed pointer translation layer (CPTL)
 void init_cptl(void) {
   // Initialize segment base table
@@ -287,3 +288,4 @@ inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
   print_cptl_access(sidx, 0);   // CPTL access profiling
   return sidx;
 }
+#endif /* defined(JMEM_SEGMENTED_HEAP) */
