@@ -23,9 +23,6 @@
 
 #include "cptl-rmap-cache.h"
 
-#define JMEM_HEAP_GET_OFFSET_FROM_PTR(p, seg_ptr) \
-  ((uint32_t)((uint8_t *)(p) - (uint8_t *)(seg_ptr)))
-
 #if defined(JMEM_SEGMENTED_HEAP)
 // Initialize compressed pointer translation layer (CPTL)
 void init_cptl(void) {
