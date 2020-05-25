@@ -69,9 +69,9 @@ int segment_rmap_insert(rb_root *root, uint8_t *segment_area, uint32_t sidx) {
       _new = &((*_new)->rb_left);
     else if (result > 0)
       _new = &((*_new)->rb_right);
-    else {
-      JERRY_ASSERT(true);
-    }
+    // else {
+    //   JERRY_ASSERT(true);
+    // }
   }
 
   rb_link_node(&(node_to_insert->node), parent, _new);
@@ -81,7 +81,7 @@ int segment_rmap_insert(rb_root *root, uint8_t *segment_area, uint32_t sidx) {
 
 void segment_rmap_remove(rb_root *root, uint8_t *addr) {
   seg_rmap_node_t *node_to_free = segment_rmap_lookup(root, addr);
-  JERRY_ASSERT(addr == node_to_free->base_addr);
+  // JERRY_ASSERT(addr == node_to_free->base_addr);
 
   if (node_to_free)
     rb_erase(&(node_to_free->node), root);

@@ -69,7 +69,7 @@ access_and_check_rmap_cache(uint8_t *addr) {
   // intptr_t result = (intptr_t)addr - (intptr_t)cached_base_addr;
   // if (result < (intptr_t)SEG_SEGMENT_SIZE && result >= 0) {
   uint32_t result = (uint32_t)addr - (uint32_t)cached_base_addr;
-  if (result < (uint32_t)SEG_SEGMENT_SIZE) {
+  if (likely(result < (uint32_t)SEG_SEGMENT_SIZE)) {
     JERRY_HEAP_CONTEXT(comp_i_offset) = result;
     JERRY_HEAP_CONTEXT(comp_i_saddr) = cached_base_addr;
     // *saddr_out = cached_base_addr;
@@ -85,7 +85,7 @@ access_and_check_rmap_cache(uint8_t *addr) {
     // intptr_t result = (intptr_t)addr - (intptr_t)cached_base_addr;
     // if (result < (intptr_t)SEG_SEGMENT_SIZE && result >= 0) {
     uint32_t result = (uint32_t)addr - (uint32_t)cached_base_addr;
-    if (result < (uint32_t)SEG_SEGMENT_SIZE) {
+    if (likely(result < (uint32_t)SEG_SEGMENT_SIZE)) {
       JERRY_HEAP_CONTEXT(comp_i_offset) = result;
       JERRY_HEAP_CONTEXT(comp_i_saddr) = cached_base_addr;
       // *saddr_out = cached_base_addr;
@@ -106,7 +106,7 @@ access_and_check_rmap_cache(uint8_t *addr) {
     // intptr_t result = (intptr_t)addr - (intptr_t)cached_base_addr;
     // if (result < (intptr_t)SEG_SEGMENT_SIZE && result >= 0) {
     uint32_t result = (uint32_t)addr - (uint32_t)cached_base_addr;
-    if (result < (uint32_t)SEG_SEGMENT_SIZE) {
+    if (likely(result < (uint32_t)SEG_SEGMENT_SIZE)) {
       JERRY_HEAP_CONTEXT(comp_i_offset) = result;
       JERRY_HEAP_CONTEXT(comp_i_saddr) = cached_base_addr;
       // *saddr_out = cached_base_addr;

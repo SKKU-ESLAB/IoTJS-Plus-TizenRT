@@ -61,12 +61,12 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   uint32_t cp;
   uint32_t sidx;
   // uint8_t *saddr;
-  JERRY_ASSERT(p != NULL);
+  // JERRY_ASSERT(p != NULL);
 
   profile_compression_start();
   // sidx = addr_to_saddr_and_sidx((uint8_t *)p, &saddr);
   sidx = addr_to_saddr_and_sidx((uint8_t *)p);
-  if (sidx < SEG_NUM_SEGMENTS) {
+  if (likely(sidx < SEG_NUM_SEGMENTS)) {
     cp = JERRY_HEAP_CONTEXT(comp_i_offset) + (sidx << SEG_SEGMENT_SHIFT);
   } else if (p == (uint8_t *)&JERRY_HEAP_CONTEXT(first)) {
     cp = 0;
@@ -87,11 +87,11 @@ inline jmem_heap_free_t *__attribute__((hot))
 cptl_decompress_pointer_internal(uint32_t cp) {
   jmem_heap_free_t *p;
   profile_decompression_start();
-  if (cp == JMEM_HEAP_END_OF_LIST_UINT32) {
-    p = JMEM_HEAP_END_OF_LIST;
-  } else {
+  if (likely(cp != JMEM_HEAP_END_OF_LIST_UINT32)) {
     p = (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(cp >> SEG_SEGMENT_SHIFT) +
                              (uintptr_t)(cp % SEG_SEGMENT_SIZE));
+  } else {
+    p = JMEM_HEAP_END_OF_LIST;
   }
   profile_decompression_end();
   return p;
@@ -109,9 +109,8 @@ inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
 
 // JERRY_HEAP_CONTEXT(comp_i_saddr)
 #if defined(SEG_RMAP_BINSEARCH)
-static inline uint32_t __attr_always_inline___
-  binary_search(uint8_t *addr) {
-// binary_search(uint8_t *addr, uint8_t **saddr_out) {
+static inline uint32_t __attr_always_inline___ binary_search(uint8_t *addr) {
+  // binary_search(uint8_t *addr, uint8_t **saddr_out) {
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
   if (node == NULL) {
@@ -122,9 +121,8 @@ static inline uint32_t __attr_always_inline___
   }
 }
 #else /* defined(SEG_RMAP_BINSEARCH) */
-static inline uint32_t __attr_always_inline___
-linear_search(uint8_t *addr) {
-// linear_search(uint8_t *addr, uint8_t **saddr_out) {
+static inline uint32_t __attr_always_inline___ linear_search(uint8_t *addr) {
+  // linear_search(uint8_t *addr, uint8_t **saddr_out) {
   for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(area[sidx]);
@@ -139,9 +137,8 @@ linear_search(uint8_t *addr) {
 }
 
 #if defined(SEG_RMAP_2LEVEL_SEARCH)
-static inline uint32_t __attr_always_inline___
-two_level_search(uint8_t *addr) {
-// two_level_search(uint8_t *addr, uint8_t **saddr_out) {
+static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
+  // two_level_search(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx = SEG_NUM_SEGMENTS;
   // 1st-level search: FIFO cache search
   for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count); i++) {
@@ -165,7 +162,8 @@ two_level_search(uint8_t *addr) {
   // Update FIFO cache
   if (sidx < SEG_NUM_SEGMENTS) {
     uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
-    JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = JERRY_HEAP_CONTEXT(comp_i_saddr);
+    JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) =
+        JERRY_HEAP_CONTEXT(comp_i_saddr);
     // JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
     JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
@@ -227,7 +225,7 @@ inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
   // Fast path
 #ifdef SEG_RMAP_CACHE
   sidx = access_and_check_rmap_cache(addr);
-  if (sidx < SEG_NUM_SEGMENTS) {
+  if (likely(sidx < SEG_NUM_SEGMENTS)) {
     print_cptl_access(sidx, 0); // CPTL access profiling
     return sidx;
   }
@@ -246,7 +244,7 @@ inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
 #endif /* !defined(SEG_RMAP_BINSEARCH) && !defined(SEG_RMAP_2LEVEL_SEARCH) */
 
 #ifdef SEG_RMAP_CACHE
-  if (sidx < SEG_NUM_SEGMENTS) {
+  if (likely(sidx < SEG_NUM_SEGMENTS)) {
     update_rmap_cache(sidx);
   }
 #endif /* defined(SEG_RMAP_CACHE) */
