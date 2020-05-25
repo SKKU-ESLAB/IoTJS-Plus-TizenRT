@@ -45,7 +45,7 @@ void init_cptl(void) {
     JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = NULL;
   }
   JERRY_HEAP_CONTEXT(fc_table_eviction_header) = 0;
-  JERRY_HEAP_CONTEXT(fc_table_valid_count) = 0;
+  // JERRY_HEAP_CONTEXT(fc_table_valid_count) = 0;
 #endif
 
 #ifdef SEG_RMAP_CACHE
@@ -141,7 +141,10 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
   // two_level_search(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx = SEG_NUM_SEGMENTS;
   // 1st-level search: FIFO cache search
-  for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count); i++) {
+  for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
+    if (i == JERRY_HEAP_CONTEXT(fc_table_eviction_header))
+      continue;
+    // for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count); i++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
     uint32_t result = (uint32_t)addr - (uint32_t)saddr;
@@ -153,6 +156,34 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
       return sidx; // It should be called at least once.
     }
   }
+  // for (int i = 0; i < JERRY_HEAP_CONTEXT(fc_table_eviction_header); i++) {
+  //   // for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count);
+  //   i++) { INCREASE_LOOKUP_DEPTH(); uint8_t *saddr =
+  //   JERRY_HEAP_CONTEXT(fc_table_base_addr[i]); uint32_t result =
+  //   (uint32_t)addr - (uint32_t)saddr; if (result <
+  //   (uint32_t)SEG_SEGMENT_SIZE) {
+  //     // FIFO cache saerch succeeds
+  //     sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
+  //     JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
+  //     JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
+  //     return sidx; // It should be called at least once.
+  //   }
+  // }
+
+  // for (int i = JERRY_HEAP_CONTEXT(fc_table_eviction_header) + 1;
+  //      i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
+  //   // for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count);
+  //   i++) { INCREASE_LOOKUP_DEPTH(); uint8_t *saddr =
+  //   JERRY_HEAP_CONTEXT(fc_table_base_addr[i]); uint32_t result =
+  //   (uint32_t)addr - (uint32_t)saddr; if (result <
+  //   (uint32_t)SEG_SEGMENT_SIZE) {
+  //     // FIFO cache saerch succeeds
+  //     sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
+  //     JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
+  //     JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
+  //     return sidx; // It should be called at least once.
+  //   }
+  // }
 
   // FIFO cache search fails
   // 2nd-level search: linear search
@@ -161,20 +192,20 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
 
   // Update FIFO cache
   if (sidx < SEG_NUM_SEGMENTS) {
-    uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
+    JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
+        (JERRY_HEAP_CONTEXT(fc_table_eviction_header) + 1) %
+        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+    int eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
     JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) =
         JERRY_HEAP_CONTEXT(comp_i_saddr);
     // JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
-    JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
-    if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
-        SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
-      JERRY_HEAP_CONTEXT(fc_table_valid_count) =
-          SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
-    }
-
-    JERRY_HEAP_CONTEXT(fc_table_eviction_header) =
-        (eviction_header + 1) % SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+    // JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
+    // if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
+    //     SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
+    //   JERRY_HEAP_CONTEXT(fc_table_valid_count) =
+    //       SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
+    // }
   }
 
   return sidx;
@@ -182,30 +213,33 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
 
 inline void __attr_always_inline___ invalidate_fifo_cache_entry(uint32_t sidx) {
   // Access, check and invalidate reverse map cache
-  uint8_t *new_fc_base_addr[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
-  uint32_t new_fc_sidx[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
-  int header = 0;
+  // uint8_t *new_fc_base_addr[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
+  // uint32_t new_fc_sidx[SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE];
+  // int header = 0;
 
   for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
-    if (JERRY_HEAP_CONTEXT(fc_table_sidx[i]) != sidx) {
-      new_fc_base_addr[header] = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
-      new_fc_sidx[header] = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
-      header++;
-    }
-  }
-
-  for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
-    if (i < header) {
-      JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = new_fc_base_addr[i];
-      JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = new_fc_sidx[i];
-    } else {
+    if (JERRY_HEAP_CONTEXT(fc_table_sidx[i]) == sidx) {
       JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = NULL;
       JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = SEG_NUM_SEGMENTS;
+      // header++;
+      //     new_fc_base_addr[header] =
+      //     JERRY_HEAP_CONTEXT(fc_table_base_addr[i]); new_fc_sidx[header] =
+      //     JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
+      //   }
+      // }
+
+      // for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
+      //   if (i < header) {
+      //     JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = new_fc_base_addr[i];
+      //     JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = new_fc_sidx[i];
+      //   } else {
+      //     JERRY_HEAP_CONTEXT(fc_table_base_addr[i]) = NULL;
+      //     JERRY_HEAP_CONTEXT(fc_table_sidx[i]) = SEG_NUM_SEGMENTS;
     }
   }
 
-  int valid_index = header;
-  JERRY_HEAP_CONTEXT(fc_table_valid_count) = (uint32_t)valid_index;
+  // int valid_index = header;
+  // JERRY_HEAP_CONTEXT(fc_table_valid_count) = (uint32_t)valid_index;
 }
 
 #endif /* defined(SEG_RMAP_2LEVEL_SEARCH) */
