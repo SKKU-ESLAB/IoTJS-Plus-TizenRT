@@ -89,8 +89,8 @@
 
 // #define PROF_TIME__ALLOC         // It may degrade performance harshly
 // #define PROF_TIME__FREE          // It may degrade performance harshly
-#define PROF_TIME__COMPRESSION   // It may degrade performance harshly
-#define PROF_TIME__DECOMPRESSION // It may degrade performance harshly
+// #define PROF_TIME__COMPRESSION   // It may degrade performance harshly
+// #define PROF_TIME__DECOMPRESSION // It may degrade performance harshly
 // #define PROF_TIME__GC
 #endif /* defined(PROF_TIME) */
 

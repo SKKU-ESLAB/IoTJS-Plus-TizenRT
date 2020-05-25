@@ -17,6 +17,7 @@
 #define JMEM_HEAP_SEGMENTED_CPTL_H
 
 #include "jrt.h"
+#include "jmem-config.h"
 
 // Initialize compressed pointer translation layer (CPTL)
 extern void init_cptl(void);
@@ -29,7 +30,8 @@ extern uint8_t *sidx_to_addr(uint32_t sidx);
 // Raw function to access segment reverse map
 // * Full-bitwidth pointer -> Segment index
 // * Core part of compression
-extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out);
+// extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out);
+extern uint32_t addr_to_saddr_and_sidx(uint8_t *addr);
 
 #ifdef SEG_RMAP_2LEVEL_SEARCH
 extern void invalidate_fifo_cache_entry(uint32_t sidx);

@@ -343,6 +343,10 @@ typedef struct
   jmem_segment_t segments[SEG_NUM_SEGMENTS]; // segment headers
   uint32_t segments_count; // the number of segments
 
+  // Internal variables in compression path
+  uint32_t comp_i_offset;
+  uint8_t *comp_i_saddr;
+
   // reverse map cache
 #if defined(SEG_RMAP_CACHE)
 #if SEG_RMAP_CACHE_SIZE == 1 // single-entry cache

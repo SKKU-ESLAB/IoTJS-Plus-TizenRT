@@ -60,14 +60,14 @@ inline uint32_t __attribute__((hot))
 cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   uint32_t cp;
   uint32_t sidx;
-  uint8_t *saddr;
+  // uint8_t *saddr;
   JERRY_ASSERT(p != NULL);
 
   profile_compression_start();
-  sidx = addr_to_saddr_and_sidx((uint8_t *)p, &saddr);
+  // sidx = addr_to_saddr_and_sidx((uint8_t *)p, &saddr);
+  sidx = addr_to_saddr_and_sidx((uint8_t *)p);
   if (sidx < SEG_NUM_SEGMENTS) {
-    cp = (uint32_t)(JMEM_HEAP_GET_OFFSET_FROM_PTR(p, saddr) +
-                    (uint32_t)SEG_SEGMENT_SIZE * sidx);
+    cp = JERRY_HEAP_CONTEXT(comp_i_offset) + (sidx << SEG_SEGMENT_SHIFT);
   } else if (p == (uint8_t *)&JERRY_HEAP_CONTEXT(first)) {
     cp = 0;
   } else {
@@ -107,27 +107,31 @@ inline uint8_t *__attribute__((hot)) sidx_to_addr(uint32_t sidx) {
   return addr;
 }
 
+// JERRY_HEAP_CONTEXT(comp_i_saddr)
 #if defined(SEG_RMAP_BINSEARCH)
 static inline uint32_t __attr_always_inline___
-binary_search(uint8_t *addr, uint8_t **saddr_out) {
+  binary_search(uint8_t *addr) {
+// binary_search(uint8_t *addr, uint8_t **saddr_out) {
   seg_rmap_node_t *node =
       segment_rmap_lookup(&JERRY_HEAP_CONTEXT(segment_rmap_rb_root), addr);
-  if(node == NULL) {
+  if (node == NULL) {
     return SEG_NUM_SEGMENTS;
   } else {
-    *saddr_out = node->base_addr;
+    JERRY_HEAP_CONTEXT(comp_i_saddr) = node->base_addr;
     return node->sidx;
   }
 }
 #else /* defined(SEG_RMAP_BINSEARCH) */
 static inline uint32_t __attr_always_inline___
-linear_search(uint8_t *addr, uint8_t **saddr_out) {
+linear_search(uint8_t *addr) {
+// linear_search(uint8_t *addr, uint8_t **saddr_out) {
   for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(area[sidx]);
-    if (saddr != NULL &&
-        (uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
-      *saddr_out = saddr;
+    uint32_t result = (uint32_t)addr - (uint32_t)saddr;
+    if (result < (uint32_t)SEG_SEGMENT_SIZE) {
+      JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
+      JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
       return sidx;
     }
   }
@@ -136,28 +140,33 @@ linear_search(uint8_t *addr, uint8_t **saddr_out) {
 
 #if defined(SEG_RMAP_2LEVEL_SEARCH)
 static inline uint32_t __attr_always_inline___
-two_level_search(uint8_t *addr, uint8_t **saddr_out) {
+two_level_search(uint8_t *addr) {
+// two_level_search(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx = SEG_NUM_SEGMENTS;
   // 1st-level search: FIFO cache search
   for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count); i++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
-    if ((uint32_t)(addr - saddr) < (uint32_t)SEG_SEGMENT_SIZE) {
+    uint32_t result = (uint32_t)addr - (uint32_t)saddr;
+    if (result < (uint32_t)SEG_SEGMENT_SIZE) {
       // FIFO cache saerch succeeds
       sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
-      *saddr_out = saddr;
+      JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
+      JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
       return sidx; // It should be called at least once.
     }
   }
 
   // FIFO cache search fails
   // 2nd-level search: linear search
-  sidx = linear_search(addr, saddr_out);
+  sidx = linear_search(addr);
+  // sidx = linear_search(addr, saddr_out);
 
   // Update FIFO cache
   if (sidx < SEG_NUM_SEGMENTS) {
     uint32_t eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
-    JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
+    JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = JERRY_HEAP_CONTEXT(comp_i_saddr);
+    // JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
     JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
     if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
@@ -208,8 +217,8 @@ inline void __attr_always_inline___ invalidate_fifo_cache_entry(uint32_t sidx) {
 // * Full-bitwidth pointer -> Segment index
 // * Core part of compression
 // * jmem-heap-segmented-cptl.h
-inline uint32_t __attribute__((hot))
-addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
+inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
+  // addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx;
   CLEAR_LOOKUP_DEPTH();
 
@@ -217,7 +226,7 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
 
   // Fast path
 #ifdef SEG_RMAP_CACHE
-  sidx = access_and_check_rmap_cache(addr, saddr_out);
+  sidx = access_and_check_rmap_cache(addr);
   if (sidx < SEG_NUM_SEGMENTS) {
     print_cptl_access(sidx, 0); // CPTL access profiling
     return sidx;
@@ -227,18 +236,18 @@ addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   // Slow path
 #if defined(SEG_RMAP_BINSEARCH)
   // Binary search
-  sidx = binary_search(addr, saddr_out);
+  sidx = binary_search(addr);
 #elif defined(SEG_RMAP_2LEVEL_SEARCH) /* defined(SEG_RMAP_BINSEARCH) */
-  sidx = two_level_search(addr, saddr_out);
+  sidx = two_level_search(addr);
   // 2-level search
 #else  /* !defined(SEG_RMAP_BINSEARCH) && defined(SEG_RMAP_2LEVEL_SEARCH) */
   // Linear search
-  sidx = linear_search(addr, saddr_out);
+  sidx = linear_search(addr);
 #endif /* !defined(SEG_RMAP_BINSEARCH) && !defined(SEG_RMAP_2LEVEL_SEARCH) */
 
 #ifdef SEG_RMAP_CACHE
   if (sidx < SEG_NUM_SEGMENTS) {
-    update_rmap_cache(*saddr_out, sidx);
+    update_rmap_cache(sidx);
   }
 #endif /* defined(SEG_RMAP_CACHE) */
 

@@ -43,6 +43,7 @@ seg_rmap_node_t *segment_rmap_lookup(rb_root *root, uint8_t *addr) {
     } else if (result < 0) {
       node = node->rb_left;
     } else {
+      JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
       return (seg_rmap_node_t *)node;
     }
   }
