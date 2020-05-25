@@ -214,7 +214,7 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
   // Minimal size (8B in compressed address / 16B in full-bitwidth address)
   data_space_p =
       JMEM_DECOMPRESS_POINTER_INTERNAL(JERRY_HEAP_CONTEXT(first).next_offset);
-  JERRY_ASSERT(jmem_is_heap_pointer(data_space_p));
+  // JERRY_ASSERT(jmem_is_heap_pointer(data_space_p));
 
   // Update heap blocks size
   JERRY_CONTEXT(jmem_heap_blocks_size) += JMEM_ALIGNMENT;
@@ -246,7 +246,7 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
   uint32_t sidx = block_offset / SEG_SEGMENT_SIZE;
   jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
   segment_header->occupied_size += JMEM_ALIGNMENT;
-  JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
+  // JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
 #endif /* defined(JMEM_SEGMENTED_HEAP) */
   JMEM_HEAP_STAT_ALLOC_ITER();
 
@@ -254,7 +254,7 @@ static inline void *jmem_heap_alloc_block_internal_fast(bool is_small_block) {
   if (data_space_p->size == JMEM_ALIGNMENT) {
     JERRY_HEAP_CONTEXT(first).next_offset = data_space_p->next_offset;
   } else {
-    JERRY_ASSERT(data_space_p->size > JMEM_ALIGNMENT);
+    // JERRY_ASSERT(data_space_p->size > JMEM_ALIGNMENT);
     uint32_t remaining_offset = block_offset + JMEM_ALIGNMENT;
     jmem_heap_free_t *remaining_p =
         JMEM_DECOMPRESS_POINTER_INTERNAL(remaining_offset);
@@ -280,19 +280,19 @@ static inline void *jmem_heap_alloc_block_internal_slow(
   while (current_offset != JMEM_HEAP_END_OF_LIST) {
     jmem_heap_free_t *current_p =
         JMEM_DECOMPRESS_POINTER_INTERNAL(current_offset);
-    JERRY_ASSERT(jmem_is_heap_pointer(current_p));
+    // JERRY_ASSERT(jmem_is_heap_pointer(current_p));
     JMEM_HEAP_STAT_ALLOC_ITER();
 
     const uint32_t next_offset = current_p->next_offset;
-#ifdef JMEM_SEGMENTED_HEAP
-    jmem_heap_free_t *next_p = JMEM_DECOMPRESS_POINTER_INTERNAL(next_offset);
-    JERRY_ASSERT(next_offset == JMEM_HEAP_END_OF_LIST_UINT32 ||
-                 jmem_is_heap_pointer(next_p));
-#else
-    JERRY_ASSERT(
-        next_offset == JMEM_HEAP_END_OF_LIST ||
-        jmem_is_heap_pointer(JMEM_DECOMPRESS_POINTER_INTERNAL(next_offset)));
-#endif
+// #ifdef JMEM_SEGMENTED_HEAP
+//     jmem_heap_free_t *next_p = JMEM_DECOMPRESS_POINTER_INTERNAL(next_offset);
+//     JERRY_ASSERT(next_offset == JMEM_HEAP_END_OF_LIST_UINT32 ||
+//                  jmem_is_heap_pointer(next_p));
+// #else
+//     JERRY_ASSERT(
+//         next_offset == JMEM_HEAP_END_OF_LIST ||
+//         jmem_is_heap_pointer(JMEM_DECOMPRESS_POINTER_INTERNAL(next_offset)));
+// #endif
 
     if (current_p->size >= required_size) {
       /* Region is sufficiently big, store address. */
@@ -343,9 +343,9 @@ static inline void *jmem_heap_alloc_block_internal_slow(
 
         jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
         segment_header->occupied_size += size_to_alloc_in_segment;
-        JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
+        // JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
         size_to_alloc -= (int)size_to_alloc_in_segment;
-        JERRY_ASSERT(size_to_alloc >= 0);
+        // JERRY_ASSERT(size_to_alloc >= 0);
         fragment_start_offset = fragment_end_offset + JMEM_ALIGNMENT;
       }
 #endif
@@ -441,7 +441,7 @@ static __attr_hot___ void *jmem_heap_alloc_block_internal(const size_t size,
     profile_alloc_end(); /* Time profiling */
     return NULL;
   }
-  JERRY_ASSERT((uintptr_t)data_space_p % JMEM_ALIGNMENT == 0);
+  // JERRY_ASSERT((uintptr_t)data_space_p % JMEM_ALIGNMENT == 0);
   JMEM_HEAP_STAT_ALLOC(size);
   profile_alloc_end(); /* Time profiling */
   return (void *)data_space_p;
@@ -524,7 +524,7 @@ static void *jmem_heap_gc_and_alloc_block(
   if (alloc_a_segment_group(size) != NULL) {
     data_space_p =
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
-    JERRY_ASSERT(data_space_p != NULL);
+    // JERRY_ASSERT(data_space_p != NULL);
     return data_space_p;
   }
 #endif /* JMEM_SEGMENTED_HEAP */
@@ -558,11 +558,11 @@ static void *jmem_heap_gc_and_alloc_block(
   if (alloc_a_segment_group(size) != NULL) {
     data_space_p =
         jmem_heap_alloc_block_internal(size, is_small_block); // BLOCK ALLOC
-    JERRY_ASSERT(data_space_p != NULL);
+    // JERRY_ASSERT(data_space_p != NULL);
     return data_space_p;
   }
 #endif /* JMEM_SEGMENTED_HEAP */
-  JERRY_ASSERT(data_space_p == NULL);
+  // JERRY_ASSERT(data_space_p == NULL);
 
   if (!ret_null_on_error) {
     jerry_fatal(ERR_OUT_OF_MEMORY);
@@ -654,7 +654,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
     JMEM_HEAP_STAT_NONSKIP();
   }
 
-  JERRY_ASSERT(jmem_is_heap_pointer(block_p));
+  // JERRY_ASSERT(jmem_is_heap_pointer(block_p));
 #ifdef JMEM_SEGMENTED_HEAP
   const uint32_t block_offset = boffset;
 #else  /* JMEM_SEGMENTED_HEAP */
@@ -665,7 +665,7 @@ static void __attr_hot___ jmem_heap_free_block_internal(
   while (prev_p->next_offset < block_offset) {
     next_cp = prev_p->next_offset;
     next_p = JMEM_DECOMPRESS_POINTER_INTERNAL(next_cp);
-    JERRY_ASSERT(jmem_is_heap_pointer(next_p));
+    // JERRY_ASSERT(jmem_is_heap_pointer(next_p));
 
     prev_p = next_p;
 
@@ -721,15 +721,15 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 
     jmem_segment_t *segment_header = &JERRY_HEAP_CONTEXT(segments[sidx]);
     segment_header->occupied_size -= size_to_free_in_segment;
-    JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
+    // JERRY_ASSERT(segment_header->occupied_size <= SEG_SEGMENT_SIZE);
     size_to_free -= (int)size_to_free_in_segment;
-    JERRY_ASSERT(size_to_free >= 0);
+    // JERRY_ASSERT(size_to_free >= 0);
     fragment_start_offset = fragment_end_offset + JMEM_ALIGNMENT;
   }
 #endif
 
   // Static heap or segmented heap
-  JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_blocks_size) > 0);
+  // JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_blocks_size) > 0);
 
   // Update heap blocks size
   JERRY_CONTEXT(jmem_heap_blocks_size) -= aligned_size;
@@ -760,8 +760,8 @@ static void __attr_hot___ jmem_heap_free_block_internal(
     JERRY_CONTEXT(jmem_heap_limit) -= CONFIG_MEM_HEAP_DESIRED_LIMIT;
   }
 
-  JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_limit) >=
-               JERRY_CONTEXT(jmem_heap_blocks_size));
+  // JERRY_ASSERT(JERRY_CONTEXT(jmem_heap_limit) >=
+  //              JERRY_CONTEXT(jmem_heap_blocks_size));
   JMEM_HEAP_STAT_FREE(size);
 
   print_total_size_profile_on_alloc();                /* Total size profiling */

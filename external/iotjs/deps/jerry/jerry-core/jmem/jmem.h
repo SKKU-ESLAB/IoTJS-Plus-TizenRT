@@ -152,8 +152,11 @@ void jmem_heap_free_block_small_object (void *ptr, const size_t size);
 /**
  * End of list marker.
  */
-#define JMEM_HEAP_END_OF_LIST ((uint32_t) 0xffffffff)
-#define JMEM_HEAP_END_OF_LIST_UINT32 ((uint32_t) 0xffffffff)
+#define JMEM_HEAP_END_OF_LIST ((uint32_t) JMEM_HEAP_SIZE)
+#define JMEM_HEAP_END_OF_LIST_UINT32 ((uint32_t) JMEM_HEAP_SIZE)
+
+// #define JMEM_HEAP_END_OF_LIST ((uint32_t) 0xffffffff)
+// #define JMEM_HEAP_END_OF_LIST_UINT32 ((uint32_t) 0xffffffff)
 
 #ifdef ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY
 /* In this case we simply store the pointer, since it fits anyway. */

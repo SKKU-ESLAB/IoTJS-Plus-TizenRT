@@ -25,11 +25,12 @@
 
 /* Segmented heap allocation configs */
 #define SEG_SEGMENT_SIZE 2048
+#define SEG_SEGMENT_OFFSET_MASK 0x7FF
 #define SEG_SEGMENT_SHIFT 11
 
 /* Heap allocation type */
 // 1) Real dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled
-// #define JMEM_SEGMENTED_HEAP // 2) Segmented heap
+#define JMEM_SEGMENTED_HEAP // 2) Segmented heap
 // #define JMEM_DYNAMIC_HEAP_EMUL // 3) Dynamic heap emulation
 // 4) Static heap - else
 
@@ -43,8 +44,8 @@
 // Fast path
 #define SEG_RMAP_CACHE             // caching in reverse map
 // Slow path
-// #define SEG_RMAP_BINSEARCH         // binary search for reverse map
-#define SEG_RMAP_2LEVEL_SEARCH     // 2-level search for reverse map
+#define SEG_RMAP_BINSEARCH         // binary search for reverse map
+// #define SEG_RMAP_2LEVEL_SEARCH     // 2-level search for reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment

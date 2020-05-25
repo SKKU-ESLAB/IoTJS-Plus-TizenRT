@@ -339,7 +339,7 @@ typedef struct
   jmem_heap_free_t first; /**< first node in free region list */
 #ifdef JMEM_SEGMENTED_HEAP
   // Segmented heap
-  uint8_t *area[SEG_NUM_SEGMENTS]; // segment base table
+  uint8_t *area[SEG_NUM_SEGMENTS + 1]; // segment base table
   jmem_segment_t segments[SEG_NUM_SEGMENTS]; // segment headers
   uint32_t segments_count; // the number of segments
 

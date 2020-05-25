@@ -30,6 +30,7 @@ void init_cptl(void) {
   for (uint32_t sidx = 0; sidx < SEG_NUM_SEGMENTS; sidx++) {
     JERRY_HEAP_CONTEXT(area[sidx]) = (uint8_t *)NULL;
   }
+  JERRY_HEAP_CONTEXT(area[SEG_NUM_SEGMENTS]) = (uint8_t *)JMEM_HEAP_END_OF_LIST;
 
   // Initialize reverse map
 #ifdef SEG_RMAP_BINSEARCH
@@ -85,12 +86,12 @@ inline jmem_heap_free_t *__attribute__((hot))
 cptl_decompress_pointer_internal(uint32_t cp) {
   jmem_heap_free_t *p;
   profile_decompression_start();
-  if (likely(cp != JMEM_HEAP_END_OF_LIST_UINT32)) {
-    p = (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(cp >> SEG_SEGMENT_SHIFT) +
-                             (uintptr_t)(cp % SEG_SEGMENT_SIZE));
-  } else {
-    p = JMEM_HEAP_END_OF_LIST;
-  }
+  // if (likely(cp != JMEM_HEAP_END_OF_LIST_UINT32)) {
+  p = (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(cp >> SEG_SEGMENT_SHIFT) +
+                            (uintptr_t)(cp & SEG_SEGMENT_OFFSET_MASK));
+  // } else {
+  //   p = JMEM_HEAP_END_OF_LIST;
+  // }
   profile_decompression_end();
   return p;
 }
