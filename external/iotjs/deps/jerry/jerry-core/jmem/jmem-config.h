@@ -86,6 +86,7 @@
 /* jmem-profiler-time.c */
 #ifdef PROF_TIME
 // #define PROF_TIME__PRINT_HEADER
+#define PROF_TIME__PRINT_AVERAGE
 
 // #define PROF_TIME__ALLOC         // It may degrade performance harshly
 // #define PROF_TIME__FREE          // It may degrade performance harshly
