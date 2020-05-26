@@ -88,7 +88,7 @@ cptl_decompress_pointer_internal(uint32_t cp) {
   profile_decompression_start();
   // if (likely(cp != JMEM_HEAP_END_OF_LIST_UINT32)) {
   p = (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(cp >> SEG_SEGMENT_SHIFT) +
-                            (uintptr_t)(cp & SEG_SEGMENT_OFFSET_MASK));
+                            (uintptr_t)(cp & (SEG_SEGMENT_SIZE - 1)));
   // } else {
   //   p = JMEM_HEAP_END_OF_LIST;
   // }

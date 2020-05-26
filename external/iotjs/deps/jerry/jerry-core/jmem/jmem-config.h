@@ -25,7 +25,6 @@
 
 /* Segmented heap allocation configs */
 #define SEG_SEGMENT_SIZE 2048
-#define SEG_SEGMENT_OFFSET_MASK 0x7FF
 #define SEG_SEGMENT_SHIFT 11
 
 /* Heap allocation type */
