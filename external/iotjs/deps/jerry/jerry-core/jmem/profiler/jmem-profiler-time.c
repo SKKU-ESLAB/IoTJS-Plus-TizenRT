@@ -60,7 +60,7 @@ void print_time_profile(void) {
 #ifdef PROF_TIME__PRINT_HEADER
   fprintf(fp, "Category, Total, Alloc, Free, Compression, Decompression, GC\n");
 #endif /* defined(PROF_TIME__PRINT_HEADER) */
-#ifdef PROF_TIME__PRINT_AVERAGE
+#if !defined(PROF_TIME__PRINT_DETAILED)
 #define SEC_IN_US (1000 * 1000)
 #define SEC_IN_NS (1000 * 1000 * 1000)
 #define US_IN_NS (1000)
