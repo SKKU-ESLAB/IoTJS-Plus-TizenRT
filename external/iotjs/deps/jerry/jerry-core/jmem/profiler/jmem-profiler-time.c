@@ -64,23 +64,35 @@ void print_time_profile(void) {
 #define SEC_IN_US (1000 * 1000)
 #define SEC_IN_NS (1000 * 1000 * 1000)
 #define US_IN_NS (1000)
-#define AVG_TIME(x)                                                        \
-  (JERRY_CONTEXT(x##_count) > 0)                                           \
-      ? ((unsigned long long)JERRY_CONTEXT(x##_time.tv_sec) * SEC_IN_NS +  \
-         (unsigned long long)JERRY_CONTEXT(x##_time.tv_usec) * US_IN_NS) / \
-            (unsigned long long)JERRY_CONTEXT(x##_count)                   \
+#define TOTAL_TIME(x)                                               \
+  ((unsigned long long)JERRY_CONTEXT(x##_time.tv_sec) * SEC_IN_NS + \
+   (unsigned long long)JERRY_CONTEXT(x##_time.tv_usec) * US_IN_NS)
+#define AVG_TIME(x)                                                  \
+  (JERRY_CONTEXT(x##_count) > 0)                                     \
+      ? TOTAL_TIME(x) / (unsigned long long)JERRY_CONTEXT(x##_count) \
       : 0
   unsigned long long total_time_ns =
       ((unsigned long long)total_time.tv_sec * SEC_IN_NS +
        (unsigned long long)total_time.tv_usec * US_IN_NS);
+
+  unsigned long long alloc_time_ns = TOTAL_TIME(alloc);
+  unsigned long long free_time_ns = TOTAL_TIME(free);
+  unsigned long long compression_time_ns = TOTAL_TIME(compression);
+  unsigned long long decompression_time_ns = TOTAL_TIME(decompression);
+  unsigned long long gc_time_ns = TOTAL_TIME(gc);
+
   unsigned long long avg_alloc_time_ns = AVG_TIME(alloc);
   unsigned long long avg_free_time_ns = AVG_TIME(free);
   unsigned long long avg_compression_time_ns = AVG_TIME(compression);
   unsigned long long avg_decompression_time_ns = AVG_TIME(decompression);
   unsigned long long avg_gc_time_ns = AVG_TIME(gc);
-  fprintf(fp, "Time, %llu, %llu, %llu, %llu, %llu, %llu\n", total_time_ns,
-          avg_alloc_time_ns, avg_free_time_ns, avg_compression_time_ns,
-          avg_decompression_time_ns, avg_gc_time_ns);
+  fprintf(fp,
+          "Time, %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu, "
+          "%llu\n",
+          total_time_ns, avg_alloc_time_ns, avg_free_time_ns,
+          avg_compression_time_ns, avg_decompression_time_ns, avg_gc_time_ns,
+          alloc_time_ns, free_time_ns, compression_time_ns,
+          decompression_time_ns, gc_time_ns);
 #else
   fprintf(fp, "Count, 0, %u, %u, %u, %u, %u\n", JERRY_CONTEXT(alloc_count),
           JERRY_CONTEXT(free_count), JERRY_CONTEXT(compression_count),
