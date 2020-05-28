@@ -146,15 +146,27 @@ void __attr_always_inline___ profile_free_end(void) {
 void __attr_always_inline___ profile_compression_start(void) {
 #if defined(PROF_TIME__COMPRESSION)
   CHECK_LOGGING_ENABLED();
-  JERRY_CONTEXT(compression_count)++;
   __check_watch(&JERRY_CONTEXT(timeval_compression));
 #endif
 }
-inline void __attr_always_inline___ profile_compression_end(void) {
+inline void __attr_always_inline___ profile_compression_end(int type) {
 #if defined(PROF_TIME__COMPRESSION)
   CHECK_LOGGING_ENABLED();
-  __stop_watch(&JERRY_CONTEXT(timeval_compression),
-               &JERRY_CONTEXT(compression_time));
+  if (type == COMPRESSION_RMC_HIT) {
+    JERRY_CONTEXT(compression_rmc_hit_count)++;
+    __stop_watch(&JERRY_CONTEXT(timeval_compression),
+                 &JERRY_CONTEXT(compression_rmc_hit_time));
+  } else if (type == COMPRESSION_FIFO_HIT) {
+    JERRY_CONTEXT(compression_fifo_hit_count)++;
+    __stop_watch(&JERRY_CONTEXT(timeval_compression),
+                 &JERRY_CONTEXT(compression_fifo_hit_time));
+  } else if (type == COMPRESSION_FINAL_MISS) {
+    JERRY_CONTEXT(compression_final_miss_count)++;
+    __stop_watch(&JERRY_CONTEXT(timeval_compression),
+                 &JERRY_CONTEXT(compression_final_miss_time));
+  } else {
+    printf("Invalid argument to profile_compression_end: %d\n", type);
+  }
 #endif
 }
 

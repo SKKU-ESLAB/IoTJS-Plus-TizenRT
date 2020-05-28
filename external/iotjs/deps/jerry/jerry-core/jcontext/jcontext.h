@@ -172,13 +172,17 @@ typedef struct
 
   struct timeval alloc_time;
   struct timeval free_time;
-  struct timeval compression_time;
+  struct timeval compression_rmc_hit_time;
+  struct timeval compression_fifo_hit_time;
+  struct timeval compression_final_miss_time;
   struct timeval decompression_time;
   struct timeval gc_time;
 
   unsigned int alloc_count;
   unsigned int free_count;
-  unsigned int compression_count;
+  unsigned int compression_rmc_hit_count;
+  unsigned int compression_fifo_hit_count;
+  unsigned int compression_final_miss_count;
   unsigned int decompression_count;
   unsigned int gc_count;
 #endif
