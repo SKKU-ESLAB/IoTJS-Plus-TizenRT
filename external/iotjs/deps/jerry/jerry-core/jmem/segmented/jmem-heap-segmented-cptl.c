@@ -59,11 +59,11 @@ inline uint32_t __attribute__((hot))
 cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   uint32_t cp;
   uint32_t sidx;
-  // uint8_t *saddr;
-  // JERRY_ASSERT(p != NULL);
 
+#ifdef PROF_TIME__COMPRESSION_DETAILED
+  JERRY_CONTEXT(recent_compression_type) = COMPRESSION_RMC_HIT;
+#endif
   profile_compression_start();
-  // sidx = addr_to_saddr_and_sidx((uint8_t *)p, &saddr);
   sidx = addr_to_saddr_and_sidx((uint8_t *)p);
   if (likely(sidx < SEG_NUM_SEGMENTS)) {
     cp = JERRY_HEAP_CONTEXT(comp_i_offset) + (sidx << SEG_SEGMENT_SHIFT);
@@ -72,7 +72,11 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   } else {
     cp = (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
   }
-  profile_compression_end();
+#ifdef PROF_TIME__COMPRESSION_DETAILED
+  profile_compression_end(JERRY_CONTEXT(recent_compression_type));
+#else
+  profile_compression_end(JERRY_CONTEXT(COMPRESSION_RMC_HIT));
+#endif
 
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
   profile_inc_count_of_a_type(0); // compression callers
@@ -88,7 +92,7 @@ cptl_decompress_pointer_internal(uint32_t cp) {
   profile_decompression_start();
   // if (likely(cp != JMEM_HEAP_END_OF_LIST_UINT32)) {
   p = (jmem_heap_free_t *)((uintptr_t)sidx_to_addr(cp >> SEG_SEGMENT_SHIFT) +
-                            (uintptr_t)(cp & (SEG_SEGMENT_SIZE - 1)));
+                           (uintptr_t)(cp & (SEG_SEGMENT_SIZE - 1)));
   // } else {
   //   p = JMEM_HEAP_END_OF_LIST;
   // }
@@ -143,7 +147,6 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
   for (int i = 0; i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
     if (i == JERRY_HEAP_CONTEXT(fc_table_eviction_header))
       continue;
-    // for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count); i++) {
     INCREASE_LOOKUP_DEPTH();
     uint8_t *saddr = JERRY_HEAP_CONTEXT(fc_table_base_addr[i]);
     uint32_t result = (uint32_t)addr - (uint32_t)saddr;
@@ -152,37 +155,12 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
       sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
       JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
       JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
+#ifdef PROF_TIME__COMPRESSION_DETAILED
+      JERRY_CONTEXT(recent_compression_type) = COMPRESSION_FIFO_HIT;
+#endif
       return sidx; // It should be called at least once.
     }
   }
-  // for (int i = 0; i < JERRY_HEAP_CONTEXT(fc_table_eviction_header); i++) {
-  //   // for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count);
-  //   i++) { INCREASE_LOOKUP_DEPTH(); uint8_t *saddr =
-  //   JERRY_HEAP_CONTEXT(fc_table_base_addr[i]); uint32_t result =
-  //   (uint32_t)addr - (uint32_t)saddr; if (result <
-  //   (uint32_t)SEG_SEGMENT_SIZE) {
-  //     // FIFO cache saerch succeeds
-  //     sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
-  //     JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
-  //     JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
-  //     return sidx; // It should be called at least once.
-  //   }
-  // }
-
-  // for (int i = JERRY_HEAP_CONTEXT(fc_table_eviction_header) + 1;
-  //      i < SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE; i++) {
-  //   // for (uint32_t i = 0; i < JERRY_HEAP_CONTEXT(fc_table_valid_count);
-  //   i++) { INCREASE_LOOKUP_DEPTH(); uint8_t *saddr =
-  //   JERRY_HEAP_CONTEXT(fc_table_base_addr[i]); uint32_t result =
-  //   (uint32_t)addr - (uint32_t)saddr; if (result <
-  //   (uint32_t)SEG_SEGMENT_SIZE) {
-  //     // FIFO cache saerch succeeds
-  //     sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
-  //     JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
-  //     JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
-  //     return sidx; // It should be called at least once.
-  //   }
-  // }
 
   // FIFO cache search fails
   // 2nd-level search: linear search
@@ -197,14 +175,7 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
     int eviction_header = JERRY_HEAP_CONTEXT(fc_table_eviction_header);
     JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) =
         JERRY_HEAP_CONTEXT(comp_i_saddr);
-    // JERRY_HEAP_CONTEXT(fc_table_base_addr[eviction_header]) = *saddr_out;
     JERRY_HEAP_CONTEXT(fc_table_sidx[eviction_header]) = sidx;
-    // JERRY_HEAP_CONTEXT(fc_table_valid_count)++;
-    // if (JERRY_HEAP_CONTEXT(fc_table_valid_count) >
-    //     SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE) {
-    //   JERRY_HEAP_CONTEXT(fc_table_valid_count) =
-    //       SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE;
-    // }
   }
 
   return sidx;
@@ -265,6 +236,9 @@ inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
 #endif /* defined(SEG_RMAP_CACHE) */
 
   // Slow path
+#ifdef PROF_TIME__COMPRESSION_DETAILED
+  JERRY_CONTEXT(recent_compression_type) = COMPRESSION_FINAL_MISS;
+#endif
 #if defined(SEG_RMAP_BINSEARCH)
   // Binary search
   sidx = binary_search(addr);

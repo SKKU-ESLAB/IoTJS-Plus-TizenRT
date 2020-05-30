@@ -162,6 +162,7 @@ typedef struct
 #endif
 
 #ifdef PROF_TIME
+#define PROFILER_TIME_ENTRY(x) struct timeval x##_time; unsigned int x##_count
   /* Time profiling */
   struct timeval timeval_uptime;
   struct timeval timeval_alloc;
@@ -170,21 +171,17 @@ typedef struct
   struct timeval timeval_decompression;
   struct timeval timeval_gc;
 
-  struct timeval alloc_time;
-  struct timeval free_time;
-  struct timeval compression_rmc_hit_time;
-  struct timeval compression_fifo_hit_time;
-  struct timeval compression_final_miss_time;
-  struct timeval decompression_time;
-  struct timeval gc_time;
+  PROFILER_TIME_ENTRY(alloc);
+  PROFILER_TIME_ENTRY(free);
+  PROFILER_TIME_ENTRY(gc);
+  PROFILER_TIME_ENTRY(decompression);
+  PROFILER_TIME_ENTRY(compression_rmc_hit);
+  PROFILER_TIME_ENTRY(compression_fifo_hit);
+  PROFILER_TIME_ENTRY(compression_final_miss);
 
-  unsigned int alloc_count;
-  unsigned int free_count;
-  unsigned int compression_rmc_hit_count;
-  unsigned int compression_fifo_hit_count;
-  unsigned int compression_final_miss_count;
-  unsigned int decompression_count;
-  unsigned int gc_count;
+#ifdef PROF_TIME__COMPRESSION_DETAILED
+  int recent_compression_type;
+#endif
 #endif
 
 #ifdef PROF_JSOBJECT_ALLOCATION

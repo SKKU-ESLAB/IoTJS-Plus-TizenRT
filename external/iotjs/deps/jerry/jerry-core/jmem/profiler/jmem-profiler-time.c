@@ -27,43 +27,38 @@ static void __stop_watch(struct timeval *timer, struct timeval *t);
 /* Time profiling */
 inline void __attr_always_inline___ init_time_profiler(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
+#define INIT_PROFILER_TIME_ENTRY(x)   \
+  JERRY_CONTEXT(x##_time).tv_sec = 0; \
+  JERRY_CONTEXT(x##_time).tv_usec = 0
+
   CHECK_LOGGING_ENABLED();
   __check_watch(&JERRY_CONTEXT(timeval_uptime));
-  JERRY_CONTEXT(alloc_time).tv_sec = 0;
-  JERRY_CONTEXT(alloc_time).tv_usec = 0;
-  JERRY_CONTEXT(free_time).tv_sec = 0;
-  JERRY_CONTEXT(free_time).tv_usec = 0;
-  JERRY_CONTEXT(compression_time).tv_sec = 0;
-  JERRY_CONTEXT(compression_time).tv_usec = 0;
-  JERRY_CONTEXT(decompression_time).tv_sec = 0;
-  JERRY_CONTEXT(decompression_time).tv_usec = 0;
-  JERRY_CONTEXT(gc_time).tv_sec = 0;
-  JERRY_CONTEXT(gc_time).tv_usec = 0;
-  JERRY_CONTEXT(alloc_count) = 0;
-  JERRY_CONTEXT(free_count) = 0;
-  JERRY_CONTEXT(compression_count) = 0;
-  JERRY_CONTEXT(decompression_count) = 0;
-  JERRY_CONTEXT(gc_count) = 0;
+  INIT_PROFILER_TIME_ENTRY(alloc);
+  INIT_PROFILER_TIME_ENTRY(free);
+  INIT_PROFILER_TIME_ENTRY(gc);
+  INIT_PROFILER_TIME_ENTRY(compression_rmc_hit);
+  INIT_PROFILER_TIME_ENTRY(compression_fifo_hit);
+  INIT_PROFILER_TIME_ENTRY(compression_final_miss);
 #endif
+}
+
+#define SEC_IN_US (1000 * 1000)
+#define SEC_IN_NS (1000 * 1000 * 1000)
+#define US_IN_NS (1000)
+
+static inline unsigned long long get_uptime_ns(void) {
+  struct timeval uptime;
+  uptime.tv_sec = 0;
+  uptime.tv_usec = 0;
+  __stop_watch(&JERRY_CONTEXT(timeval_uptime), &uptime);
+  unsigned long long uptime_ns =
+      ((unsigned long long)uptime.tv_sec * SEC_IN_NS +
+       (unsigned long long)uptime.tv_usec * US_IN_NS);
+  return uptime_ns;
 }
 
 void print_time_profile(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
-  CHECK_LOGGING_ENABLED();
-  FILE *fp = fopen(PROF_TIME_FILENAME, "a");
-
-  struct timeval total_time;
-  total_time.tv_sec = 0;
-  total_time.tv_usec = 0;
-  __stop_watch(&JERRY_CONTEXT(timeval_uptime), &total_time);
-
-#ifdef PROF_TIME__PRINT_HEADER
-  fprintf(fp, "Category, Total, Alloc, Free, Compression, Decompression, GC\n");
-#endif /* defined(PROF_TIME__PRINT_HEADER) */
-#if !defined(PROF_TIME__PRINT_DETAILED)
-#define SEC_IN_US (1000 * 1000)
-#define SEC_IN_NS (1000 * 1000 * 1000)
-#define US_IN_NS (1000)
 #define TOTAL_TIME(x)                                               \
   ((unsigned long long)JERRY_CONTEXT(x##_time.tv_sec) * SEC_IN_NS + \
    (unsigned long long)JERRY_CONTEXT(x##_time.tv_usec) * US_IN_NS)
@@ -71,45 +66,32 @@ void print_time_profile(void) {
   (JERRY_CONTEXT(x##_count) > 0)                                     \
       ? TOTAL_TIME(x) / (unsigned long long)JERRY_CONTEXT(x##_count) \
       : 0
-  unsigned long long total_time_ns =
-      ((unsigned long long)total_time.tv_sec * SEC_IN_NS +
-       (unsigned long long)total_time.tv_usec * US_IN_NS);
+#define PRINT_TIME_HEADER(fp) fprintf(fp, "Time")
+#define PRINT_TIME(fp, x) fprintf(fp, ", %llu", x)
+#define PRINT_AVG_TIME(fp, x) fprintf(fp, ", %llu", AVG_TIME(x))
+#define PRINT_TOTAL_TIME(fp, x) fprintf(fp, ", %llu", TOTAL_TIME(x))
+#define PRINT_TIME_TAIL(fp) fprintf(fp, "\n")
 
-  unsigned long long alloc_time_ns = TOTAL_TIME(alloc);
-  unsigned long long free_time_ns = TOTAL_TIME(free);
-  unsigned long long compression_time_ns = TOTAL_TIME(compression);
-  unsigned long long decompression_time_ns = TOTAL_TIME(decompression);
-  unsigned long long gc_time_ns = TOTAL_TIME(gc);
+  CHECK_LOGGING_ENABLED();
+  FILE *fp = fopen(PROF_TIME_FILENAME, "a");
 
-  unsigned long long avg_alloc_time_ns = AVG_TIME(alloc);
-  unsigned long long avg_free_time_ns = AVG_TIME(free);
-  unsigned long long avg_compression_time_ns = AVG_TIME(compression);
-  unsigned long long avg_decompression_time_ns = AVG_TIME(decompression);
-  unsigned long long avg_gc_time_ns = AVG_TIME(gc);
-  fprintf(fp,
-          "Time, %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu, "
-          "%llu\n",
-          total_time_ns, avg_alloc_time_ns, avg_free_time_ns,
-          avg_compression_time_ns, avg_decompression_time_ns, avg_gc_time_ns,
-          alloc_time_ns, free_time_ns, compression_time_ns,
-          decompression_time_ns, gc_time_ns);
-#else
-  fprintf(fp, "Count, 0, %u, %u, %u, %u, %u\n", JERRY_CONTEXT(alloc_count),
-          JERRY_CONTEXT(free_count), JERRY_CONTEXT(compression_count),
-          JERRY_CONTEXT(decompression_count), JERRY_CONTEXT(gc_count));
-  fprintf(fp,
-          "Time, %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, %ld.%06ld, "
-          "%ld.%06ld\n",
-          (long)(total_time.tv_sec), (long)(total_time.tv_usec),
-          JERRY_CONTEXT(alloc_time).tv_sec, JERRY_CONTEXT(alloc_time).tv_usec,
-          JERRY_CONTEXT(free_time).tv_sec, JERRY_CONTEXT(free_time).tv_usec,
-          JERRY_CONTEXT(compression_time).tv_sec,
-          JERRY_CONTEXT(compression_time).tv_usec,
-          JERRY_CONTEXT(decompression_time).tv_sec,
-          JERRY_CONTEXT(decompression_time).tv_usec,
-          JERRY_CONTEXT(gc_time).tv_sec, JERRY_CONTEXT(gc_time).tv_usec);
-#endif
-
+  PRINT_TIME_HEADER(fp);
+  PRINT_TIME(fp, get_uptime_ns());
+  PRINT_AVG_TIME(fp, alloc);
+  PRINT_AVG_TIME(fp, free);
+  PRINT_AVG_TIME(fp, gc);
+  PRINT_AVG_TIME(fp, decompression);
+  PRINT_AVG_TIME(fp, compression_rmc_hit);
+  PRINT_AVG_TIME(fp, compression_fifo_hit);
+  PRINT_AVG_TIME(fp, compression_final_miss);
+  PRINT_TOTAL_TIME(fp, alloc);
+  PRINT_TOTAL_TIME(fp, free);
+  PRINT_TOTAL_TIME(fp, gc);
+  PRINT_TOTAL_TIME(fp, decompression);
+  PRINT_TOTAL_TIME(fp, compression_rmc_hit);
+  PRINT_TOTAL_TIME(fp, compression_fifo_hit);
+  PRINT_TOTAL_TIME(fp, compression_final_miss);
+  PRINT_TIME_TAIL(fp);
   fflush(fp);
   fclose(fp);
 #endif

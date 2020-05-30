@@ -43,8 +43,8 @@
 // Fast path
 #define SEG_RMAP_CACHE             // caching in reverse map
 // Slow path
-#define SEG_RMAP_BINSEARCH         // binary search for reverse map
-// #define SEG_RMAP_2LEVEL_SEARCH     // 2-level search for reverse map
+// #define SEG_RMAP_BINSEARCH         // binary search for reverse map
+#define SEG_RMAP_2LEVEL_SEARCH     // 2-level search for reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment
@@ -85,14 +85,17 @@
 
 /* jmem-profiler-time.c */
 #ifdef PROF_TIME
-// #define PROF_TIME__PRINT_HEADER
-// #define PROF_TIME__PRINT_DETAILED
 
 // #define PROF_TIME__ALLOC         // It may degrade performance harshly
 // #define PROF_TIME__FREE          // It may degrade performance harshly
-#define PROF_TIME__COMPRESSION   // It may degrade performance harshly
+// #define PROF_TIME__GC // It may degrade performance harshly
 #define PROF_TIME__DECOMPRESSION // It may degrade performance harshly
-// #define PROF_TIME__GC
+#define PROF_TIME__COMPRESSION   // It may degrade performance harshly
+
+#ifdef PROF_TIME__COMPRESSION
+#define PROF_TIME__COMPRESSION_DETAILED // It may degrade performance harshly
+#endif
+
 #endif /* defined(PROF_TIME) */
 
 /* jmem-profiler-cptl.c */
