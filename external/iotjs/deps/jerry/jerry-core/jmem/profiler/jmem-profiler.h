@@ -18,8 +18,6 @@
 #ifndef JMEM_PROFILER_H
 #define JMEM_PROFILER_H
 
-#include "jcontext.h"
-#include "jmem-config.h"
 #include "jrt.h"
 
 extern void init_profilers(void);
@@ -30,9 +28,6 @@ extern void print_total_size_profile_on_alloc(void);
 extern void print_total_size_profile_finally(void);
 
 /* jmem-profiler-time.c: time profiling */
-#define COMPRESSION_RMC_HIT 0
-#define COMPRESSION_FIFO_HIT 1
-#define COMPRESSION_FINAL_MISS 2
 extern void print_time_profile(void);
 extern void profile_alloc_start(void);
 extern void profile_alloc_end(void);

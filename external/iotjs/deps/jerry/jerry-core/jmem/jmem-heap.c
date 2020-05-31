@@ -844,7 +844,7 @@ inline uint32_t __attr_always_inline___
 static_compress_pointer_internal(jmem_heap_free_t *p) {
   profile_compression_start();
   uint32_t cp = (uint32_t)(p) - (uint32_t)(JERRY_HEAP_CONTEXT(area));
-  profile_compression_end(COMPRESSION_RMC_HIT);
+  profile_compression_end(0); // COMPRESSION_RMC_HIT
   return cp;
 }
 inline jmem_heap_free_t __attr_always_inline___ *

@@ -61,7 +61,7 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   uint32_t sidx;
 
 #ifdef PROF_TIME__COMPRESSION_DETAILED
-  JERRY_CONTEXT(recent_compression_type) = COMPRESSION_RMC_HIT;
+  JERRY_CONTEXT(recent_compression_type) = 0; // COMPRESSION_RMC_HIT
 #endif
   profile_compression_start();
   sidx = addr_to_saddr_and_sidx((uint8_t *)p);
@@ -75,7 +75,7 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
 #ifdef PROF_TIME__COMPRESSION_DETAILED
   profile_compression_end(JERRY_CONTEXT(recent_compression_type));
 #else
-  profile_compression_end(JERRY_CONTEXT(COMPRESSION_RMC_HIT));
+  profile_compression_end(JERRY_CONTEXT(0)); // COMPRESSION_RMC_HIT
 #endif
 
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
@@ -156,7 +156,7 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
       JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
       JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
 #ifdef PROF_TIME__COMPRESSION_DETAILED
-      JERRY_CONTEXT(recent_compression_type) = COMPRESSION_FIFO_HIT;
+      JERRY_CONTEXT(recent_compression_type) = 1; // COMPRESSION_FIFO_HIT
 #endif
       return sidx; // It should be called at least once.
     }
@@ -237,7 +237,7 @@ inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
 
   // Slow path
 #ifdef PROF_TIME__COMPRESSION_DETAILED
-  JERRY_CONTEXT(recent_compression_type) = COMPRESSION_FINAL_MISS;
+  JERRY_CONTEXT(recent_compression_type) = 2; // COMPRESSION_FINAL_MISS
 #endif
 #if defined(SEG_RMAP_BINSEARCH)
   // Binary search

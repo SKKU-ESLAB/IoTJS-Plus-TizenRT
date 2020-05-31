@@ -46,6 +46,7 @@ inline void __attr_always_inline___ init_time_profiler(void) {
 #define SEC_IN_NS (1000 * 1000 * 1000)
 #define US_IN_NS (1000)
 
+#if defined(JMEM_PROFILE) && defined(PROF_TIME)
 static inline unsigned long long get_uptime_ns(void) {
   struct timeval uptime;
   uptime.tv_sec = 0;
@@ -56,6 +57,7 @@ static inline unsigned long long get_uptime_ns(void) {
        (unsigned long long)uptime.tv_usec * US_IN_NS);
   return uptime_ns;
 }
+#endif
 
 void print_time_profile(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
@@ -134,21 +136,23 @@ void __attr_always_inline___ profile_compression_start(void) {
 inline void __attr_always_inline___ profile_compression_end(int type) {
 #if defined(PROF_TIME__COMPRESSION)
   CHECK_LOGGING_ENABLED();
-  if (type == COMPRESSION_RMC_HIT) {
+  if (type == 0) { // COMPRESSION_RMC_HIT
     JERRY_CONTEXT(compression_rmc_hit_count)++;
     __stop_watch(&JERRY_CONTEXT(timeval_compression),
                  &JERRY_CONTEXT(compression_rmc_hit_time));
-  } else if (type == COMPRESSION_FIFO_HIT) {
+  } else if (type == 1) { // COMPRESSION_FIFO_HIT
     JERRY_CONTEXT(compression_fifo_hit_count)++;
     __stop_watch(&JERRY_CONTEXT(timeval_compression),
                  &JERRY_CONTEXT(compression_fifo_hit_time));
-  } else if (type == COMPRESSION_FINAL_MISS) {
+  } else if (type == 2) { // COMPRESSION_FINAL_MISS
     JERRY_CONTEXT(compression_final_miss_count)++;
     __stop_watch(&JERRY_CONTEXT(timeval_compression),
                  &JERRY_CONTEXT(compression_final_miss_time));
   } else {
     printf("Invalid argument to profile_compression_end: %d\n", type);
   }
+#else
+  JERRY_UNUSED(type);
 #endif
 }
 
