@@ -19,6 +19,7 @@
 #include "ecma-globals.h"
 #include "jmem.h"
 #include "lit-strings.h"
+#include "jmem-config.h"
 #include "jmem-profiler.h"
 
 /** \addtogroup ecma ECMA
@@ -42,8 +43,14 @@
  * Set value of non-null compressed pointer so that it will correspond
  * to specified non_compressed_pointer.
  */
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+#define ECMA_SET_NON_NULL_POINTER(field, non_compressed_pointer) \
+  profile_inc_count_of_a_type(3); \
+  JMEM_CP_SET_NON_NULL_POINTER (field, non_compressed_pointer)
+#else
 #define ECMA_SET_NON_NULL_POINTER(field, non_compressed_pointer) JMEM_CP_SET_NON_NULL_POINTER (field, \
                                                                                                non_compressed_pointer)
+#endif
 
 /**
  * Set value of compressed pointer so that it will correspond
@@ -96,8 +103,14 @@ JMEM_CP_SET_POINTER (field, non_compressed_pointer)
  * Set an internal property value of non-null pointer so that it will correspond
  * to specified non_compressed_pointer.
  */
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+#define ECMA_SET_INTERNAL_VALUE_POINTER(field, non_compressed_pointer) \
+  profile_inc_count_of_a_type(4); /* compression callers */ \
+  ECMA_SET_NON_NULL_POINTER (field, non_compressed_pointer)
+#else
 #define ECMA_SET_INTERNAL_VALUE_POINTER(field, non_compressed_pointer) \
   ECMA_SET_NON_NULL_POINTER (field, non_compressed_pointer)
+#endif
 
 /**
  * Get an internal property value of pointer from specified compressed pointer.

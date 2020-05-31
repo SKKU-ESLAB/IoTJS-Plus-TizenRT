@@ -18,6 +18,7 @@
 
 #include "jrt.h"
 #include "jmem-config.h"
+#include "jmem-profiler.h"
 
 /** \addtogroup mem Memory allocation
  * @{
@@ -289,13 +290,36 @@ void jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t s
  * Set value of non-null compressed pointer so that it will correspond
  * to specified non_compressed_pointer
  */
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+#define JMEM_CP_SET_NON_NULL_POINTER(cp_value, non_compressed_pointer) \
+  profile_inc_count_of_a_type(2); /* compression callers */ \
+  (cp_value) = jmem_compress_pointer (non_compressed_pointer)
+#else
 #define JMEM_CP_SET_NON_NULL_POINTER(cp_value, non_compressed_pointer) \
   (cp_value) = jmem_compress_pointer (non_compressed_pointer)
+#endif
 
 /**
  * Set value of compressed pointer so that it will correspond
  * to specified non_compressed_pointer
  */
+#ifdef PROF_COUNT__COMPRESSION_CALLERS
+#define JMEM_CP_SET_POINTER(cp_value, non_compressed_pointer) \
+  do \
+  { \
+    void *ptr_value = (void *) non_compressed_pointer; \
+    \
+    if (unlikely ((ptr_value) == NULL)) \
+    { \
+      (cp_value) = JMEM_CP_NULL; \
+    } \
+    else \
+    { \
+      profile_inc_count_of_a_type(5); /* compression callers */ \
+      JMEM_CP_SET_NON_NULL_POINTER (cp_value, ptr_value); \
+    } \
+  } while (false);
+#else
 #define JMEM_CP_SET_POINTER(cp_value, non_compressed_pointer) \
   do \
   { \
@@ -310,7 +334,7 @@ void jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t s
       JMEM_CP_SET_NON_NULL_POINTER (cp_value, ptr_value); \
     } \
   } while (false);
-
+#endif
 /**
  * @}
  * \addtogroup poolman Memory pool manager
