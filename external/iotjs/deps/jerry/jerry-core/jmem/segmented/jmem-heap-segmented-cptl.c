@@ -75,7 +75,7 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
 #ifdef PROF_TIME__COMPRESSION_DETAILED
   profile_compression_end(JERRY_CONTEXT(recent_compression_type));
 #else
-  profile_compression_end(JERRY_CONTEXT(0)); // COMPRESSION_RMC_HIT
+  profile_compression_end(0); // COMPRESSION_RMC_HIT
 #endif
 
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
