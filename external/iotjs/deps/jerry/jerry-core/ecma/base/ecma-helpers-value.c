@@ -89,6 +89,9 @@ ecma_pointer_to_ecma_value (const void *ptr) /**< pointer */
 #else /* !ECMA_VALUE_CAN_STORE_UINTPTR_VALUE_DIRECTLY */
 
   jmem_cpointer_t ptr_cp;
+  #ifdef PROF_COUNT__COMPRESSION_CALLERS
+  profile_inc_count_of_a_type(8); /* compression callers */
+  #endif
   ECMA_SET_NON_NULL_POINTER (ptr_cp, ptr);
   return ((ecma_value_t) ptr_cp) << ECMA_VALUE_SHIFT;
 
