@@ -43,8 +43,8 @@
 // Fast path
 #define SEG_RMAP_CACHE             // caching in reverse map
 // Slow path
-// #define SEG_RMAP_BINSEARCH         // binary search for reverse map
-#define SEG_RMAP_2LEVEL_SEARCH     // 2-level search for reverse map
+#define SEG_RMAP_BINSEARCH         // binary search for reverse map
+// #define SEG_RMAP_2LEVEL_SEARCH     // 2-level search for reverse map
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) // 3) Dynamic heap emulation
 #define DE_SLAB // dynamic heap emulation with slab segment
@@ -57,7 +57,7 @@
 
 /* Reverse map caching config */
 #ifdef SEG_RMAP_CACHE
-#define SEG_RMAP_CACHE_SIZE 16    // cache size (unit: # of entries)
+#define SEG_RMAP_CACHE_SIZE 8     // cache size (unit: # of entries)
 #define SEG_RMAP_CACHE_SET_SIZE 1 // set size (unit: # of entries)
 #define SEG_RMAP_CACHE_WAYS (SEG_RMAP_CACHE_SIZE / SEG_RMAP_CACHE_SET_SIZE)
 #endif /* defined(SEG_RMAP_CACHE) */
@@ -71,8 +71,8 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-// #define PROF_SIZE
-// #define PROF_TIME
+//#define PROF_SIZE
+#define PROF_TIME
 // #define PROF_CPTL // It may degrade performance harshly
 // #define PROF_SEGMENT // It may degrade performance harshly
 // #define PROF_JSOBJECT // It may degrade performance

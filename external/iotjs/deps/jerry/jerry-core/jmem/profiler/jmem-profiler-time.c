@@ -68,10 +68,22 @@ void print_time_profile(void) {
   (JERRY_CONTEXT(x##_count) > 0)                                     \
       ? TOTAL_TIME(x) / (unsigned long long)JERRY_CONTEXT(x##_count) \
       : 0
+#define AVG_TIME3(x, y, z)                                           \
+  ((unsigned long long)JERRY_CONTEXT(x##_count)                      \
+    + (unsigned long long)JERRY_CONTEXT(y##_count)                   \
+    + (unsigned long long)JERRY_CONTEXT(z##_count) > 0)              \
+      ? (TOTAL_TIME3(x,y,z))                                         \
+        / ((unsigned long long)JERRY_CONTEXT(x##_count) +            \
+            (unsigned long long)JERRY_CONTEXT(y##_count) +           \
+            (unsigned long long)JERRY_CONTEXT(z##_count)) : 0
+#define TOTAL_TIME3(x, y, z) (TOTAL_TIME(x) + TOTAL_TIME(y)          \
+                              + TOTAL_TIME(z))
 #define PRINT_TIME_HEADER(fp) fprintf(fp, "Time")
 #define PRINT_TIME(fp, x) fprintf(fp, ", %llu", x)
 #define PRINT_AVG_TIME(fp, x) fprintf(fp, ", %llu", AVG_TIME(x))
+#define PRINT_AVG_TIME3(fp, x, y, z) fprintf(fp, ", %llu", AVG_TIME3(x, y, z))
 #define PRINT_TOTAL_TIME(fp, x) fprintf(fp, ", %llu", TOTAL_TIME(x))
+#define PRINT_TOTAL_TIME3(fp, x, y, z) fprintf(fp, ", %llu", TOTAL_TIME3(x, y, z))
 #define PRINT_TIME_TAIL(fp) fprintf(fp, "\n")
 
   CHECK_LOGGING_ENABLED();
@@ -83,6 +95,7 @@ void print_time_profile(void) {
   PRINT_AVG_TIME(fp, free);
   PRINT_AVG_TIME(fp, gc);
   PRINT_AVG_TIME(fp, decompression);
+  PRINT_AVG_TIME3(fp, compression_rmc_hit, compression_fifo_hit, compression_final_miss);
   PRINT_AVG_TIME(fp, compression_rmc_hit);
   PRINT_AVG_TIME(fp, compression_fifo_hit);
   PRINT_AVG_TIME(fp, compression_final_miss);
@@ -90,6 +103,7 @@ void print_time_profile(void) {
   PRINT_TOTAL_TIME(fp, free);
   PRINT_TOTAL_TIME(fp, gc);
   PRINT_TOTAL_TIME(fp, decompression);
+  PRINT_TOTAL_TIME3(fp, compression_rmc_hit, compression_fifo_hit, compression_final_miss);
   PRINT_TOTAL_TIME(fp, compression_rmc_hit);
   PRINT_TOTAL_TIME(fp, compression_fifo_hit);
   PRINT_TOTAL_TIME(fp, compression_final_miss);
