@@ -178,11 +178,9 @@ typedef struct
   PROFILER_TIME_ENTRY(compression_rmc_hit);
   PROFILER_TIME_ENTRY(compression_fifo_hit);
   PROFILER_TIME_ENTRY(compression_final_miss);
+#endif
 
-#if defined(PROF_TIME__COMPRESSION_DETAILED) || defined(PROF_PMU__COMPRESSION_CYCLES_DETAILED)
   int recent_compression_type;
-#endif
-#endif
 
 #ifdef PROF_PMU
 #define PROFILER_PMU_ENTRY(x) \

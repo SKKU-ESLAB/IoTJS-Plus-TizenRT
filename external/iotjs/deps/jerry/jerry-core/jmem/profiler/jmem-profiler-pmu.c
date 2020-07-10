@@ -145,7 +145,6 @@ static inline unsigned long arm_pmu_read_cycles(void) {
   return r;
 #else
   return 0;
-#error Unsupported architecture/compiler!
 #endif
 }
 
