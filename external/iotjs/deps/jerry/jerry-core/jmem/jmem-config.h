@@ -57,7 +57,7 @@
 
 /* Reverse map caching config */
 #ifdef SEG_RMAP_CACHE
-#define SEG_RMAP_CACHE_SIZE 8     // cache size (unit: # of entries)
+#define SEG_RMAP_CACHE_SIZE 16     // cache size (unit: # of entries)
 #define SEG_RMAP_CACHE_SET_SIZE 1 // set size (unit: # of entries)
 #define SEG_RMAP_CACHE_WAYS (SEG_RMAP_CACHE_SIZE / SEG_RMAP_CACHE_SET_SIZE)
 #endif /* defined(SEG_RMAP_CACHE) */
@@ -73,6 +73,7 @@
 #ifdef JMEM_PROFILE
 //#define PROF_SIZE
 #define PROF_TIME
+#define PROF_PMU
 // #define PROF_CPTL // It may degrade performance harshly
 // #define PROF_SEGMENT // It may degrade performance harshly
 // #define PROF_JSOBJECT // It may degrade performance
@@ -93,10 +94,20 @@
 #define PROF_TIME__COMPRESSION   // It may degrade performance harshly
 
 #ifdef PROF_TIME__COMPRESSION
-#define PROF_TIME__COMPRESSION_DETAILED // It may degrade performance harshly
+#define PROF_TIME__COMPRESSION_DETAILED
 #endif
 
 #endif /* defined(PROF_TIME) */
+
+/* jmem-profiler-pmu.c */
+#ifdef PROF_PMU
+#define PROF_PMU__DECOMPRESSION_CYCLES // It may degrade performance harshly
+#define PROF_PMU__COMPRESSION_CYCLES   // It may degrade performance harshly
+#endif
+
+#ifdef PROF_PMU__COMPRESSION_CYCLES
+#define PROF_PMU__COMPRESSION_CYCLES_DETAILED
+#endif
 
 /* jmem-profiler-cptl.c */
 #ifdef PROF_CPTL

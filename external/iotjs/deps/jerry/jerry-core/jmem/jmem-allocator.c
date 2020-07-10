@@ -77,7 +77,9 @@ jmem_compress_pointer (const void *pointer_p) /**< pointer to compress */
   uint_ptr = (uintptr_t)JMEM_COMPRESS_POINTER_INTERNAL(pointer_p);
 #else /* JMEM_SEGMENTED_HEAP */
   profile_compression_start();
+  profile_compression_cycles_start();
   uint_ptr -= (uintptr_t) &JERRY_HEAP_CONTEXT (first);
+  profile_compression_cycles_end(0);
   profile_compression_end(0); // COMPRESSION_RMC_HIT
 #endif /* !JMEM_SEGMENTED_HEAP */
   uint_ptr >>= JMEM_ALIGNMENT_LOG;
@@ -117,7 +119,9 @@ jmem_decompress_pointer (uintptr_t compressed_pointer) /**< pointer to decompres
   uint_ptr = (uintptr_t)JMEM_DECOMPRESS_POINTER_INTERNAL((uint32_t)uint_ptr);
 #else /* JMEM_SEGMENTED_HEAP */
   profile_decompression_start();
+  profile_decompression_cycles_start();
   uint_ptr += (uintptr_t) &JERRY_HEAP_CONTEXT (first);
+  profile_decompression_cycles_end();
   profile_decompression_end();
 #endif /* !JMEM_SEGMENTED_HEAP */
 #endif

@@ -39,6 +39,9 @@ extern void init_segment_profiler(void);
 /* jmem-profiler-time.c */
 extern void init_time_profiler(void);
 
+/* jmem-profiler-pmu.c */
+extern void init_pmu_profiler(void);
+
 /* jmem-profiler-cptl.c */
 extern void init_cptl_profiler(void);
 
@@ -53,6 +56,7 @@ extern void init_count_profile(void);
 #define PROF_TOTAL_SIZE_FILENAME "/mnt/total_size.log"
 #define PROF_SEGMENT_UTILIZATION_FILENAME "/mnt/segment_utilization.log"
 #define PROF_TIME_FILENAME "/mnt/time.log"
+#define PROF_PMU_FILENAME "/mnt/pmu.log"
 #define PROF_JSOBJECT_ALLOCATION_FILENAME "/mnt/object_allocation.log"
 #define PROF_CPTL_FILENAME "/mnt/cptl.log"
 #define PROF_CPTL_ACCESS_FILENAME "/mnt/cptl_access.log"
@@ -61,6 +65,7 @@ extern void init_count_profile(void);
 #define PROF_TOTAL_SIZE_FILENAME "total_size.log"
 #define PROF_SEGMENT_UTILIZATION_FILENAME "segment_utilization.log"
 #define PROF_TIME_FILENAME "time.log"
+#define PROF_PMU_FILENAME "pmu.log"
 #define PROF_JSOBJECT_ALLOCATION_FILENAME "object_allocation.log"
 #define PROF_CPTL_FILENAME "cptl.log"
 #define PROF_CPTL_ACCESS_FILENAME "cptl_access.log"

@@ -843,14 +843,18 @@ bool jmem_is_heap_pointer(const void *pointer) /**< pointer */
 inline uint32_t __attr_always_inline___
 static_compress_pointer_internal(jmem_heap_free_t *p) {
   profile_compression_start();
+  profile_compression_cycles_start();
   uint32_t cp = (uint32_t)(p) - (uint32_t)(JERRY_HEAP_CONTEXT(area));
+  profile_compression_cycles_end(0);
   profile_compression_end(0); // COMPRESSION_RMC_HIT
   return cp;
 }
 inline jmem_heap_free_t __attr_always_inline___ *
 static_decompress_pointer_internal(uint32_t cp) {
   profile_decompression_start();
+  profile_decompression_cycles_start();
   jmem_heap_free_t *p = ((jmem_heap_free_t *)(JERRY_HEAP_CONTEXT(area) + (cp)));
+  profile_decompression_cycles_end();
   profile_decompression_end();
   return p;
 }

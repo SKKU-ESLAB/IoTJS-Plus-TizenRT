@@ -60,10 +60,12 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   uint32_t cp;
   uint32_t sidx;
 
-#ifdef PROF_TIME__COMPRESSION_DETAILED
+#if defined(PROF_TIME__COMPRESSION_DETAILED) || \
+    defined(PROF_PMU__COMPRESSION_CYCLES_DETAILED)
   JERRY_CONTEXT(recent_compression_type) = 0; // COMPRESSION_RMC_HIT
 #endif
   profile_compression_start();
+  profile_compression_cycles_start();
   sidx = addr_to_saddr_and_sidx((uint8_t *)p);
   if (likely(sidx < SEG_NUM_SEGMENTS)) {
     cp = JERRY_HEAP_CONTEXT(comp_i_offset) + (sidx << SEG_SEGMENT_SHIFT);
@@ -72,9 +74,12 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   } else {
     cp = (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
   }
-#ifdef PROF_TIME__COMPRESSION_DETAILED
+#if defined(PROF_TIME__COMPRESSION_DETAILED) || \
+    defined(PROF_PMU__COMPRESSION_CYCLES_DETAILED)
+  profile_compression_cycles_end(JERRY_CONTEXT(recent_compression_type));
   profile_compression_end(JERRY_CONTEXT(recent_compression_type));
 #else
+  profile_compression_cycles_end(0);
   profile_compression_end(0); // COMPRESSION_RMC_HIT
 #endif
 
@@ -155,7 +160,8 @@ static inline uint32_t __attr_always_inline___ two_level_search(uint8_t *addr) {
       sidx = JERRY_HEAP_CONTEXT(fc_table_sidx[i]);
       JERRY_HEAP_CONTEXT(comp_i_offset) = (uint32_t)result;
       JERRY_HEAP_CONTEXT(comp_i_saddr) = saddr;
-#ifdef PROF_TIME__COMPRESSION_DETAILED
+#if defined(PROF_TIME__COMPRESSION_DETAILED) || \
+    defined(PROF_PMU__COMPRESSION_CYCLES_DETAILED)
       JERRY_CONTEXT(recent_compression_type) = 1; // COMPRESSION_FIFO_HIT
 #endif
       return sidx; // It should be called at least once.
@@ -236,7 +242,8 @@ inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
 #endif /* defined(SEG_RMAP_CACHE) */
 
   // Slow path
-#ifdef PROF_TIME__COMPRESSION_DETAILED
+#if defined(PROF_TIME__COMPRESSION_DETAILED) || \
+    defined(PROF_PMU__COMPRESSION_CYCLES_DETAILED)
   JERRY_CONTEXT(recent_compression_type) = 2; // COMPRESSION_FINAL_MISS
 #endif
 #if defined(SEG_RMAP_BINSEARCH)

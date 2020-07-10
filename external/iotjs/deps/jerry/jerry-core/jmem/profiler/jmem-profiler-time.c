@@ -36,6 +36,7 @@ inline void __attr_always_inline___ init_time_profiler(void) {
   INIT_PROFILER_TIME_ENTRY(alloc);
   INIT_PROFILER_TIME_ENTRY(free);
   INIT_PROFILER_TIME_ENTRY(gc);
+  INIT_PROFILER_TIME_ENTRY(decompression);
   INIT_PROFILER_TIME_ENTRY(compression_rmc_hit);
   INIT_PROFILER_TIME_ENTRY(compression_fifo_hit);
   INIT_PROFILER_TIME_ENTRY(compression_final_miss);

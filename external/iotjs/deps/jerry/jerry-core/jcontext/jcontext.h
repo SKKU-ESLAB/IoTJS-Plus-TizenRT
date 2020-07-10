@@ -179,9 +179,23 @@ typedef struct
   PROFILER_TIME_ENTRY(compression_fifo_hit);
   PROFILER_TIME_ENTRY(compression_final_miss);
 
-#ifdef PROF_TIME__COMPRESSION_DETAILED
+#if defined(PROF_TIME__COMPRESSION_DETAILED) || defined(PROF_PMU__COMPRESSION_CYCLES_DETAILED)
   int recent_compression_type;
 #endif
+#endif
+
+#ifdef PROF_PMU
+#define PROFILER_PMU_ENTRY(x) \
+        unsigned long long x##_cycles; \
+        unsigned int x##_pmu_count
+
+  unsigned long long decompression_cycles_val;
+  unsigned long long compression_cycles_val;
+
+  PROFILER_PMU_ENTRY(decompression);
+  PROFILER_PMU_ENTRY(compression_rmc_hit);
+  PROFILER_PMU_ENTRY(compression_fifo_hit);
+  PROFILER_PMU_ENTRY(compression_final_miss);
 #endif
 
 #ifdef PROF_JSOBJECT_ALLOCATION

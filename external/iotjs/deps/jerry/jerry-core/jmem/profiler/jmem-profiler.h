@@ -40,6 +40,13 @@ extern void profile_decompression_end(void);
 extern void profile_gc_start(void);
 extern void profile_gc_end(void);
 
+/* jmem-profiler-pmu.c: PMU profiling */
+extern void print_pmu_profile(void);
+extern void profile_compression_cycles_start(void);
+extern void profile_compression_cycles_end(int type);
+extern void profile_decompression_cycles_start(void);
+extern void profile_decompression_cycles_end(void);
+
 /* jmem-profiler-segment.c: segment utilization profiling */
 extern void print_segment_utilization_profile_after_free(size_t jsobject_size);
 extern void print_segment_utilization_profile_before_segalloc(

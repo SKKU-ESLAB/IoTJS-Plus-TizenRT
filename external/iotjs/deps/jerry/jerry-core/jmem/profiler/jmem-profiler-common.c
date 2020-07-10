@@ -27,6 +27,7 @@ inline void __attr_always_inline___ init_profilers(void) {
   init_segment_profiler();
   init_time_profiler();
   init_cptl_profiler();
+  init_pmu_profiler();
 #endif
 }
 
@@ -38,7 +39,8 @@ inline void __attr_always_inline___ finalize_profilers(void) {
   print_segment_utilization_profile_finally(); /* Segment-util profiling */
   print_jsobject_allocation_profile(); /* JS object allocation profiling */
   print_cptl_profile_rmc_hit_ratio();  /* CPTL profiling */
-  print_count_profile(); /* Count profiling */
+  print_count_profile();               /* Count profiling */
+  print_pmu_profile();                 /* PMU profiling */
 #endif
 }
 
