@@ -91,14 +91,19 @@ static void jmem_heap_stat_free_iter(void);
 
 static inline void jmem_heap_print_allocator_type(void) {
 /* Print allocator type */
-  printf("IoT.js Memory Optimization Options\n");
-  printf(">> Maximum JavaScript heap size: %dB\n", JMEM_HEAP_AREA_SIZE);
+  printf("\nIoT.js Memory Optimization Options\n");
+  printf(">> Maximum JavaScript heap size: %dKB (%dB)\n",
+    (JMEM_HEAP_AREA_SIZE / 1024), JMEM_HEAP_AREA_SIZE);
 
 // Addressing
-#if defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
+#if defined(JERRY_CPOINTER_32_BIT) \
+    || defined(SEG_FULLBIT_ADDRESS_ALLOC) \
+    || defined(JMEM_DYNAMIC_HEAP_EMUL)
   printf(">> Addressing: Full-bitwidth\n");
+#elif defined(JMEM_SEGMENTED_HEAP)
+  printf(">> Addressing: Multiple base compressed (MBCA)\n");
 #else
-  printf(">> Addressing: Compressed\n");
+  printf(">> Addressing: Single base compressed (SBCA)\n");
 #endif
 
 // Allocator type
