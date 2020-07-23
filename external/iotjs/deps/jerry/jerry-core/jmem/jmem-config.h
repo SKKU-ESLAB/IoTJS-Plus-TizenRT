@@ -40,6 +40,9 @@
 // no options
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
+
+#define SEG_FULLBIT_ADDRESS_ALLOC // fullbit-address allocation
+
 // Fast path
 #define SEG_RMAP_CACHE             // caching in reverse map
 // Slow path

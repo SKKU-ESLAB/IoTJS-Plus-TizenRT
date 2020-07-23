@@ -67,9 +67,9 @@ void jmem_pools_finalize(void) {
   jmem_pools_collect_empty();
 
   JERRY_ASSERT(JERRY_CONTEXT(jmem_free_8_byte_chunk_p) == NULL);
-#ifdef JERRY_CPOINTER_32_BIT
+#if defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
   JERRY_ASSERT(JERRY_CONTEXT(jmem_free_16_byte_chunk_p) == NULL);
-#endif /* JERRY_CPOINTER_32_BIT */
+#endif /* defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC) */
 } /* jmem_pools_finalize */
 
 static inline void *__attr_hot___ __attr_always_inline___
@@ -125,7 +125,7 @@ jmem_pools_alloc(size_t size) /**< size of the chunk */
     }
   }
 
-#ifdef JERRY_CPOINTER_32_BIT
+#if defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
   JERRY_ASSERT(size <= 16);
 
   if (JERRY_CONTEXT(jmem_free_16_byte_chunk_p) != NULL) {
@@ -142,7 +142,7 @@ jmem_pools_alloc(size_t size) /**< size of the chunk */
   } else {
     return (void *)jmem_heap_alloc_block_for_pool(16);
   }
-#else /* !JERRY_CPOINTER_32_BIT */
+#else /* !(defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)) */
   JERRY_UNREACHABLE();
   return NULL;
 #endif
@@ -165,14 +165,14 @@ jmem_pools_free(void *chunk_p, /**< pointer to the chunk */
     chunk_to_free_p->next_p = JERRY_CONTEXT(jmem_free_8_byte_chunk_p);
     JERRY_CONTEXT(jmem_free_8_byte_chunk_p) = chunk_to_free_p;
   } else {
-#ifdef JERRY_CPOINTER_32_BIT
+#if defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
     JERRY_ASSERT(size <= 16);
 
     chunk_to_free_p->next_p = JERRY_CONTEXT(jmem_free_16_byte_chunk_p);
     JERRY_CONTEXT(jmem_free_16_byte_chunk_p) = chunk_to_free_p;
-#else  /* !JERRY_CPOINTER_32_BIT */
+#else  /* !(defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)) */
     JERRY_UNREACHABLE();
-#endif /* JERRY_CPOINTER_32_BIT */
+#endif /* (defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)) */
   }
 
   VALGRIND_NOACCESS_SPACE(chunk_to_free_p, size);
@@ -194,7 +194,7 @@ void jmem_pools_collect_empty(void) {
     chunk_p = next_p;
   }
 
-#ifdef JERRY_CPOINTER_32_BIT
+#if defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
   chunk_p = JERRY_CONTEXT(jmem_free_16_byte_chunk_p);
   JERRY_CONTEXT(jmem_free_16_byte_chunk_p) = NULL;
 
@@ -206,7 +206,7 @@ void jmem_pools_collect_empty(void) {
     jmem_heap_free_block_for_pool(chunk_p, 16);
     chunk_p = next_p;
   }
-#endif /* JERRY_CPOINTER_32_BIT */
+#endif /* defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC) */
 } /* jmem_pools_collect_empty */
 
 #undef VALGRIND_NOACCESS_SPACE

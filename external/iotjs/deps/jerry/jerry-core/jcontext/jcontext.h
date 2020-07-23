@@ -70,9 +70,9 @@ typedef struct
                                                                *   current GC session) and umarked objects */
   jmem_heap_free_t *jmem_heap_list_skip_p; /**< This is used to speed up deallocation. */
   jmem_pools_chunk_t *jmem_free_8_byte_chunk_p; /**< list of free eight byte pool chunks */
-#ifdef JERRY_CPOINTER_32_BIT
+#if defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
   jmem_pools_chunk_t *jmem_free_16_byte_chunk_p; /**< list of free sixteen byte pool chunks */
-#endif /* JERRY_CPOINTER_32_BIT */
+#endif /* defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC) */
   jmem_free_unused_memory_callback_t jmem_free_unused_memory_callback; /**< Callback for freeing up memory. */
   const lit_utf8_byte_t **lit_magic_string_ex_array; /**< array of external magic strings */
   const lit_utf8_size_t *lit_magic_string_ex_sizes; /**< external magic string lengths */

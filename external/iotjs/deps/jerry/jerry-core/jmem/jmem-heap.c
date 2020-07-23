@@ -91,45 +91,70 @@ static void jmem_heap_stat_free_iter(void);
 
 static inline void jmem_heap_print_allocator_type(void) {
 /* Print allocator type */
+  printf("IoT.js Memory Optimization Options\n");
+  printf(">> Maximum JavaScript heap size: %dB\n", JMEM_HEAP_AREA_SIZE);
+
+// Addressing
+#if defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
+  printf(">> Addressing: Full-bitwidth\n");
+#else
+  printf(">> Addressing: Compressed\n");
+#endif
+
+// Allocator type
 #if defined(JERRY_SYSTEM_ALLOCATOR)
-  printf("Dynamic allocation\n");
+  printf(">> Allocator: dynamic object allocation\n");
+#elif defined(JMEM_SEGMENTED_HEAP)
+  printf(">> Allocator: dynamic segment allocation (DSA)\n");
+#elif defined(JMEM_DYNAMIC_HEAP_EMUL)
+  printf(">> Allocator: emulated dynamic object allocation\n");
+#else
+  printf(">> Allocator: static heap reservation\n");
+#endif
+
+  // Allocator detailed: 
+#if defined(JERRY_SYSTEM_ALLOCATOR)
+  // Allocator 1) Dynamic object allocation
 #elif defined(JMEM_SEGMENTED_HEAP) /* defined(JERRY_SYSTEM_ALLOCATOR) */
-  printf("Segmented allocation (Segment size: %dB * %d)\n", SEG_SEGMENT_SIZE,
-         SEG_NUM_SEGMENTS);
+  // Allocator 2) Dynamic segment allocation
+  printf(">>>> Segment size: %dB\n", SEG_SEGMENT_SIZE);
+  printf(">>>> Max segment count: %d\n", SEG_NUM_SEGMENTS);
+
+  // MBCAT Fast path
 #if defined(SEG_RMAP_CACHE)
-  printf(">> Fast path: reverse map cache\n");
+  printf(">>>> MBCAT Fast path: reverse map cache (RMC)\n");
 #if SEG_RMAP_CACHE_SET_SIZE == 1
-  printf("   (Direct-mapped, cache size: %d)\n", SEG_RMAP_CACHE_SIZE);
+  printf(">>>>>> Direct-mapped, cache size: %d\n", SEG_RMAP_CACHE_SIZE);
 #elif SEG_RMAP_CACHE_SIZE == SEG_RMAP_CACHE_SET_SIZE
-  printf("   (Fully-associative, cache size: %d)\n", SEG_RMAP_CACHE_SIZE);
+  printf(">>>>>> Fully-associative, cache size: %d\n", SEG_RMAP_CACHE_SIZE);
 #elif SEG_RMAP_CACHE_SIZE > SEG_RMAP_CACHE_SET_SIZE
-  printf("   (%d-way associative, cache size: %d, set size: %d)\n",
+  printf(">>>>>> %d-way associative, cache size: %d, set size: %d\n",
          SEG_RMAP_CACHE_WAYS, SEG_RMAP_CACHE_SIZE, SEG_RMAP_CACHE_SET_SIZE);
 #else
-  printf("   (Invalid setting, cache size: %d, set size: %d)\n",
+  printf(">>>>>> Invalid RMC setting, cache size: %d, set size: %d\n",
          SEG_RMAP_CACHE_SIZE, SEG_RMAP_CACHE_SET_SIZE);
 #endif /* SEG_RMAP_CACHE_SET_SIZE, SEG_RMAP_CACHE_SET_SIZE */
 #else  /* defined(SEG_RMAP_CACHE) */
-  printf(">> Fast path: none\n");
+  printf(">>>> MBCAT Fast path: none\n");
 #endif /* !defined(SEG_RMAP_CACHE) */
 
+  // MBCAT Slow path
 #if defined(SEG_RMAP_BINSEARCH)
-  printf(">> Slow path: binary search\n");
+  printf(">>>> MBCAT Slow path: binary search based on reverse map tree (RMT)\n");
 #elif defined(SEG_RMAP_2LEVEL_SEARCH)
-  printf(">> Slow path: 2-level search (FIFO cache size: %d)\n",
+  printf(">>>> MBCAT Slow path: 2-level search (FIFO cache size: %d)\n",
          SEG_RMAP_2LEVEL_SEARCH_FIFO_CACHE_SIZE);
 #else
-  printf(">> Slow path: linear search\n");
+  printf(">>>> MBCAT Slow path: linear search based on segment base table\n");
 #endif
 
 #elif defined(JMEM_DYNAMIC_HEAP_EMUL) /* JMEM_SEGMENTED_HEAP */
-  printf("Emulated dynamic allocation (JS heap area size: %dB)\n",
-         JMEM_HEAP_AREA_SIZE);
+  // Allocator 3) Emulated dynamic object allocation
 #if defined(DE_SLAB)
-  printf(">> Slab enabled\n");
+  printf(">>>> Slab enabled\n");
 #endif
 #else /* JMEM_DYNAMIC_HEAP_EMUL */
-  printf("Static allocation (JS heap area size: %dB)\n", JMEM_HEAP_AREA_SIZE);
+  // Allocator 4) Static heap reservation
 #endif
 }
 

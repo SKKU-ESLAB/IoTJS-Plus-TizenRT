@@ -87,7 +87,7 @@ DECLARE_ROUTINES_FOR (collection_chunk)
 
 static inline void __attr_always_inline___ add_full_bitwidth_size(size_t full_bw_size) {
   // Apply the number of cpointers to the actually allocated heap size
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
   // Update additional heap blocks size
   JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) += full_bw_size;
 #if !defined(DE_SLAB)
@@ -100,7 +100,7 @@ static inline void __attr_always_inline___ add_full_bitwidth_size(size_t full_bw
 
 static inline void __attr_always_inline___ sub_full_bitwidth_size(size_t full_bw_size) {
   // Apply the number of cpointers to the actually allocated heap size
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
   // Update additional heap blocks size
   JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) -= full_bw_size;
 #if !defined(DE_SLAB)
@@ -123,7 +123,16 @@ ecma_alloc_object (void)
   jmem_stats_allocate_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-  ecma_object_t * res = (ecma_object_t *) jmem_pools_alloc (sizeof (ecma_object_t));
+  // profiling of full-bitwdith overhead
+  add_full_bitwidth_size(8);
+
+  size_t size_to_allocate = sizeof(ecma_object_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += 8;
+  #endif
+
+  ecma_object_t * res = (ecma_object_t *) jmem_pools_alloc (size_to_allocate);
   return res;
 } /* ecma_alloc_object */
 
@@ -137,7 +146,16 @@ ecma_dealloc_object (ecma_object_t *object_p) /**< object to be freed */
   jmem_stats_free_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-  jmem_pools_free (object_p, sizeof (ecma_object_t));
+  // profiling of full-bitwdith overhead
+  sub_full_bitwidth_size(8);
+
+  size_t size_to_free = sizeof(ecma_object_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_free += 8;
+  #endif
+
+  jmem_pools_free (object_p, size_to_free);
 
 } /* ecma_dealloc_object */
 
@@ -153,12 +171,16 @@ ecma_alloc_extended_object (size_t size) /**< size of object */
   jmem_stats_allocate_object_bytes (size);
 #endif /* JMEM_STATS */
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
+  // profiling of full-bitwdith overhead
   add_full_bitwidth_size(8);
-#endif
 
-  ecma_extended_object_t * res = jmem_heap_alloc_block (size);
+  size_t size_to_allocate = size;
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += 8;
+  #endif
+
+  ecma_extended_object_t * res = jmem_heap_alloc_block (size_to_allocate);
   return res;
 } /* ecma_alloc_extended_object */
 
@@ -173,12 +195,17 @@ ecma_dealloc_extended_object (ecma_extended_object_t *ext_object_p, /**< propert
   jmem_stats_free_object_bytes (size);
 #endif /* JMEM_STATS */
 
-  jmem_heap_free_block (ext_object_p, size);
-
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
+  // profiling of full-bitwdith overhead
   sub_full_bitwidth_size(8);
-#endif
+
+  size_t size_to_free = size;
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_free += 8;
+  #endif
+
+  jmem_heap_free_block (ext_object_p, size_to_free);
+
 } /* ecma_dealloc_extended_object */
 
 /**
@@ -282,12 +309,16 @@ ecma_alloc_property_pair (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
+  // profiling of full-bitwdith overhead
   add_full_bitwidth_size(4);
-#endif
 
-  ecma_property_pair_t * res = jmem_heap_alloc_block (sizeof (ecma_property_pair_t));
+  size_t size_to_allocate = sizeof(ecma_property_pair_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += 4;
+  #endif
+
+  ecma_property_pair_t * res = jmem_heap_alloc_block (size_to_allocate);
   return res;
 } /* ecma_alloc_property_pair */
 
@@ -301,12 +332,17 @@ ecma_dealloc_property_pair (ecma_property_pair_t *property_pair_p) /**< property
   jmem_stats_free_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  jmem_heap_free_block (property_pair_p, sizeof (ecma_property_pair_t));
-
-#if defined(JMEM_DYNAMIC_HEAP_EMUL)
-  // revise actually allocated size
+  // profiling of full-bitwdith overhead
   sub_full_bitwidth_size(4);
-#endif
+
+  size_t size_to_free = sizeof(ecma_property_pair_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_free += 4;
+  #endif
+
+  jmem_heap_free_block (property_pair_p, size_to_free);
+
 } /* ecma_dealloc_property_pair */
 
 /**
