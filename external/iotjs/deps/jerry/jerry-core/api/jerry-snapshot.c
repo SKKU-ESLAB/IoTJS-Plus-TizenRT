@@ -541,7 +541,7 @@ jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source 
 
   if (lit_map_p != NULL)
   {
-    // profiling of full-bitwdith overhead
+    // profiling of full-bitwidth overhead
     sub_full_bitwidth_size(literals_num * 4);
 
     size_t size_to_free = literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t);
@@ -633,7 +633,7 @@ jerry_exec_snapshot (const uint32_t *snapshot_p, /**< snapshot */
 
   if (lit_map_p != NULL)
   {
-    // profiling of full-bitwdith overhead
+    // profiling of full-bitwidth overhead
     sub_full_bitwidth_size(literals_num * 4);
 
     size_t size_to_free = literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t);

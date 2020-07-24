@@ -45,7 +45,7 @@ ecma_free_string_list (ecma_lit_storage_item_t *string_list_p) /**< string list 
       }
     }
 
-    // profiling of full-bitwdith overhead
+    // profiling of full-bitwidth overhead
     sub_full_bitwidth_size(8);
 
     size_t size_to_free = sizeof(ecma_lit_storage_item_t);
@@ -121,7 +121,7 @@ ecma_find_or_create_literal_string (const lit_utf8_byte_t *chars_p, /**< string 
     return result;
   }
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(8);
 
   size_t size_to_allocate = sizeof(ecma_lit_storage_item_t);
@@ -211,7 +211,7 @@ ecma_find_or_create_literal_number (ecma_number_t number_arg) /**< number to be 
     return result;
   }
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(8);
 
   size_t size_to_allocate = sizeof(ecma_lit_storage_item_t);
@@ -319,7 +319,7 @@ ecma_save_literals_for_snapshot (uint32_t *buffer_p, /**< [out] output snapshot 
   uint32_t total_count = string_count + number_count;
   lit_mem_to_snapshot_id_map_entry_t *map_p;
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(total_count * 4);
 
   size_t size_to_allocate = total_count * sizeof (lit_mem_to_snapshot_id_map_entry_t);
@@ -536,7 +536,7 @@ ecma_load_literals_from_snapshot (const uint32_t *buffer_p, /**< buffer with lit
     return true;
   }
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(total_count * 4);
 
   size_t size_to_allocate = total_count * sizeof (lit_mem_to_snapshot_id_map_entry_t);
@@ -553,7 +553,7 @@ ecma_load_literals_from_snapshot (const uint32_t *buffer_p, /**< buffer with lit
     return true;
   }
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   sub_full_bitwidth_size(total_count * 4);
 
   size_t size_to_free = size_to_allocate;

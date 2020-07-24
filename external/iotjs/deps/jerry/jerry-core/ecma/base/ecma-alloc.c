@@ -108,7 +108,7 @@ ecma_alloc_object (void)
   jmem_stats_allocate_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(8);
 
   size_t size_to_allocate = sizeof(ecma_object_t);
@@ -131,7 +131,7 @@ ecma_dealloc_object (ecma_object_t *object_p) /**< object to be freed */
   jmem_stats_free_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   sub_full_bitwidth_size(8);
 
   size_t size_to_free = sizeof(ecma_object_t);
@@ -156,7 +156,7 @@ ecma_alloc_extended_object (size_t size) /**< size of object */
   jmem_stats_allocate_object_bytes (size);
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(8);
 
   size_t size_to_allocate = size;
@@ -180,7 +180,7 @@ ecma_dealloc_extended_object (ecma_extended_object_t *ext_object_p, /**< propert
   jmem_stats_free_object_bytes (size);
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   sub_full_bitwidth_size(8);
 
   size_t size_to_free = size;
@@ -264,7 +264,7 @@ ecma_alloc_getter_setter_pointers (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(4);
 
   size_t size_to_allocate = sizeof(ecma_getter_setter_pointers_t);
@@ -288,7 +288,7 @@ ecma_dealloc_getter_setter_pointers (ecma_getter_setter_pointers_t *getter_sette
   jmem_stats_free_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   sub_full_bitwidth_size(4);
 
   size_t size_to_free = sizeof(ecma_getter_setter_pointers_t);
@@ -312,7 +312,7 @@ ecma_alloc_property_pair (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   add_full_bitwidth_size(4);
 
   size_t size_to_allocate = sizeof(ecma_property_pair_t);
@@ -335,7 +335,7 @@ ecma_dealloc_property_pair (ecma_property_pair_t *property_pair_p) /**< property
   jmem_stats_free_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwdith overhead
+  // profiling of full-bitwidth overhead
   sub_full_bitwidth_size(4);
 
   size_t size_to_free = sizeof(ecma_property_pair_t);
