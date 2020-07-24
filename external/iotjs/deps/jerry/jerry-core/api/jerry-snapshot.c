@@ -541,7 +541,16 @@ jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source 
 
   if (lit_map_p != NULL)
   {
-    jmem_heap_free_block (lit_map_p, literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t));
+    // profiling of full-bitwdith overhead
+    sub_full_bitwidth_size(literals_num * 4);
+
+    size_t size_to_free = literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t);
+    // Over-provision for full-bitwidth address overhead
+    #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+    size_to_free += literals_num * 4;
+    #endif
+
+    jmem_heap_free_block (lit_map_p, size_to_free);
   }
 
   ecma_bytecode_deref (bytecode_data_p);
@@ -624,7 +633,16 @@ jerry_exec_snapshot (const uint32_t *snapshot_p, /**< snapshot */
 
   if (lit_map_p != NULL)
   {
-    jmem_heap_free_block (lit_map_p, literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t));
+    // profiling of full-bitwdith overhead
+    sub_full_bitwidth_size(literals_num * 4);
+
+    size_t size_to_free = literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t);
+    // Over-provision for full-bitwidth address overhead
+    #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+    size_to_free += literals_num * 4;
+    #endif
+
+    jmem_heap_free_block (lit_map_p, size_to_free);
   }
 
   if (bytecode_p == NULL)

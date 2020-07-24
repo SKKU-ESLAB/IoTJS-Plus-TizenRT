@@ -319,7 +319,16 @@ ecma_save_literals_for_snapshot (uint32_t *buffer_p, /**< [out] output snapshot 
   uint32_t total_count = string_count + number_count;
   lit_mem_to_snapshot_id_map_entry_t *map_p;
 
-  map_p = jmem_heap_alloc_block (total_count * sizeof (lit_mem_to_snapshot_id_map_entry_t));
+  // profiling of full-bitwdith overhead
+  add_full_bitwidth_size(total_count * 4);
+
+  size_t size_to_allocate = total_count * sizeof (lit_mem_to_snapshot_id_map_entry_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += total_count * 4;
+  #endif
+
+  map_p = jmem_heap_alloc_block (size_to_allocate);
 
   /* Set return values (no error is possible from here). */
   JERRY_ASSERT ((*in_out_buffer_offset_p % sizeof (uint32_t)) == 0);
@@ -527,7 +536,16 @@ ecma_load_literals_from_snapshot (const uint32_t *buffer_p, /**< buffer with lit
     return true;
   }
 
-  map_p = jmem_heap_alloc_block (total_count * sizeof (lit_mem_to_snapshot_id_map_entry_t));
+  // profiling of full-bitwdith overhead
+  add_full_bitwidth_size(total_count * 4);
+
+  size_t size_to_allocate = total_count * sizeof (lit_mem_to_snapshot_id_map_entry_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += total_count * 4;
+  #endif
+
+  map_p = jmem_heap_alloc_block (size_to_allocate);
   *out_map_p = map_p;
 
   if (ecma_load_literals_from_buffer ((uint16_t *) buffer_p, lit_table_size, map_p, string_count, number_count))
@@ -535,7 +553,12 @@ ecma_load_literals_from_snapshot (const uint32_t *buffer_p, /**< buffer with lit
     return true;
   }
 
-  jmem_heap_free_block (map_p, total_count * sizeof (lit_mem_to_snapshot_id_map_entry_t));
+  // profiling of full-bitwdith overhead
+  sub_full_bitwidth_size(total_count * 4);
+
+  size_t size_to_free = size_to_allocate;
+
+  jmem_heap_free_block (map_p, size_to_free);
   *out_map_p = NULL;
   return false;
 } /* ecma_load_literals_from_snapshot */
