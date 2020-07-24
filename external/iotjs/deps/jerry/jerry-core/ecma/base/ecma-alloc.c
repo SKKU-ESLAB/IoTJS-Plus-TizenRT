@@ -54,11 +54,20 @@ JERRY_STATIC_ASSERT (sizeof (ecma_extended_object_t) - sizeof (ecma_object_t) <=
 /**
  * Template of an allocation routine.
  */
-#define ALLOC(ecma_type) ecma_ ## ecma_type ## _t * \
+
+#ifdef SEG_FULLBIT_ADDRESS_ALLOC
+#define FULL_BITWIDTH_SIZE(full_bw_size) (full_bw_size)
+#else
+#define FULL_BITWIDTH_SIZE(full_bw_size) (0)
+#endif
+
+#define ALLOC(ecma_type, full_bw_size) ecma_ ## ecma_type ## _t * \
   ecma_alloc_ ## ecma_type (void) \
 { \
   ecma_ ## ecma_type ## _t *ecma_type ## _p; \
-  ecma_type ## _p = (ecma_ ## ecma_type ## _t *) jmem_pools_alloc (sizeof (ecma_ ## ecma_type ## _t)); \
+  size_t size_to_allocate = sizeof (ecma_ ## ecma_type ## _t) + FULL_BITWIDTH_SIZE(full_bw_size); \
+  add_full_bitwidth_size(FULL_BITWIDTH_SIZE(full_bw_size)); \
+  ecma_type ## _p = (ecma_ ## ecma_type ## _t *) jmem_pools_alloc (size_to_allocate); \
   \
   JERRY_ASSERT (ecma_type ## _p != NULL); \
   \
@@ -68,48 +77,24 @@ JERRY_STATIC_ASSERT (sizeof (ecma_extended_object_t) - sizeof (ecma_object_t) <=
 /**
  * Deallocation routine template
  */
-#define DEALLOC(ecma_type) void \
+#define DEALLOC(ecma_type, full_bw_size) void \
   ecma_dealloc_ ## ecma_type (ecma_ ## ecma_type ## _t *ecma_type ## _p) \
 { \
-  jmem_pools_free ((uint8_t *) ecma_type ## _p, sizeof (ecma_ ## ecma_type ## _t)); \
+  size_t size_to_free = sizeof (ecma_ ## ecma_type ## _t) + FULL_BITWIDTH_SIZE(full_bw_size); \
+  sub_full_bitwidth_size(FULL_BITWIDTH_SIZE(full_bw_size)); \
+  jmem_pools_free ((uint8_t *) ecma_type ## _p, size_to_free); \
 }
 
 /**
  * Declaration of alloc/free routine for specified ecma-type.
  */
-#define DECLARE_ROUTINES_FOR(ecma_type) \
-  ALLOC (ecma_type) \
-  DEALLOC (ecma_type)
+#define DECLARE_ROUTINES_FOR(ecma_type, full_bw_size) \
+  ALLOC (ecma_type, full_bw_size) \
+  DEALLOC (ecma_type, full_bw_size)
 
-DECLARE_ROUTINES_FOR (number)
-DECLARE_ROUTINES_FOR (collection_header)
-DECLARE_ROUTINES_FOR (collection_chunk)
-
-static inline void __attr_always_inline___ add_full_bitwidth_size(size_t full_bw_size) {
-  // Apply the number of cpointers to the actually allocated heap size
-#if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
-  // Update additional heap blocks size
-  JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) += full_bw_size;
-#if !defined(DE_SLAB)
-  JERRY_CONTEXT(jmem_allocated_heap_size) += full_bw_size;
-#endif
-#else
-  JERRY_UNUSED(full_bw_size);
-#endif
-}
-
-static inline void __attr_always_inline___ sub_full_bitwidth_size(size_t full_bw_size) {
-  // Apply the number of cpointers to the actually allocated heap size
-#if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
-  // Update additional heap blocks size
-  JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) -= full_bw_size;
-#if !defined(DE_SLAB)
-  JERRY_CONTEXT(jmem_allocated_heap_size) -= full_bw_size;
-#endif
-#else
-  JERRY_UNUSED(full_bw_size);
-#endif
-}
+DECLARE_ROUTINES_FOR (number, 0)
+DECLARE_ROUTINES_FOR (collection_header, 8)
+DECLARE_ROUTINES_FOR (collection_chunk, 0)
 
 /**
  * Allocate memory for ecma-object
@@ -279,7 +264,16 @@ ecma_alloc_getter_setter_pointers (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  ecma_getter_setter_pointers_t * res = (ecma_getter_setter_pointers_t *) jmem_pools_alloc (sizeof (ecma_getter_setter_pointers_t));
+  // profiling of full-bitwdith overhead
+  add_full_bitwidth_size(4);
+
+  size_t size_to_allocate = sizeof(ecma_getter_setter_pointers_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += 4;
+  #endif
+
+  ecma_getter_setter_pointers_t * res = (ecma_getter_setter_pointers_t *) jmem_pools_alloc (size_to_allocate);
   return res;
 } /* ecma_alloc_getter_setter_pointers */
 
@@ -294,7 +288,16 @@ ecma_dealloc_getter_setter_pointers (ecma_getter_setter_pointers_t *getter_sette
   jmem_stats_free_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  jmem_pools_free (getter_setter_pointers_p, sizeof (ecma_getter_setter_pointers_t));
+  // profiling of full-bitwdith overhead
+  sub_full_bitwidth_size(4);
+
+  size_t size_to_free = sizeof(ecma_getter_setter_pointers_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_free += 4;
+  #endif
+
+  jmem_pools_free (getter_setter_pointers_p, size_to_free);
 } /* ecma_dealloc_getter_setter_pointers */
 
 /**

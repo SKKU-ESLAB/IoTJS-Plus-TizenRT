@@ -371,6 +371,11 @@ snapshot_load_compiled_code (const uint8_t *snapshot_data_p, /**< snapshot data 
   if (copy_bytecode
       || (header_size + (literal_end * sizeof (uint16_t)) + BYTECODE_NO_COPY_THRESHOLD > code_size))
   {
+    // jmem-profiler
+  #if defined(JMEM_PROFILE) && defined(PROF_SIZE)
+    JERRY_CONTEXT(jmem_snapshot_size) += (size_t)code_size;
+  #endif
+
     bytecode_p = (ecma_compiled_code_t *) jmem_heap_alloc_block (code_size);
 
 #ifdef JMEM_STATS
@@ -385,6 +390,11 @@ snapshot_load_compiled_code (const uint8_t *snapshot_data_p, /**< snapshot data 
 
     uint8_t *real_bytecode_p = ((uint8_t *) bytecode_p) + code_size;
     uint32_t total_size = JERRY_ALIGNUP (code_size + 1 + sizeof (uint8_t *), JMEM_ALIGNMENT);
+  
+    // jmem-profiler
+  #if defined(JMEM_PROFILE) && defined(PROF_SIZE)
+    JERRY_CONTEXT(jmem_snapshot_size) += (size_t)total_size;
+  #endif
 
     bytecode_p = (ecma_compiled_code_t *) jmem_heap_alloc_block (total_size);
 

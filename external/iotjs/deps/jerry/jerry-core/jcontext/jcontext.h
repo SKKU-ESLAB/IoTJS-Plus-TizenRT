@@ -89,6 +89,7 @@ typedef struct
   size_t jmem_allocated_heap_size; /**< allocated heap size (including over-provision) */
   size_t jmem_system_allocator_metadata_size; /**< system allocator metadata size */
   size_t jmem_segment_allocator_metadata_size; /**< segment allocator metadata size */
+  size_t jmem_snapshot_size; /**< snapshot size */
   uint32_t jmem_heap_allocated_blocks_count; /**< the count of allocated JS objects in the heap */
 
   size_t jmem_heap_limit; /**< current limit of heap usage, that is upon being reached,

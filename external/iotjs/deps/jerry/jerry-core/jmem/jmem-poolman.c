@@ -209,6 +209,32 @@ void jmem_pools_collect_empty(void) {
 #endif /* defined(JERRY_CPOINTER_32_BIT) || defined(SEG_FULLBIT_ADDRESS_ALLOC) */
 } /* jmem_pools_collect_empty */
 
+inline void __attr_always_inline___ add_full_bitwidth_size(size_t full_bw_size) {
+  // Apply the number of cpointers to the actually allocated heap size
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
+  // Update additional heap blocks size
+  JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) += full_bw_size;
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && !defined(DE_SLAB)
+  JERRY_CONTEXT(jmem_allocated_heap_size) += full_bw_size;
+#endif
+#else
+  JERRY_UNUSED(full_bw_size);
+#endif
+}
+
+inline void __attr_always_inline___ sub_full_bitwidth_size(size_t full_bw_size) {
+  // Apply the number of cpointers to the actually allocated heap size
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) || defined(SEG_FULLBIT_ADDRESS_ALLOC)
+  // Update additional heap blocks size
+  JERRY_CONTEXT(jmem_full_bitwidth_pointer_overhead) -= full_bw_size;
+#if defined(JMEM_DYNAMIC_HEAP_EMUL) && !defined(DE_SLAB)
+  JERRY_CONTEXT(jmem_allocated_heap_size) -= full_bw_size;
+#endif
+#else
+  JERRY_UNUSED(full_bw_size);
+#endif
+}
+
 #undef VALGRIND_NOACCESS_SPACE
 #undef VALGRIND_UNDEFINED_SPACE
 #undef VALGRIND_DEFINED_SPACE

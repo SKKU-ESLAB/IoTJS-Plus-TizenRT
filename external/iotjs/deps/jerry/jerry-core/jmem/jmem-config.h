@@ -74,9 +74,9 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-//#define PROF_SIZE
-#define PROF_TIME
-#define PROF_PMU
+#define PROF_SIZE
+// #define PROF_TIME
+// #define PROF_PMU
 // #define PROF_CPTL // It may degrade performance harshly
 // #define PROF_SEGMENT // It may degrade performance harshly
 // #define PROF_JSOBJECT // It may degrade performance

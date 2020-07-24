@@ -344,6 +344,9 @@ void jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t s
 void *jmem_pools_alloc (size_t size);
 void jmem_pools_free (void *chunk_p, size_t size);
 
+void add_full_bitwidth_size(size_t full_bw_size);
+void sub_full_bitwidth_size(size_t full_bw_size);
+
 /**
  * @}
  * @}

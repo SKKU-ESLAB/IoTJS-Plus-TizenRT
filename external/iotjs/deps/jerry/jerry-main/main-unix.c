@@ -611,6 +611,7 @@ main (int argc,
     {
       size_t snapshot_size;
       const uint32_t *snapshot_p = read_file (exec_snapshot_file_names[i], &snapshot_size);
+      printf("(Read) Snapshot size: %dB\n", snapshot_size);
 
       if (snapshot_p == NULL)
       {
@@ -636,6 +637,7 @@ main (int argc,
     {
       size_t source_size;
       const jerry_char_t *source_p = (jerry_char_t *) read_file (file_names[i], &source_size);
+      printf("(Read) Source size: %dB\n", source_size);
 
       if (source_p == NULL)
       {
@@ -661,6 +663,7 @@ main (int argc,
                                                                 false,
                                                                 snapshot_save_buffer,
                                                                 JERRY_SNAPSHOT_BUFFER_SIZE);
+          printf("(Save) Snapshot size: %dB\n", snapshot_size);
           if (snapshot_size == 0)
           {
             ret_value = jerry_create_error (JERRY_ERROR_COMMON, (jerry_char_t *) "Snapshot saving failed!");
@@ -681,6 +684,7 @@ main (int argc,
                                                                             snapshot_save_buffer,
                                                                             JERRY_SNAPSHOT_BUFFER_SIZE,
                                                                             is_save_literals_mode_in_c_format_or_list);
+          printf("(Save) Literal buffer size: %dB\n", literal_buffer_size);
           if (literal_buffer_size == 0)
           {
             ret_value = jerry_create_error (JERRY_ERROR_COMMON, (jerry_char_t *) "Literal saving failed!");

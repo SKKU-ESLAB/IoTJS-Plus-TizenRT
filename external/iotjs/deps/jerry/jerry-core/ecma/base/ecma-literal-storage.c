@@ -45,9 +45,18 @@ ecma_free_string_list (ecma_lit_storage_item_t *string_list_p) /**< string list 
       }
     }
 
+    // profiling of full-bitwdith overhead
+    sub_full_bitwidth_size(8);
+
+    size_t size_to_free = sizeof(ecma_lit_storage_item_t);
+    // Over-provision for full-bitwidth address overhead
+    #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+    size_to_free += 8;
+    #endif
+
     ecma_lit_storage_item_t *prev_item = string_list_p;
     string_list_p = JMEM_CP_GET_POINTER (ecma_lit_storage_item_t, string_list_p->next_cp);
-    jmem_pools_free (prev_item, sizeof (ecma_lit_storage_item_t));
+    jmem_pools_free (prev_item, size_to_free);
   }
 } /* ecma_free_string_list */
 
@@ -112,8 +121,17 @@ ecma_find_or_create_literal_string (const lit_utf8_byte_t *chars_p, /**< string 
     return result;
   }
 
+  // profiling of full-bitwdith overhead
+  add_full_bitwidth_size(8);
+
+  size_t size_to_allocate = sizeof(ecma_lit_storage_item_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += 8;
+  #endif
+
   ecma_lit_storage_item_t *new_item_p;
-  new_item_p = (ecma_lit_storage_item_t *) jmem_pools_alloc (sizeof (ecma_lit_storage_item_t));
+  new_item_p = (ecma_lit_storage_item_t *) jmem_pools_alloc (size_to_allocate);
 
   new_item_p->values[0] = result;
   for (int i = 1; i < ECMA_LIT_STORAGE_VALUE_COUNT; i++)
@@ -193,8 +211,17 @@ ecma_find_or_create_literal_number (ecma_number_t number_arg) /**< number to be 
     return result;
   }
 
+  // profiling of full-bitwdith overhead
+  add_full_bitwidth_size(8);
+
+  size_t size_to_allocate = sizeof(ecma_lit_storage_item_t);
+  // Over-provision for full-bitwidth address overhead
+  #ifdef SEG_FULLBIT_ADDRESS_ALLOC
+  size_to_allocate += 8;
+  #endif
+
   ecma_lit_storage_item_t *new_item_p;
-  new_item_p = (ecma_lit_storage_item_t *) jmem_pools_alloc (sizeof (ecma_lit_storage_item_t));
+  new_item_p = (ecma_lit_storage_item_t *) jmem_pools_alloc (size_to_allocate);
 
   new_item_p->values[0] = result;
   for (int i = 1; i < ECMA_LIT_STORAGE_VALUE_COUNT; i++)
