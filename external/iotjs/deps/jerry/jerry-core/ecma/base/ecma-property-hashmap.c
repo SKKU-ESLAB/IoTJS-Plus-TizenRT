@@ -30,10 +30,10 @@
 
 // Calculating full-bitwidth overhead
 #ifdef SEG_FULLBIT_ADDRESS_ALLOC
-#define ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD (max_property_count) \
+#define ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(max_property_count) \
   (max_property_count * 2)
 #else
-#define ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD (max_property_count) \
+#define ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(max_property_count) \
   (0)
 #endif
 
