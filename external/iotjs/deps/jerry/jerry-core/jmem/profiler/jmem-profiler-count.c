@@ -60,5 +60,6 @@ inline void __attr_always_inline___ profile_add_count_size_detailed(int type, si
   JERRY_CONTEXT(prof_count[type]) += (int)size;
 #else  /* defined(PROF_COUNT) */
   JERRY_UNUSED(type);
+  JERRY_UNUSED(size);
 #endif /* !defined(PROF_COUNT) */
 }
