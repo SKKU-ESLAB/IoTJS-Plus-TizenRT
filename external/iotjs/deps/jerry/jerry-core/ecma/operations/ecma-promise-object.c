@@ -449,6 +449,10 @@ ecma_promise_create_resolving_functions (ecma_object_t *object_p) /**< the promi
                       already_resolved,
                       false);
 
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(30, sizeof(ecma_promise_resolving_functions_t)); /* size detailed */
+  #endif
+
   /* 8. */
   ecma_promise_resolving_functions_t *funcs = jmem_heap_alloc_block (sizeof (ecma_promise_resolving_functions_t));
   funcs->resolve = ecma_make_object_value (resolve_p);
@@ -467,6 +471,11 @@ ecma_promise_free_resolving_functions (ecma_promise_resolving_functions_t *funcs
 {
   ecma_free_value (funcs->resolve);
   ecma_free_value (funcs->reject);
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(30, -sizeof(ecma_promise_resolving_functions_t)); /* size detailed */
+  #endif
+
   jmem_heap_free_block (funcs, sizeof (ecma_promise_resolving_functions_t));
 } /* ecma_promise_free_resolving_functions */
 

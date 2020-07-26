@@ -376,6 +376,10 @@ snapshot_load_compiled_code (const uint8_t *snapshot_data_p, /**< snapshot data 
     JERRY_CONTEXT(jmem_snapshot_size) += (size_t)code_size;
   #endif
 
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(31, code_size); /* size detailed */
+    #endif
+
     bytecode_p = (ecma_compiled_code_t *) jmem_heap_alloc_block (code_size);
 
 #ifdef JMEM_STATS
@@ -395,6 +399,10 @@ snapshot_load_compiled_code (const uint8_t *snapshot_data_p, /**< snapshot data 
   #if defined(JMEM_PROFILE) && defined(PROF_SIZE)
     JERRY_CONTEXT(jmem_snapshot_size) += (size_t)total_size;
   #endif
+
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(31, total_size); /* size detailed */
+    #endif
 
     bytecode_p = (ecma_compiled_code_t *) jmem_heap_alloc_block (total_size);
 
@@ -550,6 +558,10 @@ jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source 
     size_to_free += literals_num * 4;
     #endif
 
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(13, -size_to_free); /* size detailed */
+    #endif
+
     jmem_heap_free_block (lit_map_p, size_to_free);
   }
 
@@ -640,6 +652,10 @@ jerry_exec_snapshot (const uint32_t *snapshot_p, /**< snapshot */
     // Over-provision for full-bitwidth address overhead
     #ifdef SEG_FULLBIT_ADDRESS_ALLOC
     size_to_free += literals_num * 4;
+    #endif
+
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(13, -size_to_free); /* size detailed */
     #endif
 
     jmem_heap_free_block (lit_map_p, size_to_free);

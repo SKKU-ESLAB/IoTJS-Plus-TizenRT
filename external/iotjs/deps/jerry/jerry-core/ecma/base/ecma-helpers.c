@@ -185,7 +185,7 @@ ecma_create_object_lex_env (ecma_object_t *outer_lexical_environment_p, /**< out
   ecma_init_gc_info (new_lexical_environment_p);
 
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(11); /* compression callers */
+  profile_inc_count_compression_callers(11); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (new_lexical_environment_p->property_list_or_bound_object_cp,
                              binding_obj_p);
@@ -512,7 +512,7 @@ ecma_create_property (ecma_object_t *object_p, /**< the object */
   first_property_pair_p->header.types[1] = type_and_flags;
 
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(12); /* compression callers */
+  profile_inc_count_compression_callers(12); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (*property_list_head_p, &first_property_pair_p->header);
 
@@ -1449,6 +1449,10 @@ ecma_bytecode_deref (ecma_compiled_code_t *bytecode_p) /**< byte code pointer */
     ecma_deref_ecma_string (ECMA_GET_NON_NULL_POINTER (ecma_string_t, re_bytecode_p->pattern_cp));
 #endif /* !CONFIG_DISABLE_REGEXP_BUILTIN */
   }
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(31, -(((size_t) bytecode_p->size) << JMEM_ALIGNMENT_LOG)); /* size detailed */
+  #endif
 
   jmem_heap_free_block (bytecode_p,
                         ((size_t) bytecode_p->size) << JMEM_ALIGNMENT_LOG);

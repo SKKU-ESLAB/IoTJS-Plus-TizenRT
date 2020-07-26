@@ -54,6 +54,10 @@ ecma_free_string_list (ecma_lit_storage_item_t *string_list_p) /**< string list 
     size_to_free += 8;
     #endif
 
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(6, -size_to_free); /* size detailed */
+    #endif
+
     ecma_lit_storage_item_t *prev_item = string_list_p;
     string_list_p = JMEM_CP_GET_POINTER (ecma_lit_storage_item_t, string_list_p->next_cp);
     jmem_pools_free (prev_item, size_to_free);
@@ -128,6 +132,10 @@ ecma_find_or_create_literal_string (const lit_utf8_byte_t *chars_p, /**< string 
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_allocate += 8;
+  #endif
+  
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(6, size_to_allocate); /* size detailed */
   #endif
 
   ecma_lit_storage_item_t *new_item_p;
@@ -218,6 +226,10 @@ ecma_find_or_create_literal_number (ecma_number_t number_arg) /**< number to be 
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_allocate += 8;
+  #endif
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(6, size_to_allocate); /* size detailed */
   #endif
 
   ecma_lit_storage_item_t *new_item_p;
@@ -326,6 +338,10 @@ ecma_save_literals_for_snapshot (uint32_t *buffer_p, /**< [out] output snapshot 
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_allocate += total_count * 4;
+  #endif
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(13, size_to_allocate); /* size detailed */
   #endif
 
   map_p = jmem_heap_alloc_block (size_to_allocate);
@@ -545,6 +561,10 @@ ecma_load_literals_from_snapshot (const uint32_t *buffer_p, /**< buffer with lit
   size_to_allocate += total_count * 4;
   #endif
 
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(13, size_to_allocate); /* size detailed */
+  #endif
+
   map_p = jmem_heap_alloc_block (size_to_allocate);
   *out_map_p = map_p;
 
@@ -557,6 +577,10 @@ ecma_load_literals_from_snapshot (const uint32_t *buffer_p, /**< buffer with lit
   sub_full_bitwidth_size(total_count * 4);
 
   size_t size_to_free = size_to_allocate;
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(13, -size_to_free); /* size detailed */
+  #endif
 
   jmem_heap_free_block (map_p, size_to_free);
   *out_map_p = NULL;

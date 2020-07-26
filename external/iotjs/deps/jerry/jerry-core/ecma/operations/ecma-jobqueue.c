@@ -70,6 +70,11 @@ ecma_create_promise_reaction_job (ecma_value_t reaction, /**< PromiseReaction */
   JERRY_ASSERT (ecma_is_value_object (reaction));
 
   ecma_job_promise_reaction_t *job_p;
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(27, sizeof(ecma_job_promise_reaction_t)); /* size detailed */
+  #endif
+
   job_p = (ecma_job_promise_reaction_t *) jmem_heap_alloc_block (sizeof (ecma_job_promise_reaction_t));
   job_p->reaction = ecma_copy_value (reaction);
   job_p->argument = ecma_copy_value (argument);
@@ -87,6 +92,10 @@ ecma_free_promise_reaction_job (ecma_job_promise_reaction_t *job_p) /**< points 
 
   ecma_free_value (job_p->reaction);
   ecma_free_value (job_p->argument);
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(27, -sizeof(ecma_job_promise_reaction_t)); /* size detailed */
+  #endif
 
   jmem_heap_free_block (job_p, sizeof (ecma_job_promise_reaction_t));
 } /* ecma_free_promise_reaction_job */
@@ -106,6 +115,11 @@ ecma_create_promise_resolve_thenable_job (ecma_value_t promise, /**< promise to 
   JERRY_ASSERT (ecma_op_is_callable (then));
 
   ecma_job_promise_resolve_thenable_t *job_p;
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(28, sizeof(ecma_job_promise_resolve_thenable_t)); /* size detailed */
+  #endif
+
   job_p = (ecma_job_promise_resolve_thenable_t *) jmem_heap_alloc_block (sizeof (ecma_job_promise_resolve_thenable_t));
 
   job_p->promise = ecma_copy_value (promise);
@@ -127,6 +141,10 @@ ecma_free_promise_resolve_thenable_job (ecma_job_promise_resolve_thenable_t *job
   ecma_free_value (job_p->promise);
   ecma_free_value (job_p->thenable);
   ecma_free_value (job_p->then);
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(28, -sizeof(ecma_job_promise_resolve_thenable_t)); /* size detailed */
+  #endif
 
   jmem_heap_free_block (job_p, sizeof (ecma_job_promise_resolve_thenable_t));
 } /* ecma_free_promise_resolve_thenable_job */
@@ -272,6 +290,10 @@ static void
 ecma_enqueue_job (ecma_job_handler_t handler, /**< the handler for the job */
                   void *job_p) /**< the job */
 {
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(29, sizeof(ecma_job_queueitem_t)); /* size detailed */
+  #endif
+
   ecma_job_queueitem_t *item_p = jmem_heap_alloc_block (sizeof (ecma_job_queueitem_t));
   item_p->job_p = job_p;
   item_p->handler = handler;
@@ -333,6 +355,11 @@ ecma_process_all_enqueued_jobs (void)
 
     void *job_p = item_p->job_p;
     ecma_job_handler_t handler = item_p->handler;
+
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(29, -sizeof(ecma_job_queueitem_t)); /* size detailed */
+    #endif
+
     jmem_heap_free_block (item_p, sizeof (ecma_job_queueitem_t));
 
     ecma_free_value (ret);

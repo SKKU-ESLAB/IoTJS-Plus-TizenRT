@@ -173,7 +173,7 @@ ecma_append_to_values_collection (ecma_collection_header_t *header_p, /**< colle
       JERRY_ASSERT (header_p->first_chunk_cp == ECMA_NULL_POINTER);
 
       #ifdef PROF_COUNT__COMPRESSION_CALLERS
-      profile_inc_count_of_a_type(9); /* compression callers */
+      profile_inc_count_compression_callers(9); /* compression callers */
       #endif
       ECMA_SET_NON_NULL_POINTER (header_p->first_chunk_cp, chunk_p);
     }
@@ -185,13 +185,13 @@ ecma_append_to_values_collection (ecma_collection_header_t *header_p, /**< colle
       JERRY_ASSERT (last_chunk_p->next_chunk_cp == ECMA_NULL_POINTER);
 
       #ifdef PROF_COUNT__COMPRESSION_CALLERS
-      profile_inc_count_of_a_type(9); /* compression callers */
+      profile_inc_count_compression_callers(9); /* compression callers */
       #endif
       ECMA_SET_NON_NULL_POINTER (last_chunk_p->next_chunk_cp, chunk_p);
     }
 
     #ifdef PROF_COUNT__COMPRESSION_CALLERS
-    profile_inc_count_of_a_type(9); /* compression callers */
+    profile_inc_count_compression_callers(9); /* compression callers */
     #endif
     ECMA_SET_NON_NULL_POINTER (header_p->last_chunk_cp, chunk_p);
   }
@@ -269,7 +269,7 @@ ecma_remove_last_value_from_values_collection (ecma_collection_header_t *header_
                                                new_last_chunk_p->next_chunk_cp) == chunk_to_remove_p);
 
       #ifdef PROF_COUNT__COMPRESSION_CALLERS
-      profile_inc_count_of_a_type(10); /* compression callers */
+      profile_inc_count_compression_callers(10); /* compression callers */
       #endif
       ECMA_SET_NON_NULL_POINTER (header_p->last_chunk_cp, new_last_chunk_p);
       new_last_chunk_p->next_chunk_cp = ECMA_NULL_POINTER;

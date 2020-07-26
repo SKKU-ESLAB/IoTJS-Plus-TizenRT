@@ -292,7 +292,7 @@ void jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t s
  */
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
 #define JMEM_CP_SET_NON_NULL_POINTER(cp_value, non_compressed_pointer) \
-  profile_inc_count_of_a_type(2); /* compression callers */ \
+  profile_inc_count_compression_callers(2); /* compression callers */ \
   (cp_value) = jmem_compress_pointer (non_compressed_pointer)
 #else
 #define JMEM_CP_SET_NON_NULL_POINTER(cp_value, non_compressed_pointer) \
@@ -315,7 +315,7 @@ void jmem_run_free_unused_memory_callbacks (jmem_free_unused_memory_severity_t s
     } \
     else \
     { \
-      profile_inc_count_of_a_type(5); /* compression callers */ \
+      profile_inc_count_compression_callers(5); /* compression callers */ \
       JMEM_CP_SET_NON_NULL_POINTER (cp_value, ptr_value); \
     } \
   } while (false);

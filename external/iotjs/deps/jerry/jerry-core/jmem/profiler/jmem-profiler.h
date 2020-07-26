@@ -66,8 +66,11 @@ extern void profile_inc_rmc_access_count(void);
 extern void profile_inc_rmc_miss_count(void);
 extern void print_cptl_access(uint32_t sidx, int type_depth);
 
-/* jmem-profiler-count.c : Count profiling for investigation */
+/* jmem-profiler-count.c : Temporary count profiling for investigation */
 extern void print_count_profile(void);
-extern void profile_inc_count_of_a_type(int type_miss_penalty);
+/** PROF_COUNT__COMPRESSION_CALLERS **/
+extern void profile_inc_count_compression_callers(int type_miss_penalty);
+/** PROF_COUNT__ **/
+extern void profile_add_count_size_detailed(int type, size_t size);
 
 #endif /* !defined(JMEM_PROFILER_H) */

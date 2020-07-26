@@ -558,7 +558,7 @@ vm_init_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
   bool is_strict = ((frame_ctx_p->bytecode_header_p->status_flags & CBC_CODE_FLAGS_STRICT_MODE) != 0);
   jmem_cpointer_t self_reference;
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(18); /* compression callers */
+  profile_inc_count_compression_callers(18); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (self_reference, bytecode_header_p);
 

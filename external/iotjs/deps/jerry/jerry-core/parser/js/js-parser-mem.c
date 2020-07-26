@@ -40,6 +40,11 @@ parser_malloc (parser_context_t *context_p, /**< context */
   void *result;
 
   JERRY_ASSERT (size > 0);
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(31, size); /* size detailed */
+  #endif
+
   result = jmem_heap_alloc_block_null_on_error (size);
 
   if (result == NULL)
@@ -55,6 +60,10 @@ parser_malloc (parser_context_t *context_p, /**< context */
 void parser_free (void *ptr, /**< pointer to free */
                   size_t size) /**< size of the memory block */
 {
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(31, -size); /* size detailed */
+  #endif
+
   jmem_heap_free_block (ptr, size);
 } /* parser_free */
 
@@ -70,6 +79,11 @@ parser_malloc_local (parser_context_t *context_p, /**< context */
   void *result;
 
   JERRY_ASSERT (size > 0);
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(31, size); /* size detailed */
+  #endif
+
   result = jmem_heap_alloc_block (size);
   if (result == 0)
   {
@@ -84,6 +98,10 @@ parser_malloc_local (parser_context_t *context_p, /**< context */
 void parser_free_local (void *ptr, /**< pointer to free */
                         size_t size) /**< size of the memory */
 {
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(31, -size); /* size detailed */
+  #endif
+
   jmem_heap_free_block (ptr, size);
 } /* parser_free_local */
 

@@ -84,7 +84,7 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
 #endif
 
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(0); // compression callers
+  profile_inc_count_compression_callers(0); // compression callers
 #endif
   return cp;
 }

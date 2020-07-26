@@ -62,6 +62,10 @@ jerry_debugger_free_unreferenced_byte_code (void)
     prev_byte_code_free_p = JMEM_CP_GET_POINTER (jerry_debugger_byte_code_free_t,
                                                  byte_code_free_p->prev_cp);
 
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(23, -(((size_t) byte_code_free_p->size) << JMEM_ALIGNMENT_LOG)); /* size detailed */
+    #endif
+
     jmem_heap_free_block (byte_code_free_p,
                           ((size_t) byte_code_free_p->size) << JMEM_ALIGNMENT_LOG);
 
@@ -270,6 +274,10 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 
     if (recv_buffer_p[0] != *expected_message_type_p)
     {
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(23, -(uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t))); /* size detailed */
+      #endif
+
       jmem_heap_free_block (uint8_data_p, uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t));
       jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Unexpected message\n");
       jerry_debugger_close_connection ();
@@ -280,6 +288,10 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 
     if (message_size < sizeof (jerry_debugger_receive_uint8_data_part_t) + 1)
     {
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(23, -(uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t))); /* size detailed */
+      #endif
+
       jmem_heap_free_block (uint8_data_p, uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t));
       jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Invalid message size\n");
       jerry_debugger_close_connection ();
@@ -292,6 +304,10 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 
     if (message_size > expected_data)
     {
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(23, -(uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t))); /* size detailed */
+      #endif
+
       jmem_heap_free_block (uint8_data_p, uint8_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t));
       jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Invalid message size\n");
       jerry_debugger_close_connection ();
@@ -361,6 +377,10 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 #ifdef JMEM_STATS
       jmem_stats_free_byte_code_bytes (((size_t) byte_code_free_p->size) << JMEM_ALIGNMENT_LOG);
 #endif /* JMEM_STATS */
+
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(23, -(((size_t) byte_code_free_p->size) << JMEM_ALIGNMENT_LOG)); /* size detailed */
+      #endif
 
       jmem_heap_free_block (byte_code_free_p,
                             ((size_t) byte_code_free_p->size) << JMEM_ALIGNMENT_LOG);
@@ -494,6 +514,10 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
       jerry_debugger_uint8_data_t *eval_uint8_data_p;
       size_t eval_data_size = sizeof (jerry_debugger_uint8_data_t) + eval_size;
 
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(23, eval_data_size); /* size detailed */
+      #endif
+
       eval_uint8_data_p = (jerry_debugger_uint8_data_t *) jmem_heap_alloc_block (eval_data_size);
 
       eval_uint8_data_p->uint8_size = eval_size;
@@ -540,6 +564,10 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 
       jerry_debugger_uint8_data_t *client_source_data_p;
       size_t client_source_data_size = sizeof (jerry_debugger_uint8_data_t) + client_source_size;
+
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(23, client_source_data_size); /* size detailed */
+      #endif
 
       client_source_data_p = (jerry_debugger_uint8_data_t *) jmem_heap_alloc_block (client_source_data_size);
 
@@ -636,6 +664,10 @@ jerry_debugger_breakpoint_hit (uint8_t message_type) /**< message type */
 
   if (uint8_data != NULL)
   {
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(23, -(uint8_data->uint8_size + sizeof (jerry_debugger_uint8_data_t))); /* size detailed */
+    #endif
+
     jmem_heap_free_block (uint8_data,
                           uint8_data->uint8_size + sizeof (jerry_debugger_uint8_data_t));
   }

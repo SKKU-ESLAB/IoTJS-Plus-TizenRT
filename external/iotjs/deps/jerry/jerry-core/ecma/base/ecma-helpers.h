@@ -45,7 +45,7 @@
  */
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
 #define ECMA_SET_NON_NULL_POINTER(field, non_compressed_pointer) \
-  profile_inc_count_of_a_type(3); \
+  profile_inc_count_compression_callers(3); \
   JMEM_CP_SET_NON_NULL_POINTER (field, non_compressed_pointer)
 #else
 #define ECMA_SET_NON_NULL_POINTER(field, non_compressed_pointer) JMEM_CP_SET_NON_NULL_POINTER (field, \
@@ -58,11 +58,18 @@
  */
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
 #define ECMA_SET_POINTER(field, non_compressed_pointer) \
-profile_inc_count_of_a_type(6); /* compression callers */ \
+profile_inc_count_compression_callers(6); /* compression callers */ \
 JMEM_CP_SET_POINTER (field, non_compressed_pointer)
 #else
 #define ECMA_SET_POINTER(field, non_compressed_pointer) \
 JMEM_CP_SET_POINTER (field, non_compressed_pointer)
+#endif
+
+#ifdef PROF_COUNT__SIZE_DETAILED
+#define PROFILE_ADD_COUNT_SIZE_DETAILED_UTF8_STRING(size) \
+  profile_add_count_size_detailed(26, size); /* size detailed */
+#else
+#define PROFILE_ADD_COUNT_SIZE_DETAILED_UTF8_STRING(size) /* size detailed */
 #endif
 
 /**
@@ -78,6 +85,7 @@ JMEM_CP_SET_POINTER (field, non_compressed_pointer)
   \
   if (utf8_ptr == NULL) \
   { \
+    PROFILE_ADD_COUNT_SIZE_DETAILED_UTF8_STRING(utf8_str_size) \
     utf8_ptr = (const lit_utf8_byte_t *) jmem_heap_alloc_block (utf8_str_size); \
     ecma_string_to_utf8_bytes (ecma_str_ptr, (lit_utf8_byte_t *) utf8_ptr, utf8_str_size); \
     utf8_ptr ## must_be_freed = true; \
@@ -105,7 +113,7 @@ JMEM_CP_SET_POINTER (field, non_compressed_pointer)
  */
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
 #define ECMA_SET_INTERNAL_VALUE_POINTER(field, non_compressed_pointer) \
-  profile_inc_count_of_a_type(4); /* compression callers */ \
+  profile_inc_count_compression_callers(4); /* compression callers */ \
   ECMA_SET_NON_NULL_POINTER (field, non_compressed_pointer)
 #else
 #define ECMA_SET_INTERNAL_VALUE_POINTER(field, non_compressed_pointer) \
@@ -128,6 +136,7 @@ JMEM_CP_SET_POINTER (field, non_compressed_pointer)
   if (utf8_ptr ## must_be_freed) \
   { \
     JERRY_ASSERT (utf8_ptr != NULL); \
+    PROFILE_ADD_COUNT_SIZE_DETAILED_UTF8_STRING(-utf8_str_size) \
     jmem_heap_free_block ((void *) utf8_ptr, utf8_str_size); \
   }
 

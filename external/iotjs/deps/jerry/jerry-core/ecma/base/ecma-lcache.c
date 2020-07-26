@@ -93,7 +93,7 @@ ecma_lcache_insert (ecma_object_t *object_p, /**< object */
   jmem_cpointer_t object_cp;
 
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(13); /* compression callers */
+  profile_inc_count_compression_callers(13); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (object_cp, object_p);
 
@@ -126,7 +126,7 @@ ecma_lcache_insert (ecma_object_t *object_p, /**< object */
 
   ecma_lcache_hash_entry_t *entry_p = entries_p + entry_index;
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(13); /* compression callers */
+  profile_inc_count_compression_callers(13); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (entry_p->object_cp, object_p);
   entry_p->prop_name_cp = name_cp;
@@ -184,7 +184,7 @@ ecma_string_to_lcache_property_name (const ecma_string_t *prop_name_p, /**< prop
 
   jmem_cpointer_t prop_name_cp;
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(14); /* compression callers */
+  profile_inc_count_compression_callers(14); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (prop_name_cp, prop_name_p);
   return prop_name_cp;
@@ -208,7 +208,7 @@ ecma_lcache_lookup (ecma_object_t *object_p, /**< object */
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
   jmem_cpointer_t object_cp;
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(15); /* compression callers */
+  profile_inc_count_compression_callers(15); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (object_cp, object_p);
 
@@ -261,7 +261,7 @@ ecma_lcache_invalidate (ecma_object_t *object_p, /**< object */
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
   jmem_cpointer_t object_cp;
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(16); /* compression callers */
+  profile_inc_count_compression_callers(16); /* compression callers */
   #endif
   ECMA_SET_NON_NULL_POINTER (object_cp, object_p);
 

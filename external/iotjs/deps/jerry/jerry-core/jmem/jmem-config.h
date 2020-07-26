@@ -41,7 +41,7 @@
 
 #elif defined(JMEM_SEGMENTED_HEAP) // 2) Segmented heap
 
-#define SEG_FULLBIT_ADDRESS_ALLOC // fullbit-address allocation
+// #define SEG_FULLBIT_ADDRESS_ALLOC // fullbit-address allocation
 
 // Fast path
 #define SEG_RMAP_CACHE             // caching in reverse map
@@ -74,13 +74,13 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-#define PROF_SIZE
+// #define PROF_SIZE
 // #define PROF_TIME
 // #define PROF_PMU
 // #define PROF_CPTL // It may degrade performance harshly
 // #define PROF_SEGMENT // It may degrade performance harshly
 // #define PROF_JSOBJECT // It may degrade performance
-#define PROF_COUNT // It may degrade performance
+// #define PROF_COUNT // It may degrade performance
 
 /* jmem-profiler-size.c */
 #ifdef PROF_SIZE
@@ -144,11 +144,21 @@
 #ifdef PROF_COUNT
 #define PROF_COUNT__MAX_TYPES 10 // default type count
 
-#define PROF_COUNT__COMPRESSION_CALLERS
+// #define PROF_COUNT__COMPRESSION_CALLERS
+#define PROF_COUNT__SIZE_DETAILED // it requires PROF_SIZE and PROF_SIZE__PERIOD_USEC
+
+// Compression callers
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
 #undef PROF_COUNT__MAX_TYPES
 #define PROF_COUNT__MAX_TYPES 19
 #endif
+
+// Size detailed
+#ifdef PROF_COUNT__SIZE_DETAILED
+#undef PROF_COUNT__MAX_TYPES
+#define PROF_COUNT__MAX_TYPES 33
+#endif
+
 #endif
 
 #endif /* defined(JMEM_PROFILE) */

@@ -39,6 +39,10 @@ util_free_literal (lexer_literal_t *literal_p) /**< literal */
   {
     if (!(literal_p->status_flags & LEXER_FLAG_SOURCE_PTR))
     {
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(31, -(size_t)(literal_p->prop.length)); /* size detailed */
+      #endif
+
       jmem_heap_free_block ((void *) literal_p->u.char_p, literal_p->prop.length);
     }
   }

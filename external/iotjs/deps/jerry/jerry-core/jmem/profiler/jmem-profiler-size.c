@@ -50,6 +50,9 @@ inline void __attr_always_inline___ print_total_size_profile_on_alloc(void) {
   if (timeval_diff_in_usec > PROF_SIZE__PERIOD_USEC) {
     JERRY_CONTEXT(jsuptime_recent_total_size_print) = js_uptime;
     __print_total_size_profile();
+    #if defined(PROF_COUNT__SIZE_DETAILED)
+    print_count_profile();
+    #endif
   }
 #else
   __print_total_size_profile();

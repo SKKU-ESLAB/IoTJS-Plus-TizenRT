@@ -181,7 +181,7 @@ static inline void jmem_heap_init_first_free_region(void) {
   JERRY_HEAP_CONTEXT(first).next_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(region_p);
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(1); // compression callers
+  profile_inc_count_compression_callers(1); // compression callers
 #endif
   JERRY_CONTEXT(jmem_heap_list_skip_p) = &JERRY_HEAP_CONTEXT(first);
 }
@@ -665,12 +665,12 @@ static void __attr_hot___ jmem_heap_free_block_internal(
 #ifdef JMEM_SEGMENTED_HEAP
   uint32_t boffset = JMEM_COMPRESS_POINTER_INTERNAL(block_p);
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(1); // compression callers
+  profile_inc_count_compression_callers(1); // compression callers
 #endif
   uint32_t skip_offset =
       JMEM_COMPRESS_POINTER_INTERNAL(JERRY_CONTEXT(jmem_heap_list_skip_p));
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(1); // compression callers
+  profile_inc_count_compression_callers(1); // compression callers
 #endif
   bool is_skip_ok = boffset > skip_offset;
 #else  /* JMEM_SEGMENTED_HEAP */

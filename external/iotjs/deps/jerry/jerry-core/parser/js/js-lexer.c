@@ -1219,6 +1219,10 @@ lexer_process_char_literal (parser_context_t *context_p, /**< context */
 
   if (has_escape)
   {
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(31, length); /* size detailed */
+    #endif
+
     literal_p->u.char_p = (uint8_t *) jmem_heap_alloc_block (length);
     memcpy ((uint8_t *) literal_p->u.char_p, char_p, length);
   }

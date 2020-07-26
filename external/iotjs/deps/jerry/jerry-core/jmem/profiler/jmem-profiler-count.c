@@ -45,10 +45,19 @@ inline void __attr_always_inline___ print_count_profile(void) {
   fclose(fp);
 #endif /* defined(PROF_COUNT) */
 }
-inline void __attr_always_inline___ profile_inc_count_of_a_type(int type) {
+inline void __attr_always_inline___ profile_inc_count_compression_callers(int type) {
 #if defined(PROF_COUNT)
   CHECK_LOGGING_ENABLED();
   JERRY_CONTEXT(prof_count[type])++;
+#else  /* defined(PROF_COUNT) */
+  JERRY_UNUSED(type);
+#endif /* !defined(PROF_COUNT) */
+}
+
+inline void __attr_always_inline___ profile_add_count_size_detailed(int type, size_t size) {
+#if defined(PROF_COUNT)
+  CHECK_LOGGING_ENABLED();
+  JERRY_CONTEXT(prof_count[type]) += (int)size;
 #else  /* defined(PROF_COUNT) */
   JERRY_UNUSED(type);
 #endif /* !defined(PROF_COUNT) */

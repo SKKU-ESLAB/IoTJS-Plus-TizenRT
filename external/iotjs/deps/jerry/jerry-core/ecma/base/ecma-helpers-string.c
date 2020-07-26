@@ -1421,7 +1421,7 @@ ecma_string_to_property_name (ecma_string_t *prop_name_p, /**< property name */
   jmem_cpointer_t prop_name_cp;
 
   #ifdef PROF_COUNT__COMPRESSION_CALLERS
-  profile_inc_count_of_a_type(7); /* compression callers */
+  profile_inc_count_compression_callers(7); /* compression callers */
   #endif
 
   ECMA_SET_NON_NULL_POINTER (prop_name_cp, prop_name_p);

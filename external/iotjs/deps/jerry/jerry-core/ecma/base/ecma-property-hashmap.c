@@ -140,6 +140,10 @@ ecma_property_hashmap_create (ecma_object_t *object_p) /**< object */
   total_size += ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(max_property_count);
   #endif
 
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(14, total_size); /* size detailed */
+  #endif
+
   ecma_property_hashmap_t *hashmap_p = (ecma_property_hashmap_t *) jmem_heap_alloc_block_null_on_error (total_size);
 
   if (hashmap_p == NULL)
@@ -266,6 +270,10 @@ ecma_property_hashmap_free (ecma_object_t *object_p) /**< object */
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   total_size += ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(hashmap_p->max_property_count);
+  #endif
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(14, -total_size); /* size detailed */
   #endif
 
   jmem_heap_free_block (hashmap_p, total_size);

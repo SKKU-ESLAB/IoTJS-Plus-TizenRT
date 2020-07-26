@@ -176,6 +176,11 @@ jerry_debugger_wait_and_run_client_source (jerry_value_t *return_value) /**< [ou
 
     if (client_source_data_p != NULL)
     {
+
+      #ifdef PROF_COUNT__SIZE_DETAILED
+      profile_add_count_size_detailed(23, -(client_source_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t))); /* size detailed */
+      #endif
+      
       /* The data may partly arrived. */
       jmem_heap_free_block (client_source_data_p,
                             client_source_data_p->uint8_size + sizeof (jerry_debugger_uint8_data_t));

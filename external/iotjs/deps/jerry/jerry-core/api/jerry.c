@@ -187,6 +187,11 @@ jerry_cleanup (void)
   {
     next_p = this_p->next_p;
     this_p->manager_p->deinit_cb (JERRY_CONTEXT_DATA_HEADER_USER_DATA (this_p));
+
+    #ifdef PROF_COUNT__SIZE_DETAILED
+    profile_add_count_size_detailed(22, -(sizeof(jerry_context_data_header_t) + this_p->manager_p->bytes_needed)); /* size detailed */
+    #endif
+
     jmem_heap_free_block (this_p, sizeof (jerry_context_data_header_t) + this_p->manager_p->bytes_needed);
   }
 
@@ -221,6 +226,10 @@ jerry_get_context_data (const jerry_context_data_manager_t *manager_p)
       return JERRY_CONTEXT_DATA_HEADER_USER_DATA (item_p);
     }
   }
+
+  #ifdef PROF_COUNT__SIZE_DETAILED
+  profile_add_count_size_detailed(22, sizeof (jerry_context_data_header_t) + manager_p->bytes_needed); /* size detailed */
+  #endif
 
   item_p = jmem_heap_alloc_block (sizeof (jerry_context_data_header_t) + manager_p->bytes_needed);
   item_p->manager_p = manager_p;
