@@ -549,14 +549,13 @@ jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source 
 
   if (lit_map_p != NULL)
   {
-    // profiling of full-bitwidth overhead
-    sub_full_bitwidth_size(literals_num * 4);
-
     size_t size_to_free = literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t);
     // Over-provision for full-bitwidth address overhead
     #ifdef SEG_FULLBIT_ADDRESS_ALLOC
     size_to_free += literals_num * 4;
     #endif
+    // profiling of full-bitwidth overhead
+    sub_full_bitwidth_size(literals_num * 4);
 
     #ifdef PROF_COUNT__SIZE_DETAILED
     profile_add_count_size_detailed(13, -size_to_free); /* size detailed */
@@ -645,14 +644,13 @@ jerry_exec_snapshot (const uint32_t *snapshot_p, /**< snapshot */
 
   if (lit_map_p != NULL)
   {
-    // profiling of full-bitwidth overhead
-    sub_full_bitwidth_size(literals_num * 4);
-
     size_t size_to_free = literals_num * sizeof (lit_mem_to_snapshot_id_map_entry_t);
     // Over-provision for full-bitwidth address overhead
     #ifdef SEG_FULLBIT_ADDRESS_ALLOC
     size_to_free += literals_num * 4;
     #endif
+    // profiling of full-bitwidth overhead
+    sub_full_bitwidth_size(literals_num * 4);
 
     #ifdef PROF_COUNT__SIZE_DETAILED
     profile_add_count_size_detailed(13, -size_to_free); /* size detailed */

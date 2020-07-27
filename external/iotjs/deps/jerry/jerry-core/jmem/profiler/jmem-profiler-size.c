@@ -25,7 +25,7 @@ static void __print_total_size_profile(void);
 inline void __attr_always_inline___ init_size_profiler(void) {
 #if defined(JMEM_PROFILE)
   CHECK_LOGGING_ENABLED();
-#if defined(PROF_SIZE__PERIOD_USEC)
+#if defined(PROF_SIZE)
   FILE *fp1 = fopen(PROF_TOTAL_SIZE_FILENAME, "w");
   fprintf(fp1,
           "Timestamp (s), Blocks Size (B), Full-bitwidth Pointer Overhead (B), "
@@ -33,13 +33,16 @@ inline void __attr_always_inline___ init_size_profiler(void) {
           "Segment Metadata Size (B), Snapshot Size (B)\n");
   fflush(fp1);
   fclose(fp1);
+#if defined(PROF_SIZE__PERIOD_USEC)
   JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_sec = 0;
   JERRY_CONTEXT(jsuptime_recent_total_size_print).tv_usec = 0;
+#endif /* defined(PROF_SIZE__PERIOD_USEC) */
 #endif
 #endif
 }
 
 inline void __attr_always_inline___ print_total_size_profile_on_alloc(void) {
+#if defined(PROF_SIZE)
 #if defined(PROF_SIZE__PERIOD_USEC)
   CHECK_LOGGING_ENABLED();
   struct timeval js_uptime;
@@ -57,15 +60,18 @@ inline void __attr_always_inline___ print_total_size_profile_on_alloc(void) {
 #else
   __print_total_size_profile();
 #endif /* defined(PROF_SIZE__PERIOD_USEC) */
+#endif /* defined(PROF_SIZE) */
 }
 
 inline void __attr_always_inline___ print_total_size_profile_finally(void) {
+#if defined(PROF_SIZE)
   CHECK_LOGGING_ENABLED();
   __print_total_size_profile();
+#endif /* defined(PROF_SIZE) */
 }
 
 inline void __attr_always_inline___ __print_total_size_profile(void) {
-#if defined(JMEM_PROFILE) && defined(PROF_SIZE)
+#if defined(PROF_SIZE)
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_TOTAL_SIZE_FILENAME, "a");
 
@@ -86,5 +92,5 @@ inline void __attr_always_inline___ __print_total_size_profile(void) {
           sysalloc_meta_size, segment_meta_size, snapshot_size);
   fflush(fp);
   fclose(fp);
-#endif
+#endif /* defined(PROF_SIZE) */
 }

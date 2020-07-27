@@ -131,14 +131,14 @@ ecma_property_hashmap_create (ecma_object_t *object_p) /**< object */
     max_property_count <<= 1;
   }
 
-  // profiling of full-bitwidth overhead
-  add_full_bitwidth_size(ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(max_property_count));
 
   size_t total_size = ECMA_PROPERTY_HASHMAP_GET_TOTAL_SIZE (max_property_count);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   total_size += ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(max_property_count);
   #endif
+  // profiling of full-bitwidth overhead
+  add_full_bitwidth_size(ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(max_property_count));
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(14, total_size); /* size detailed */
@@ -263,14 +263,13 @@ ecma_property_hashmap_free (ecma_object_t *object_p) /**< object */
 
   object_p->property_list_or_bound_object_cp = property_p->next_property_cp;
 
-  // profiling of full-bitwidth overhead
-  sub_full_bitwidth_size(ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(hashmap_p->max_property_count));
-
   size_t total_size = ECMA_PROPERTY_HASHMAP_GET_TOTAL_SIZE (hashmap_p->max_property_count);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   total_size += ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(hashmap_p->max_property_count);
   #endif
+  // profiling of full-bitwidth overhead
+  sub_full_bitwidth_size(ECMA_PROPERTY_HASHMAP_GET_FULLBIT_OVERHEAD(hashmap_p->max_property_count));
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(14, -total_size); /* size detailed */

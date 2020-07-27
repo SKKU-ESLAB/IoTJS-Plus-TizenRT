@@ -116,14 +116,13 @@ ecma_alloc_object (void)
   jmem_stats_allocate_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  add_full_bitwidth_size(8);
-
   size_t size_to_allocate = sizeof(ecma_object_t);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_allocate += 8;
   #endif
+  // profiling of full-bitwidth overhead
+  add_full_bitwidth_size(8);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(0, size_to_allocate); /* size detailed */
@@ -143,14 +142,13 @@ ecma_dealloc_object (ecma_object_t *object_p) /**< object to be freed */
   jmem_stats_free_object_bytes (sizeof (ecma_object_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  sub_full_bitwidth_size(8);
-
   size_t size_to_free = sizeof(ecma_object_t);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_free += 8;
   #endif
+  // profiling of full-bitwidth overhead
+  sub_full_bitwidth_size(8);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(0, -size_to_free); /* size detailed */
@@ -172,14 +170,13 @@ ecma_alloc_extended_object (size_t size) /**< size of object */
   jmem_stats_allocate_object_bytes (size);
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  add_full_bitwidth_size(8);
-
   size_t size_to_allocate = size;
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_allocate += 8;
   #endif
+  // profiling of full-bitwidth overhead
+  add_full_bitwidth_size(8);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(11, size_to_allocate); /* size detailed */
@@ -200,14 +197,13 @@ ecma_dealloc_extended_object (ecma_extended_object_t *ext_object_p, /**< propert
   jmem_stats_free_object_bytes (size);
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  sub_full_bitwidth_size(8);
-
   size_t size_to_free = size;
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_free += 8;
   #endif
+  // profiling of full-bitwidth overhead
+  sub_full_bitwidth_size(8);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(11, -size_to_free); /* size detailed */
@@ -304,14 +300,13 @@ ecma_alloc_getter_setter_pointers (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  add_full_bitwidth_size(4);
-
   size_t size_to_allocate = sizeof(ecma_getter_setter_pointers_t);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_allocate += 4;
   #endif
+  // profiling of full-bitwidth overhead
+  add_full_bitwidth_size(4);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(5, size_to_allocate); /* size detailed */
@@ -332,14 +327,13 @@ ecma_dealloc_getter_setter_pointers (ecma_getter_setter_pointers_t *getter_sette
   jmem_stats_free_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  sub_full_bitwidth_size(4);
-
   size_t size_to_free = sizeof(ecma_getter_setter_pointers_t);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_free += 4;
   #endif
+  // profiling of full-bitwidth overhead
+  sub_full_bitwidth_size(4);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(5, -size_to_free); /* size detailed */
@@ -360,14 +354,13 @@ ecma_alloc_property_pair (void)
   jmem_stats_allocate_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  add_full_bitwidth_size(8);
-
   size_t size_to_allocate = sizeof(ecma_property_pair_t);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_allocate += 8;
   #endif
+  // profiling of full-bitwidth overhead
+  add_full_bitwidth_size(8);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(12, size_to_allocate); /* size detailed */
@@ -387,14 +380,13 @@ ecma_dealloc_property_pair (ecma_property_pair_t *property_pair_p) /**< property
   jmem_stats_free_property_bytes (sizeof (ecma_property_pair_t));
 #endif /* JMEM_STATS */
 
-  // profiling of full-bitwidth overhead
-  sub_full_bitwidth_size(8);
-
   size_t size_to_free = sizeof(ecma_property_pair_t);
   // Over-provision for full-bitwidth address overhead
   #ifdef SEG_FULLBIT_ADDRESS_ALLOC
   size_to_free += 8;
   #endif
+  // profiling of full-bitwidth overhead
+  sub_full_bitwidth_size(8);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
   profile_add_count_size_detailed(12, -size_to_free); /* size detailed */

@@ -74,7 +74,7 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-// #define PROF_SIZE
+#define PROF_SIZE
 // #define PROF_TIME
 // #define PROF_PMU
 // #define PROF_CPTL // It may degrade performance harshly
@@ -84,7 +84,7 @@
 
 /* jmem-profiler-size.c */
 #ifdef PROF_SIZE
-#define PROF_SIZE__PERIOD_USEC (100 * 1000)
+// #define PROF_SIZE__PERIOD_USEC (100 * 1000)
 #endif /* defined(PROF_SIZE) */
 
 /* jmem-profiler-time.c */
