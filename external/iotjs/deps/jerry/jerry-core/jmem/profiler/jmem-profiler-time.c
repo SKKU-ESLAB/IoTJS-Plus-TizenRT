@@ -62,53 +62,61 @@ static inline unsigned long long get_uptime_ns(void) {
 
 void print_time_profile(void) {
 #if defined(JMEM_PROFILE) && defined(PROF_TIME)
-#define TOTAL_TIME(x)                                               \
+#define GET_COUNT(x) (unsigned long long)JERRY_CONTEXT(x##_count)
+#define GET_TIME(x)                                                 \
   ((unsigned long long)JERRY_CONTEXT(x##_time.tv_sec) * SEC_IN_NS + \
    (unsigned long long)JERRY_CONTEXT(x##_time.tv_usec) * US_IN_NS)
-#define AVG_TIME(x)                                                  \
-  (JERRY_CONTEXT(x##_count) > 0)                                     \
-      ? TOTAL_TIME(x) / (unsigned long long)JERRY_CONTEXT(x##_count) \
+#define GET_AVG_TIME1(x) (GET_COUNT(x) > 0) ? GET_TIME(x) / GET_COUNT(x) : 0
+#define GET_AVG_TIME3(x, y, z)                                              \
+  (GET_COUNT(x) + GET_COUNT(y) + GET_COUNT(z) > 0)                          \
+      ? (GET_TIME3(x, y, z)) / (GET_COUNT(x) + GET_COUNT(y) + GET_COUNT(z)) \
       : 0
-#define AVG_TIME3(x, y, z)                                           \
-  ((unsigned long long)JERRY_CONTEXT(x##_count)                      \
-    + (unsigned long long)JERRY_CONTEXT(y##_count)                   \
-    + (unsigned long long)JERRY_CONTEXT(z##_count) > 0)              \
-      ? (TOTAL_TIME3(x,y,z))                                         \
-        / ((unsigned long long)JERRY_CONTEXT(x##_count) +            \
-            (unsigned long long)JERRY_CONTEXT(y##_count) +           \
-            (unsigned long long)JERRY_CONTEXT(z##_count)) : 0
-#define TOTAL_TIME3(x, y, z) (TOTAL_TIME(x) + TOTAL_TIME(y)          \
-                              + TOTAL_TIME(z))
-#define PRINT_TIME_HEADER(fp) fprintf(fp, "Time")
-#define PRINT_TIME(fp, x) fprintf(fp, ", %llu", x)
-#define PRINT_AVG_TIME(fp, x) fprintf(fp, ", %llu", AVG_TIME(x))
-#define PRINT_AVG_TIME3(fp, x, y, z) fprintf(fp, ", %llu", AVG_TIME3(x, y, z))
-#define PRINT_TOTAL_TIME(fp, x) fprintf(fp, ", %llu", TOTAL_TIME(x))
-#define PRINT_TOTAL_TIME3(fp, x, y, z) fprintf(fp, ", %llu", TOTAL_TIME3(x, y, z))
-#define PRINT_TIME_TAIL(fp) fprintf(fp, "\n")
+#define GET_TIME3(x, y, z) (GET_TIME(x) + GET_TIME(y) + GET_TIME(z))
+
+#define PRT_HEADER(fp) fprintf(fp, "Time")
+#define PRT_TAIL(fp) fprintf(fp, "\n")
+#define PRT(fp, x) fprintf(fp, ", %llu", x)
+
+#define PRT_AVG_TIME(fp, x) PRT(GET_AVG_TIME1(x))
+#define PRT_AVG_TIME3(fp, x, y, z) PRT(GET_AVG_TIME3(x, y, z))
+#define PRT_TIME(fp, x) PRT(GET_TIME(x))
+#define PRT_TIME3(fp, x, y, z) PRT(GET_TIME3(x, y, z))
+#define PRT_COUNT(fp, x) PRT(GET_COUNT(x))
 
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_TIME_FILENAME, "a");
 
-  PRINT_TIME_HEADER(fp);
-  PRINT_TIME(fp, get_uptime_ns());
-  PRINT_AVG_TIME(fp, alloc);
-  PRINT_AVG_TIME(fp, free);
-  PRINT_AVG_TIME(fp, gc);
-  PRINT_AVG_TIME(fp, decompression);
-  PRINT_AVG_TIME3(fp, compression_rmc_hit, compression_fifo_hit, compression_final_miss);
-  PRINT_AVG_TIME(fp, compression_rmc_hit);
-  PRINT_AVG_TIME(fp, compression_fifo_hit);
-  PRINT_AVG_TIME(fp, compression_final_miss);
-  PRINT_TOTAL_TIME(fp, alloc);
-  PRINT_TOTAL_TIME(fp, free);
-  PRINT_TOTAL_TIME(fp, gc);
-  PRINT_TOTAL_TIME(fp, decompression);
-  PRINT_TOTAL_TIME3(fp, compression_rmc_hit, compression_fifo_hit, compression_final_miss);
-  PRINT_TOTAL_TIME(fp, compression_rmc_hit);
-  PRINT_TOTAL_TIME(fp, compression_fifo_hit);
-  PRINT_TOTAL_TIME(fp, compression_final_miss);
-  PRINT_TIME_TAIL(fp);
+  PRT_HEADER(fp);
+  PRT(fp, get_uptime_ns());
+
+  PRT_AVG_TIME(fp, alloc);
+  PRT_AVG_TIME(fp, free);
+  PRT_AVG_TIME(fp, gc);
+  PRT_AVG_TIME(fp, decompression);
+  PRT_AVG_TIME3(fp, compression_rmc_hit, compression_fifo_hit,
+                compression_final_miss);
+  PRT_AVG_TIME(fp, compression_rmc_hit);
+  PRT_AVG_TIME(fp, compression_fifo_hit);
+  PRT_AVG_TIME(fp, compression_final_miss);
+
+  PRT_TIME(fp, alloc);
+  PRT_TIME(fp, free);
+  PRT_TIME(fp, gc);
+  PRT_TIME(fp, decompression);
+  PRT_TIME3(fp, compression_rmc_hit, compression_fifo_hit,
+          compression_final_miss);
+  PRT_TIME(fp, compression_rmc_hit);
+  PRT_TIME(fp, compression_fifo_hit);
+  PRT_TIME(fp, compression_final_miss);
+
+  PRT_COUNT(fp, alloc);
+  PRT_COUNT(fp, free);
+  PRT_COUNT(fp, gc);
+  PRT_COUNT(fp, decompression);
+  PRT_COUNT(fp, compression_rmc_hit);
+  PRT_COUNT(fp, compression_fifo_hit);
+  PRT_COUNT(fp, compression_final_miss);
+  PRT_TAIL(fp);
   fflush(fp);
   fclose(fp);
 #endif
