@@ -77,11 +77,11 @@ void print_time_profile(void) {
 #define PRT_TAIL(fp) fprintf(fp, "\n")
 #define PRT(fp, x) fprintf(fp, ", %llu", x)
 
-#define PRT_AVG_TIME(fp, x) PRT(GET_AVG_TIME1(x))
-#define PRT_AVG_TIME3(fp, x, y, z) PRT(GET_AVG_TIME3(x, y, z))
-#define PRT_TIME(fp, x) PRT(GET_TIME(x))
-#define PRT_TIME3(fp, x, y, z) PRT(GET_TIME3(x, y, z))
-#define PRT_COUNT(fp, x) PRT(GET_COUNT(x))
+#define PRT_AVG_TIME(fp, x) PRT(fp, GET_AVG_TIME1(x))
+#define PRT_AVG_TIME3(fp, x, y, z) PRT(fp, GET_AVG_TIME3(x, y, z))
+#define PRT_TIME(fp, x) PRT(fp, GET_TIME(x))
+#define PRT_TIME3(fp, x, y, z) PRT(fp, GET_TIME3(x, y, z))
+#define PRT_COUNT(fp, x) PRT(fp, GET_COUNT(x))
 
   CHECK_LOGGING_ENABLED();
   FILE *fp = fopen(PROF_TIME_FILENAME, "a");

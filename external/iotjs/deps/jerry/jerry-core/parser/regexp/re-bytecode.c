@@ -54,14 +54,14 @@ re_realloc_regexp_bytecode_block (re_bytecode_ctx_t *bc_ctx_p) /**< RegExp bytec
   size_t current_ptr_offset = (size_t) (bc_ctx_p->current_p - bc_ctx_p->block_start_p);
 
   #ifdef PROF_COUNT__SIZE_DETAILED
-  profile_add_count_size_detailed(32, new_block_size); /* size detailed */
+  profile_add_count_size_detailed(31, new_block_size); /* size detailed */
   #endif
 
   uint8_t *new_block_start_p = (uint8_t *) jmem_heap_alloc_block (new_block_size);
   if (bc_ctx_p->current_p)
   {
     #ifdef PROF_COUNT__SIZE_DETAILED
-    profile_add_count_size_detailed(32, -old_size); /* size detailed */
+    profile_add_count_size_detailed(31, -old_size); /* size detailed */
     #endif
 
     memcpy (new_block_start_p, bc_ctx_p->block_start_p, (size_t) (current_ptr_offset));
@@ -118,7 +118,7 @@ re_bytecode_list_insert (re_bytecode_ctx_t *bc_ctx_p, /**< RegExp bytecode conte
     uint8_t *tmp_block_start_p;
 
     #ifdef PROF_COUNT__SIZE_DETAILED
-    profile_add_count_size_detailed(32, re_get_bytecode_length (bc_ctx_p) - offset); /* size detailed */
+    profile_add_count_size_detailed(31, re_get_bytecode_length (bc_ctx_p) - offset); /* size detailed */
     #endif
 
     tmp_block_start_p = (uint8_t *) jmem_heap_alloc_block (re_get_bytecode_length (bc_ctx_p) - offset);
@@ -126,7 +126,7 @@ re_bytecode_list_insert (re_bytecode_ctx_t *bc_ctx_p, /**< RegExp bytecode conte
     memcpy (dest_p, tmp_block_start_p, (size_t) (re_get_bytecode_length (bc_ctx_p) - offset));
 
     #ifdef PROF_COUNT__SIZE_DETAILED
-    profile_add_count_size_detailed(32, -(re_get_bytecode_length (bc_ctx_p) - offset)); /* size detailed */
+    profile_add_count_size_detailed(31, -(re_get_bytecode_length (bc_ctx_p) - offset)); /* size detailed */
     #endif
 
     jmem_heap_free_block (tmp_block_start_p, re_get_bytecode_length (bc_ctx_p) - offset);

@@ -600,7 +600,7 @@ re_compile_bytecode (const re_compiled_code_t **out_bytecode_p, /**< [out] point
     JERRY_TRACE_MSG ("RegExp compilation failed!\n");
     
     #ifdef PROF_COUNT__SIZE_DETAILED
-    profile_add_count_size_detailed(32, -byte_code_size); /* size detailed */
+    profile_add_count_size_detailed(31, -byte_code_size); /* size detailed */
     #endif
 
     jmem_heap_free_block (bc_ctx.block_start_p, byte_code_size);
