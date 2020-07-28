@@ -74,27 +74,28 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-// #define PROF_SIZE
-#define PROF_TIME
+#define PROF_SIZE
+// #define PROF_TIME
 // #define PROF_PMU
-// #define PROF_CPTL // It may degrade performance harshly
-// #define PROF_SEGMENT // It may degrade performance harshly
+// #define PROF_CPTL // It may degrade performance
+// #define PROF_SEGMENT // It may degrade performance
 // #define PROF_JSOBJECT // It may degrade performance
-// #define PROF_COUNT // It may degrade performance
+#define PROF_COUNT // It may degrade performance
 
 /* jmem-profiler-size.c */
 #ifdef PROF_SIZE
-// #define PROF_SIZE__PERIOD_USEC (100 * 1000)
+// #define PROF_SIZE__PERIOD_USEC (100 * 1000) // It may degrade performance harshly
+#define PROF_SIZE__PERIOD_USEC (1000 * 1000) // It may degrade performance harshly
 #endif /* defined(PROF_SIZE) */
 
 /* jmem-profiler-time.c */
 #ifdef PROF_TIME
 
-// #define PROF_TIME__ALLOC         // It may degrade performance harshly
-// #define PROF_TIME__FREE          // It may degrade performance harshly
-// #define PROF_TIME__GC // It may degrade performance harshly
-#define PROF_TIME__DECOMPRESSION // It may degrade performance harshly
-#define PROF_TIME__COMPRESSION   // It may degrade performance harshly
+// #define PROF_TIME__ALLOC         // It may degrade performance
+// #define PROF_TIME__FREE          // It may degrade performance
+#define PROF_TIME__GC // It may degrade performance
+// #define PROF_TIME__DECOMPRESSION // It may degrade performance
+// #define PROF_TIME__COMPRESSION   // It may degrade performance
 
 #ifdef PROF_TIME__COMPRESSION
 #define PROF_TIME__COMPRESSION_DETAILED
@@ -104,8 +105,8 @@
 
 /* jmem-profiler-pmu.c */
 #ifdef PROF_PMU
-#define PROF_PMU__DECOMPRESSION_CYCLES // It may degrade performance harshly
-#define PROF_PMU__COMPRESSION_CYCLES   // It may degrade performance harshly
+#define PROF_PMU__DECOMPRESSION_CYCLES // It may degrade performance
+#define PROF_PMU__COMPRESSION_CYCLES   // It may degrade performance
 #endif
 
 #ifdef PROF_PMU__COMPRESSION_CYCLES

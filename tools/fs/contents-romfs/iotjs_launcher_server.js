@@ -32,6 +32,8 @@ function http_handler(req, res) {
           if (fs.existsSync('/mnt/object_allocation.log'))
             fs.unlinkSync('/mnt/object_allocation.log');
           if (fs.existsSync('/mnt/cptl.log')) fs.unlinkSync('/mnt/cptl.log');
+          if (fs.existsSync('/mnt/count.log'))
+            fs.unlinkSync('/mnt/count.log');
           message = "Delete all the logs successfully!";
         } else if (url == '/command/reboot') {
           isCloseServer = true;
