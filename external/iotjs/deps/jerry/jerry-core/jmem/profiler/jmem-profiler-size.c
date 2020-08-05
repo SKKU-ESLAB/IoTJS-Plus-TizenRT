@@ -163,7 +163,7 @@ inline void __attr_always_inline___ __print_total_size_profile(void) {
   uint32_t segment_meta_size =
       (uint32_t)JERRY_CONTEXT(jmem_segment_allocator_metadata_size);
   uint32_t snapshot_size = (uint32_t)JERRY_CONTEXT(jmem_snapshot_size);
-  uint32_t total_heap_size = (uint32_t)JERRY_CONTEXT(jmem_total_heap_size)
+  uint32_t total_heap_size = (uint32_t)JERRY_CONTEXT(jmem_total_heap_size);
 
   fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
           js_uptime.tv_usec, blocks_size, full_bw_oh, alloc_heap_size,
