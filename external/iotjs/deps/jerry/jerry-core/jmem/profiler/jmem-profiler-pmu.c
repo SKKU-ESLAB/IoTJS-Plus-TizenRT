@@ -21,7 +21,8 @@
 #if defined(JMEM_PROFILE) && defined(PROF_PMU)
 void __start_pmu_cycles_watch(unsigned long long *cycles_watch);
 void __stop_pmu_cycles_watch(unsigned long long *cycles_watch,
-                             unsigned long long *cycles);
+                             unsigned long long *cycles,
+                             unsigned int *count);
 #endif
 
 /* PMU profiling */
@@ -102,17 +103,17 @@ inline void __attr_always_inline___ profile_compression_cycles_end(int type) {
 #if defined(PROF_PMU__COMPRESSION_CYCLES)
   CHECK_LOGGING_ENABLED();
   if (type == 0) { // COMPRESSION_RMC_HIT
-    JERRY_CONTEXT(compression_rmc_hit_pmu_count)++;
     __stop_pmu_cycles_watch(&JERRY_CONTEXT(compression_cycles_val),
-                            &JERRY_CONTEXT(compression_rmc_hit_cycles));
+                            &JERRY_CONTEXT(compression_rmc_hit_cycles),
+                            &JERRY_CONTEXT(compression_rmc_hit_pmu_count));
   } else if (type == 1) { // COMPRESSION_FIFO_HIT
-    JERRY_CONTEXT(compression_fifo_hit_pmu_count)++;
     __stop_pmu_cycles_watch(&JERRY_CONTEXT(compression_cycles_val),
-                            &JERRY_CONTEXT(compression_fifo_hit_cycles));
+                            &JERRY_CONTEXT(compression_fifo_hit_cycles),
+                            &JERRY_CONTEXT(compression_fifo_hit_pmu_count));
   } else if (type == 2) { // COMPRESSION_FINAL_MISS
-    JERRY_CONTEXT(compression_final_miss_pmu_count)++;
     __stop_pmu_cycles_watch(&JERRY_CONTEXT(compression_cycles_val),
-                            &JERRY_CONTEXT(compression_final_miss_cycles));
+                            &JERRY_CONTEXT(compression_final_miss_cycles),
+                            &JERRY_CONTEXT(compression_final_miss_pmu_count));
   } else {
     printf("Invalid argument to profile_compression_end: %d\n", type);
   }
@@ -124,7 +125,6 @@ inline void __attr_always_inline___ profile_compression_cycles_end(int type) {
 inline void __attr_always_inline___ profile_decompression_cycles_start(void) {
 #if defined(PROF_PMU__DECOMPRESSION_CYCLES)
   CHECK_LOGGING_ENABLED();
-  JERRY_CONTEXT(decompression_pmu_count)++;
   __start_pmu_cycles_watch(&JERRY_CONTEXT(decompression_cycles_val));
 #endif
 }
@@ -132,7 +132,8 @@ inline void __attr_always_inline___ profile_decompression_cycles_end(void) {
 #if defined(PROF_PMU__DECOMPRESSION_CYCLES)
   CHECK_LOGGING_ENABLED();
   __stop_pmu_cycles_watch(&JERRY_CONTEXT(decompression_cycles_val),
-                          &JERRY_CONTEXT(decompression_cycles));
+                          &JERRY_CONTEXT(decompression_cycles),
+                          &JERRY_CONTEXT(decompression_pmu_count));
 #endif
 }
 
@@ -152,9 +153,18 @@ void __start_pmu_cycles_watch(unsigned long long *cycles_watch) {
   *cycles_watch = (unsigned long long)arm_pmu_read_cycles();
 }
 void __stop_pmu_cycles_watch(unsigned long long *cycles_watch,
-                             unsigned long long *cycles) {
+                             unsigned long long *cycles,
+                             unsigned int *count) {
   unsigned long long curr_cycles;
   curr_cycles = (unsigned long long)arm_pmu_read_cycles();
-  *cycles += (curr_cycles - *cycles_watch);
+  unsigned long long my_cycles = (curr_cycles - *cycles_watch);
+  my_cycles = (curr_cycles - *cycles_watch);
+  if(my_cycles > 10000) {
+    *cycles += my_cycles;
+    *count += 1;
+  } else {
+    JERRY_UNUSED(cycles);
+    JERRY_UNUSED(count);
+  }
 }
 #endif /* defined(JMEM_PROFILE) && defined(PROF_PMU) */
