@@ -159,7 +159,7 @@ void __stop_pmu_cycles_watch(unsigned long long *cycles_watch,
   curr_cycles = (unsigned long long)arm_pmu_read_cycles();
   unsigned long long my_cycles = (curr_cycles - *cycles_watch);
   my_cycles = (curr_cycles - *cycles_watch);
-  if(my_cycles > 10000) {
+  if(my_cycles < 10000) {
     *cycles += my_cycles;
     *count += 1;
   } else {
