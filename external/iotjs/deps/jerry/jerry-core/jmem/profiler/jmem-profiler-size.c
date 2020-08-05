@@ -23,34 +23,33 @@
 
 static void __print_total_size_profile(void);
 
+#if defined(PROF_SIZE)
 /* Prototypes for our hooks.  */
 static void jmem_profiler_init_malloc_hook(void);
 static void *jmem_profiler_malloc_hook(size_t, const void *);
+static void jmem_profiler_free_hook(void *, const void *);
 
 /* Variables to save original hooks. */
 static void *(*old_malloc_hook)(size_t, const void *);
 static void (*old_free_hook)(void *, const void *);
 
 /* Override initializing hook from the C library. */
-void (*__malloc_initialize_hook)(void) = jmem_profiler_init_malloc_hook;
+void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook)(void) = jmem_profiler_init_malloc_hook;
 
 // Hash table to store heap objects: key=<void* ptr> value=<size_t size>
 static HashTable g_heap_objects_ht;
 
 static void jmem_profiler_init_malloc_hook(void) {
-#if defined(PROF_SIZE)
   ht_setup(&g_heap_objects_ht, sizeof(void *), sizeof(size_t), 10);
-  ht_reserve(&table, 100);
+  ht_reserve(&g_heap_objects_ht, 100);
 
   old_malloc_hook = __malloc_hook;
   old_free_hook = __free_hook;
   __malloc_hook = jmem_profiler_malloc_hook;
   __free_hook = jmem_profiler_free_hook;
-#endif
 }
 
 static void *jmem_profiler_malloc_hook(size_t size, const void *caller) {
-#if defined(PROF_SIZE)
   void *result;
 
   // Restore old hooks
@@ -72,14 +71,9 @@ static void *jmem_profiler_malloc_hook(size_t size, const void *caller) {
 
   JERRY_UNUSED(caller);
   return result;
-#else
-  JERRY_UNUSED(caller);
-  return malloc(size);
-#endif
 }
 
-static void (*old_free_hook)(void *ptr, const void *caller) {
-#if defined(PROF_SIZE)
+static void jmem_profiler_free_hook(void *ptr, const void *caller) {
   // Restore old hooks
   __malloc_hook = old_malloc_hook;
   __free_hook = old_free_hook;
@@ -100,11 +94,8 @@ static void (*old_free_hook)(void *ptr, const void *caller) {
   __free_hook = jmem_profiler_free_hook;
 
   JERRY_UNUSED(caller);
-#else
-  free(ptr);
-  JERRY_UNUSED(caller);
-#endif
 }
+#endif /* defined(PROF_SIZE) */
 
 /* Total size profiling */
 inline void __attr_always_inline___ init_size_profiler(void) {
@@ -116,7 +107,7 @@ inline void __attr_always_inline___ init_size_profiler(void) {
   fprintf(fp1,
           "Timestamp (s), Blocks Size (B), Full-bitwidth Pointer Overhead (B), "
           "Allocated Heap Size (B), System Allocator Metadata Size (B), "
-          "Segment Metadata Size (B), Snapshot Size (B)\n");
+          "Segment Metadata Size (B), Snapshot Size (B), Total Heap Size (B)\n");
   fflush(fp1);
   fclose(fp1);
 #if defined(PROF_SIZE__PERIOD_USEC)
@@ -172,10 +163,11 @@ inline void __attr_always_inline___ __print_total_size_profile(void) {
   uint32_t segment_meta_size =
       (uint32_t)JERRY_CONTEXT(jmem_segment_allocator_metadata_size);
   uint32_t snapshot_size = (uint32_t)JERRY_CONTEXT(jmem_snapshot_size);
+  uint32_t total_heap_size = (uint32_t)JERRY_CONTEXT(jmem_total_heap_size)
 
-  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
+  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
           js_uptime.tv_usec, blocks_size, full_bw_oh, alloc_heap_size,
-          sysalloc_meta_size, segment_meta_size, snapshot_size);
+          sysalloc_meta_size, segment_meta_size, snapshot_size, total_heap_size);
   fflush(fp);
   fclose(fp);
 #endif /* defined(PROF_SIZE) */

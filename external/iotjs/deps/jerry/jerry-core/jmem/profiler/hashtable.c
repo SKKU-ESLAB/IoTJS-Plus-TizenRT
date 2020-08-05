@@ -334,7 +334,7 @@ size_t _ht_default_hash(void* raw_key, size_t key_size) {
 
   for (byte = 0; byte < key_size; ++byte) {
     // (hash << 5) + hash = hash * 33
-    hash = ((hash << 5) + hash) ^ key[byte];
+    hash = ((hash << 5) + hash) ^ (size_t)key[byte];
   }
 
   return hash;
