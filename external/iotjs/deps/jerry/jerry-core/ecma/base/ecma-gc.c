@@ -721,6 +721,9 @@ void
 ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
 {
   profile_gc_start(); /* Time profiling */
+#if defined(PROF_SIZE)
+  JERRY_CONTEXT(jmem_size_profiler_gc_count)++; /* Size profiling */
+#endif
 
 #ifndef GC_ON_ZERO_REFCOUNT
   JERRY_CONTEXT (ecma_gc_new_objects) = 0;

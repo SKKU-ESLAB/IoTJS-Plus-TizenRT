@@ -92,6 +92,7 @@ typedef struct
   size_t jmem_snapshot_size; /**< snapshot size */
   uint32_t jmem_heap_allocated_blocks_count; /**< the count of allocated JS objects in the heap */
   size_t jmem_total_heap_size; /**< heap size (malloc hooking) */
+  uint32_t jmem_size_profiler_gc_count;
 
   size_t jmem_heap_limit; /**< current limit of heap usage, that is upon being reached,
                            *   causes call of "try give memory back" callbacks */
