@@ -28,13 +28,16 @@ static void __print_total_size_profile(void);
 static void jmem_profiler_init_malloc_hook(void);
 static void *jmem_profiler_malloc_hook(size_t, const void *);
 static void jmem_profiler_free_hook(void *, const void *);
+static void *jmem_profiler_realloc_hook(void *, size_t, const void *);
 
 /* Variables to save original hooks. */
 static void *(*old_malloc_hook)(size_t, const void *);
 static void (*old_free_hook)(void *, const void *);
+static void *(*old_realloc_hook)(void *, size_t, const void *);
 
 /* Override initializing hook from the C library. */
-void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook)(void) = jmem_profiler_init_malloc_hook;
+void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook)(void) =
+    jmem_profiler_init_malloc_hook;
 
 // Hash table to store heap objects: key=<void* ptr> value=<size_t size>
 static HashTable g_heap_objects_ht;
@@ -45,8 +48,10 @@ static void jmem_profiler_init_malloc_hook(void) {
 
   old_malloc_hook = __malloc_hook;
   old_free_hook = __free_hook;
+  old_realloc_hook = __realloc_hook;
   __malloc_hook = jmem_profiler_malloc_hook;
   __free_hook = jmem_profiler_free_hook;
+  __realloc_hook = jmem_profiler_realloc_hook;
 }
 
 static void *jmem_profiler_malloc_hook(size_t size, const void *caller) {
@@ -55,19 +60,22 @@ static void *jmem_profiler_malloc_hook(size_t size, const void *caller) {
   // Restore old hooks
   __malloc_hook = old_malloc_hook;
   __free_hook = old_free_hook;
+  __realloc_hook = old_realloc_hook;
 
   // Inner call of malloc
   result = malloc(size);
 
   ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&size);
   JERRY_CONTEXT(jmem_total_heap_size) += size;
-  
+
 
   // Restore our hooks
   old_malloc_hook = __malloc_hook;
   old_free_hook = __free_hook;
+  old_realloc_hook = __realloc_hook;
   __malloc_hook = jmem_profiler_malloc_hook;
   __free_hook = jmem_profiler_free_hook;
+  __realloc_hook = jmem_profiler_realloc_hook;
 
   JERRY_UNUSED(caller);
   return result;
@@ -77,6 +85,7 @@ static void jmem_profiler_free_hook(void *ptr, const void *caller) {
   // Restore old hooks
   __malloc_hook = old_malloc_hook;
   __free_hook = old_free_hook;
+  __realloc_hook = old_realloc_hook;
 
   // Inner call of free
   free(ptr);
@@ -90,10 +99,42 @@ static void jmem_profiler_free_hook(void *ptr, const void *caller) {
   // Restore our hooks
   old_malloc_hook = __malloc_hook;
   old_free_hook = __free_hook;
+  old_realloc_hook = __realloc_hook;
   __malloc_hook = jmem_profiler_malloc_hook;
   __free_hook = jmem_profiler_free_hook;
+  __realloc_hook = jmem_profiler_realloc_hook;
 
   JERRY_UNUSED(caller);
+}
+
+static void *jmem_profiler_realloc_hook(void *ptr, size_t new_size,
+                                        const void *caller) {
+  void *result;
+
+  // Restore old hooks
+  __malloc_hook = old_malloc_hook;
+  __free_hook = old_free_hook;
+  __realloc_hook = old_realloc_hook;
+
+  // Inner call of free
+  result = realloc(ptr, new_size);
+
+  if (ht_contains(&g_heap_objects_ht, &ptr)) {
+    size_t old_size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
+    ht_erase(&g_heap_objects_ht, (void *)&ptr);
+    JERRY_CONTEXT(jmem_total_heap_size) -= old_size;
+
+    ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&size);
+    JERRY_CONTEXT(jmem_total_heap_size) += new_size;
+  }
+
+  // Restore our hooks
+  old_malloc_hook = __malloc_hook;
+  old_free_hook = __free_hook;
+  old_realloc_hook = __realloc_hook;
+  __malloc_hook = jmem_profiler_malloc_hook;
+  __free_hook = jmem_profiler_free_hook;
+  __realloc_hook = jmem_profiler_realloc_hook;
 }
 #endif /* defined(PROF_SIZE) */
 
@@ -107,7 +148,8 @@ inline void __attr_always_inline___ init_size_profiler(void) {
   fprintf(fp1,
           "Timestamp (s), Blocks Size (B), Full-bitwidth Pointer Overhead (B), "
           "Allocated Heap Size (B), System Allocator Metadata Size (B), "
-          "Segment Metadata Size (B), Snapshot Size (B), Total Heap Size (B), GC Threshold (B), GC Count\n");
+          "Segment Metadata Size (B), Snapshot Size (B), Total Heap Size (B), "
+          "GC Threshold (B), GC Count\n");
   fflush(fp1);
   fclose(fp1);
 #if defined(PROF_SIZE__PERIOD_USEC)
@@ -167,10 +209,10 @@ inline void __attr_always_inline___ __print_total_size_profile(void) {
   uint32_t gc_threshold = (uint32_t)JERRY_CONTEXT(jmem_heap_limit);
   uint32_t gc_count = (uint32_t)JERRY_CONTEXT(jmem_size_profiler_gc_count);
 
-  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n", js_uptime.tv_sec,
-          js_uptime.tv_usec, blocks_size, full_bw_oh, alloc_heap_size,
-          sysalloc_meta_size, segment_meta_size, snapshot_size, total_heap_size,
-          gc_threshold, gc_count);
+  fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n",
+          js_uptime.tv_sec, js_uptime.tv_usec, blocks_size, full_bw_oh,
+          alloc_heap_size, sysalloc_meta_size, segment_meta_size, snapshot_size,
+          total_heap_size, gc_threshold, gc_count);
   fflush(fp);
   fclose(fp);
 #endif /* defined(PROF_SIZE) */
