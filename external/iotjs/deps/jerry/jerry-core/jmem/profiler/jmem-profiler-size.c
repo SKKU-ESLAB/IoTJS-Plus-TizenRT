@@ -124,7 +124,7 @@ static void *jmem_profiler_realloc_hook(void *ptr, size_t new_size,
     ht_erase(&g_heap_objects_ht, (void *)&ptr);
     JERRY_CONTEXT(jmem_total_heap_size) -= old_size;
 
-    ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&size);
+    ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
     JERRY_CONTEXT(jmem_total_heap_size) += new_size;
   }
 
@@ -135,6 +135,9 @@ static void *jmem_profiler_realloc_hook(void *ptr, size_t new_size,
   __malloc_hook = jmem_profiler_malloc_hook;
   __free_hook = jmem_profiler_free_hook;
   __realloc_hook = jmem_profiler_realloc_hook;
+
+  JERRY_UNUSED(caller);
+  return result;
 }
 #endif /* defined(PROF_SIZE) */
 
