@@ -81,6 +81,9 @@ static void *jmem_profiler_malloc_hook(size_t size, const void *caller) {
   return result;
 }
 
+//static int free_error_count = 0;
+//static int realloc_error_count = 0;
+
 static void jmem_profiler_free_hook(void *ptr, const void *caller) {
   // Restore old hooks
   __malloc_hook = old_malloc_hook;
@@ -94,6 +97,8 @@ static void jmem_profiler_free_hook(void *ptr, const void *caller) {
     size_t size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
     ht_erase(&g_heap_objects_ht, (void *)&ptr);
     JERRY_CONTEXT(jmem_total_heap_size) -= size;
+  } else {
+    // printf("free error: %x\n", free_error_count++);
   }
 
   // Restore our hooks
@@ -126,6 +131,8 @@ static void *jmem_profiler_realloc_hook(void *ptr, size_t new_size,
 
     ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
     JERRY_CONTEXT(jmem_total_heap_size) += new_size;
+  } else {
+    // printf("realloc error: %x\n", realloc_error_count++);
   }
 
   // Restore our hooks
