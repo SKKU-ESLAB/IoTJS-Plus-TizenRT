@@ -29,7 +29,7 @@
 
 /* Heap allocation type */
 // 1) Real dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled
-#define JMEM_SEGMENTED_HEAP // 2) Segmented heap
+// #define JMEM_SEGMENTED_HEAP // 2) Segmented heap
 // #define JMEM_DYNAMIC_HEAP_EMUL // 3) Dynamic heap emulation
 // 4) Static heap - else
 
@@ -74,8 +74,8 @@
 #define JMEM_PROFILE
 
 #ifdef JMEM_PROFILE
-#define PROF_SIZE
-// #define PROF_TIME
+// #define PROF_SIZE
+#define PROF_TIME
 // #define PROF_PMU
 // #define PROF_CPTL // It may degrade performance
 // #define PROF_SEGMENT // It may degrade performance
@@ -93,7 +93,7 @@
 
 // #define PROF_TIME__ALLOC         // It may degrade performance
 // #define PROF_TIME__FREE          // It may degrade performance
-#define PROF_TIME__GC // It may degrade performance
+// #define PROF_TIME__GC // It may degrade performance
 // #define PROF_TIME__DECOMPRESSION // It may degrade performance
 // #define PROF_TIME__COMPRESSION   // It may degrade performance
 

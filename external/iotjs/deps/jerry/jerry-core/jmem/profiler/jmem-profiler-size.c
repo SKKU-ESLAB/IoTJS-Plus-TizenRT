@@ -23,7 +23,7 @@
 
 static void __print_total_size_profile(void);
 
-#if defined(PROF_SIZE)
+#if defined(PROF_MODE_ARTIK053) && defined(PROF_SIZE)
 /* Prototypes for our hooks.  */
 static void jmem_profiler_init_malloc_hook(void);
 static void *jmem_profiler_malloc_hook(size_t, const void *);
@@ -146,7 +146,7 @@ static void *jmem_profiler_realloc_hook(void *ptr, size_t new_size,
   JERRY_UNUSED(caller);
   return result;
 }
-#endif /* defined(PROF_SIZE) */
+#endif /* defined(PROF_MODE_ARTIK053) && defined(PROF_SIZE) */
 
 /* Total size profiling */
 inline void __attr_always_inline___ init_size_profiler(void) {
