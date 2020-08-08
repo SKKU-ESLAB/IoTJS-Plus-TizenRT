@@ -213,6 +213,9 @@ int iotjs_entry(int argc, char** argv) {
   // Set event loop.
   iotjs_environment_set_loop(env, uv_default_loop());
 
+  // jmem-profiler
+  jerry_set_heap_size_ptr(uv_get_heap_size_ptr());
+
   // Start iot.js.
   ret_code = iotjs_start(env);
 

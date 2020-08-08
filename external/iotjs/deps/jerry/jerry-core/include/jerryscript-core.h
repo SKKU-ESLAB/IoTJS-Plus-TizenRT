@@ -440,6 +440,7 @@ void jerry_set_vm_exec_stop_callback (jerry_vm_exec_stop_callback_t stop_cb, voi
 
 // jmem-profiler
 void jerry_will_cleanup(void);
+void jerry_set_heap_size_ptr(size_t*);
 
 /**
  * @}

@@ -52,6 +52,7 @@
 # include <net/if.h> /* if_nametoindex */
 #endif
 
+#include "hashtable.h"
 
 typedef struct {
   uv_malloc_func local_malloc;
@@ -77,8 +78,22 @@ char* uv__strdup(const char* s) {
 }
 #endif
 
+// Hash table to store heap objects: key=<void* ptr> value=<size_t size>
+static HashTable g_heap_objects_ht;
+static size_t g_heap_size;
+
+size_t* uv_get_heap_size_ptr(void) {
+  return &g_heap_size;
+}
+
 void* uv__malloc(size_t size) {
-  return uv__allocator.local_malloc(size);
+  void* result = uv__allocator.local_malloc(size);
+
+  // size-profiler
+  ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&size);
+  g_heap_size += size;
+
+  return result;
 }
 
 void uv__free(void* ptr) {
@@ -90,14 +105,60 @@ void uv__free(void* ptr) {
   saved_errno = errno;
   uv__allocator.local_free(ptr);
   errno = saved_errno;
+
+  // size-profiler
+  if (ht_contains(&g_heap_objects_ht, &ptr)) {
+    size_t size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
+    ht_erase(&g_heap_objects_ht, (void *)&ptr);
+    g_heap_size -= size;
+  } else {
+    // printf("free error: %x\n", free_error_count++);
+  }
 }
 
 void* uv__calloc(size_t count, size_t size) {
-  return uv__allocator.local_calloc(count, size);
+  void* result = uv__allocator.local_calloc(count, size);
+
+  // size-profiler
+  size_t new_size = count * size;
+  ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
+  g_heap_size += new_size;
+
+  return result;
 }
 
 void* uv__realloc(void* ptr, size_t size) {
-  return uv__allocator.local_realloc(ptr, size);
+  void* result = uv__allocator.local_realloc(ptr, size);
+
+  size_t new_size = size;
+  if(ptr == NULL) {
+    // Equivalent to malloc
+    ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
+    g_heap_size += new_size;
+  } else if(new_size == 0 && ptr != NULL) {
+    // Equivalent to free
+    if (ht_contains(&g_heap_objects_ht, &ptr)) {
+      size_t old_size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
+      ht_erase(&g_heap_objects_ht, (void *)&ptr);
+      g_heap_size -= old_size;
+    } else {
+      //printf("realloc error 1: %d\n", realloc_error_count++);
+    }
+  } else {
+    // Equivalent to realloc
+    if (ht_contains(&g_heap_objects_ht, &ptr)) {
+      size_t old_size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
+      ht_erase(&g_heap_objects_ht, (void *)&ptr);
+      g_heap_size -= old_size;
+
+      ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
+      g_heap_size += new_size;
+    } else {
+      //printf("realloc error 2: %d\n", realloc_error_count++);
+    }
+  }
+
+  return result;
 }
 
 uv_buf_t uv_buf_init(char* base, unsigned int len) {
@@ -447,6 +508,10 @@ static uv_loop_t* default_loop_ptr;
 
 
 uv_loop_t* uv_default_loop(void) {
+  // size-profiler
+  ht_setup(&g_heap_objects_ht, sizeof(void *), sizeof(size_t), 10);
+  ht_reserve(&g_heap_objects_ht, 100);
+  
   if (default_loop_ptr != NULL)
     return default_loop_ptr;
 

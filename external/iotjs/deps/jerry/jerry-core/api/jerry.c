@@ -205,6 +205,11 @@ void jerry_will_cleanup(void) {
   // TODO: not implemented
 }
 
+// jmem-profiler
+void jerry_set_heap_size_ptr(size_t* heap_size_ptr) {
+  set_extern_heap_size_ptr(heap_size_ptr);
+}
+
 /**
  * Retrieve a context data item, or create a new one.
  *

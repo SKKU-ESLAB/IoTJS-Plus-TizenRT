@@ -23,6 +23,12 @@
 
 static void __print_total_size_profile(void);
 
+static size_t* extern_heap_size_ptr = NULL;
+
+extern void set_extern_heap_size_ptr(size_t* size_ptr) {
+  extern_heap_size_ptr = size_ptr;
+}
+
 #if defined(PROF_MODE_ARTIK053) && defined(PROF_SIZE)
 /* Prototypes for our hooks.  */
 static void jmem_profiler_init_malloc_hook(void);
@@ -124,15 +130,31 @@ static void *jmem_profiler_realloc_hook(void *ptr, size_t new_size,
   // Inner call of free
   result = realloc(ptr, new_size);
 
-  if (ht_contains(&g_heap_objects_ht, &ptr)) {
-    size_t old_size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
-    ht_erase(&g_heap_objects_ht, (void *)&ptr);
-    JERRY_CONTEXT(jmem_total_heap_size) -= old_size;
-
+  if(ptr == NULL) {
+    // Equivalent to malloc
     ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
     JERRY_CONTEXT(jmem_total_heap_size) += new_size;
+  } else if(new_size == 0 && ptr != NULL) {
+    // Equivalent to free
+    if (ht_contains(&g_heap_objects_ht, &ptr)) {
+      size_t old_size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
+      ht_erase(&g_heap_objects_ht, (void *)&ptr);
+      JERRY_CONTEXT(jmem_total_heap_size) -= old_size;
+    } else {
+      //printf("realloc error 1: %d\n", realloc_error_count++);
+    }
   } else {
-    // printf("realloc error: %x\n", realloc_error_count++);
+    // Equivalent to realloc
+    if (ht_contains(&g_heap_objects_ht, &ptr)) {
+      size_t old_size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
+      ht_erase(&g_heap_objects_ht, (void *)&ptr);
+      JERRY_CONTEXT(jmem_total_heap_size) -= old_size;
+
+      ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
+      JERRY_CONTEXT(jmem_total_heap_size) += new_size;
+    } else {
+      //printf("realloc error 2: %d\n", realloc_error_count++);
+    }
   }
 
   // Restore our hooks
@@ -215,9 +237,13 @@ inline void __attr_always_inline___ __print_total_size_profile(void) {
   uint32_t segment_meta_size =
       (uint32_t)JERRY_CONTEXT(jmem_segment_allocator_metadata_size);
   uint32_t snapshot_size = (uint32_t)JERRY_CONTEXT(jmem_snapshot_size);
-  uint32_t total_heap_size = (uint32_t)JERRY_CONTEXT(jmem_total_heap_size);
   uint32_t gc_threshold = (uint32_t)JERRY_CONTEXT(jmem_heap_limit);
   uint32_t gc_count = (uint32_t)JERRY_CONTEXT(jmem_size_profiler_gc_count);
+  uint32_t total_heap_size = (uint32_t)JERRY_CONTEXT(jmem_total_heap_size);
+  if(extern_heap_size_ptr != NULL) {
+    // Tizen RT
+    total_heap_size = alloc_heap_size + (uint32_t)*extern_heap_size_ptr;
+  }
 
   fprintf(fp, "%lu.%06lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n",
           js_uptime.tv_sec, js_uptime.tv_usec, blocks_size, full_bw_oh,

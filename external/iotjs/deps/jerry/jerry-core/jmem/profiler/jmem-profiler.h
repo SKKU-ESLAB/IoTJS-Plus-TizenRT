@@ -23,6 +23,8 @@
 extern void init_profilers(void);
 extern void finalize_profilers(void);
 
+extern void set_extern_heap_size_ptr(size_t*);
+
 /* jmem-profiler-size.c: size profiling */
 extern void print_total_size_profile_on_alloc(void);
 extern void print_total_size_profile_finally(void);

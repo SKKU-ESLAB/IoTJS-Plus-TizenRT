@@ -33,6 +33,7 @@ set(COMMON_SRCFILES
     ${SOURCE_ROOT}/queue.h
     ${SOURCE_ROOT}/threadpool.c
     ${SOURCE_ROOT}/uv-common.c
+    ${SOURCE_ROOT}/hashtable.c
     ${SOURCE_ROOT}/uv-common.h
 #   ${SOURCE_ROOT}/version.c
     ${SOURCE_ROOT}/tuv_debuglog.c
