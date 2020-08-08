@@ -29,7 +29,7 @@ extern void set_extern_heap_size_ptr(size_t* size_ptr) {
   extern_heap_size_ptr = size_ptr;
 }
 
-#if defined(PROF_MODE_ARTIK053) && defined(PROF_SIZE)
+#if !defined(PROF_MODE_ARTIK053) && defined(PROF_SIZE)
 /* Prototypes for our hooks.  */
 static void jmem_profiler_init_malloc_hook(void);
 static void *jmem_profiler_malloc_hook(size_t, const void *);
