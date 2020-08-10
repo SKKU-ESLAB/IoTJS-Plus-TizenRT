@@ -54,6 +54,9 @@
 
 #include "hashtable.h"
 
+// jmem-config
+// #define ENABLE_UV_HEAP_SIZE_TRACKING
+
 typedef struct {
   uv_malloc_func local_malloc;
   uv_realloc_func local_realloc;
@@ -89,10 +92,11 @@ size_t* uv_get_heap_size_ptr(void) {
 void* uv__malloc(size_t size) {
   void* result = uv__allocator.local_malloc(size);
 
+#if defined(ENABLE_UV_HEAP_SIZE_TRACKING)
   // size-profiler
   ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&size);
   g_heap_size += size;
-
+#endif
   return result;
 }
 
@@ -106,6 +110,7 @@ void uv__free(void* ptr) {
   uv__allocator.local_free(ptr);
   errno = saved_errno;
 
+#if defined(ENABLE_UV_HEAP_SIZE_TRACKING)
   // size-profiler
   if (ht_contains(&g_heap_objects_ht, &ptr)) {
     size_t size = *(size_t *)ht_lookup(&g_heap_objects_ht, (void *)&ptr);
@@ -114,15 +119,18 @@ void uv__free(void* ptr) {
   } else {
     // printf("free error: %x\n", free_error_count++);
   }
+#endif
 }
 
 void* uv__calloc(size_t count, size_t size) {
   void* result = uv__allocator.local_calloc(count, size);
 
+#if defined(ENABLE_UV_HEAP_SIZE_TRACKING)
   // size-profiler
   size_t new_size = count * size;
   ht_insert(&g_heap_objects_ht, (void *)&result, (void *)&new_size);
   g_heap_size += new_size;
+#endif
 
   return result;
 }
@@ -130,6 +138,7 @@ void* uv__calloc(size_t count, size_t size) {
 void* uv__realloc(void* ptr, size_t size) {
   void* result = uv__allocator.local_realloc(ptr, size);
 
+#if defined(ENABLE_UV_HEAP_SIZE_TRACKING)
   size_t new_size = size;
   if(ptr == NULL) {
     // Equivalent to malloc
@@ -157,6 +166,7 @@ void* uv__realloc(void* ptr, size_t size) {
       //printf("realloc error 2: %d\n", realloc_error_count++);
     }
   }
+#endif
 
   return result;
 }
