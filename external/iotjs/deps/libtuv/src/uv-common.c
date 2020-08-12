@@ -519,8 +519,10 @@ static uv_loop_t* default_loop_ptr;
 
 uv_loop_t* uv_default_loop(void) {
   // size-profiler
+#if defined(ENABLE_UV_HEAP_SIZE_TRACKING)
   ht_setup(&g_heap_objects_ht, sizeof(void *), sizeof(size_t), 10);
   ht_reserve(&g_heap_objects_ht, 100);
+#endif
   
   if (default_loop_ptr != NULL)
     return default_loop_ptr;
