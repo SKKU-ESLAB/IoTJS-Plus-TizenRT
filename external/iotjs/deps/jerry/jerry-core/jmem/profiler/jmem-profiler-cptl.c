@@ -100,7 +100,7 @@ inline void __attr_always_inline___ print_cptl_access(uint32_t sidx,
   uint32_t consec_hit_count = 0;
 #endif
 
-  if(type_miss_penalty >= 0) {
+  if(type_miss_penalty > 0) {
     type_miss_penalty = (int)GET_LOOKUP_DEPTH();
   }
 

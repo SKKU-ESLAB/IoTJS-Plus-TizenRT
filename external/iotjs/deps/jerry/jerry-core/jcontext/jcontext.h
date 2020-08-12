@@ -375,7 +375,7 @@ typedef struct
   // Internal variable used by access_and_check_rmap_cache() and update_rmap_cache().
 #if (SEG_RMAP_CACHE_SIZE > SEG_RMAP_CACHE_SET_SIZE)
   // Direct-mapped cache or set-associative cache
-  uint32_t rmc_tag;
+  uint32_t rmc_index;
 
 #if (SEG_RMAP_CACHE_SET_SIZE != 1)
   // Set-associative cache

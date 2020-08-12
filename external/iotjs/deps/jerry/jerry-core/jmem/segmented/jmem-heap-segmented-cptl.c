@@ -67,13 +67,6 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   profile_compression_start();
   profile_compression_cycles_start();
   sidx = addr_to_saddr_and_sidx((uint8_t *)p);
-  if (likely(sidx < SEG_NUM_SEGMENTS)) {
-    cp = JERRY_HEAP_CONTEXT(comp_i_offset) + (sidx << SEG_SEGMENT_SHIFT);
-  } else if (p == (uint8_t *)&JERRY_HEAP_CONTEXT(first)) {
-    cp = 0;
-  } else {
-    cp = (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
-  }
 #if defined(PROF_TIME__COMPRESSION_DETAILED) || \
     defined(PROF_PMU__COMPRESSION_CYCLES_DETAILED)
   profile_compression_cycles_end(JERRY_CONTEXT(recent_compression_type));
@@ -82,6 +75,13 @@ cptl_compress_pointer_internal(jmem_heap_free_t *p) {
   profile_compression_cycles_end(0);
   profile_compression_end(0); // COMPRESSION_RMC_HIT
 #endif
+  if (likely(sidx < SEG_NUM_SEGMENTS)) {
+    cp = JERRY_HEAP_CONTEXT(comp_i_offset) + (sidx << SEG_SEGMENT_SHIFT);
+  } else if (p == (uint8_t *)&JERRY_HEAP_CONTEXT(first)) {
+    cp = 0;
+  } else {
+    cp = (uint32_t)JMEM_HEAP_END_OF_LIST_UINT32;
+  }
 
 #ifdef PROF_COUNT__COMPRESSION_CALLERS
   profile_inc_count_compression_callers(0); // compression callers
@@ -228,7 +228,6 @@ inline void __attr_always_inline___ invalidate_fifo_cache_entry(uint32_t sidx) {
 // * Core part of compression
 // * jmem-heap-segmented-cptl.h
 inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
-  // addr_to_saddr_and_sidx(uint8_t *addr, uint8_t **saddr_out) {
   uint32_t sidx;
   CLEAR_LOOKUP_DEPTH();
 
@@ -266,7 +265,7 @@ inline uint32_t __attribute__((hot)) addr_to_saddr_and_sidx(uint8_t *addr) {
 #endif /* defined(SEG_RMAP_CACHE) */
 
   profile_inc_rmc_miss_count(); // CPTL reverse map caching profiling
-  print_cptl_access(sidx, 0);   // CPTL access profiling
+  print_cptl_access(sidx, 1);   // CPTL access profiling
   return sidx;
 }
 #endif /* defined(JMEM_SEGMENTED_HEAP) */

@@ -29,7 +29,7 @@
 
 /* Heap allocation type */
 // 1) Real dynamic heap - if JMEM_SYSTEM_ALLOCATOR in CMakeLists.txt is enabled
-// #define JMEM_SEGMENTED_HEAP // 2) Segmented heap
+#define JMEM_SEGMENTED_HEAP // 2) Segmented heap
 // #define JMEM_DYNAMIC_HEAP_EMUL // 3) Dynamic heap emulation
 // 4) Static heap - else
 
