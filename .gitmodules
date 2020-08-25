@@ -13,3 +13,6 @@
 [submodule "external/stdk/st-device-sdk-c"]
 	path = external/stdk/st-device-sdk-c
 	url = https://github.com/SmartThingsCommunity/st-device-sdk-c
+[submodule "external/iotjs"]
+	path = external/iotjs
+	url = https://github.com/SKKU-ESLAB/ANT-iotjs
